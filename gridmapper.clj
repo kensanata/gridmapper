@@ -12,6 +12,7 @@
 
 (def EMPTY_TILE (ImageIcon. "empty.png"))
 (def FLOOR_TILE (ImageIcon. "floor.png"))
+(def TRAP_TILE  (ImageIcon. "trap.png"))
 ;; virtual tiles and their equivalents
 (def DOOR_TILE #'DOOR_TILE)
 (def DOOR_NS_TILE (ImageIcon. "door_ns.png"))
@@ -138,6 +139,7 @@ or dragged into a grid cell."
        (let [c (.getKeyChar e)]
 	 (condp = c
 	     \d (set-tile DOOR_TILE)
+	     \t (set-tile TRAP_TILE)
 	     \n (set-tile FLOOR_TILE)
 	     true)))))
 

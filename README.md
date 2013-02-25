@@ -14,6 +14,9 @@ which you can enter by pressing a key:
 `n` enters *normal mode* and it's the default. Clicking a tile will
 toggle between the tile and empty space.
 
+`t` enters *trap mode*. Clicking a tile will toggle between the tile
+and a trap.
+
 `d` enters *door mode*. Clicking a tile will toggle between the tile
 and a door, if possible. A door is possible when two opposing sides
 are empty and the other two opposing sides contain tiles, ie. we're
