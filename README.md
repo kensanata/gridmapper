@@ -19,6 +19,8 @@ and a door, if possible. A door is possible when two opposing sides
 are empty and the other two opposing sides contain tiles, ie. we're
 looking at a corridor.
 
+![Screenshot](http://alexschroeder.ch/pics/gridmapper-3.png)
+
 The code was the result of me experimenting with Clojure. You can see
 how it all began
 [on my website](http://alexschroeder.ch/wiki/2010-06-10_Clojure_Einf%C3%BChrung)
