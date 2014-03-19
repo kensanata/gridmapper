@@ -1,4 +1,4 @@
-(defproject gridmapper "0.9.9"
+(defproject gridmapper "1.0.0"
   :description "Utility to create simple dungeon maps for role-playing games."
   :url "https://github.com/kensanata/gridmapper"
   :license {:name "CC0 1.0 Universal"

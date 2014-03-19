@@ -5,13 +5,13 @@
 	   (java.awt.event KeyAdapter InputEvent))
   (:gen-class))
 
-(def EMPTY_TILE (ImageIcon. (.getPath (clojure.java.io/resource "empty.png"))))
-(def FLOOR_TILE (ImageIcon. (.getPath (clojure.java.io/resource "floor.png"))))
-(def TRAP_TILE  (ImageIcon. (.getPath (clojure.java.io/resource "trap.png"))))
+(def EMPTY_TILE (ImageIcon. (clojure.java.io/resource "empty.png")))
+(def FLOOR_TILE (ImageIcon. (clojure.java.io/resource "floor.png")))
+(def TRAP_TILE  (ImageIcon. (clojure.java.io/resource "trap.png")))
 ;; virtual tiles and their equivalents
 (def DOOR_TILE #'DOOR_TILE)
-(def DOOR_NS_TILE (ImageIcon. (.getPath (clojure.java.io/resource "door_ns.png"))))
-(def DOOR_EW_TILE (ImageIcon. (.getPath (clojure.java.io/resource "door_ew.png"))))
+(def DOOR_NS_TILE (ImageIcon. (clojure.java.io/resource "door_ns.png")))
+(def DOOR_EW_TILE (ImageIcon. (clojure.java.io/resource "door_ew.png")))
 
 (def cell-positions (atom {}))
 
