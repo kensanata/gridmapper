@@ -2,11 +2,15 @@ Gridmapper
 ==========
 
 A little clojure program to create maps for role-playing games. It is
-written using Clojure.
+written using [Clojure](http://clojure.org/). Run it from the
+command-line using [Leiningen](http://leiningen.org/). Here is what I
+needed to do on my Mac, assuming I already have
+[Homebrew](http://brew.sh/) installed.
 
-Run it from the command-line:
-
-    clojure gridmapper.clj
+    brew install leiningen
+    git clone git@github.com:kensanata/gridmapper.git
+	cd gridmapper
+	lein run
 
 Click to draw a tile. Click on a tile toggles it. There are two modes
 which you can enter by pressing a key:
