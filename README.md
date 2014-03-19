@@ -28,7 +28,8 @@ looking at a corridor.
 
 ![Screenshot](http://alexschroeder.ch/pics/gridmapper-3.png)
 
-The code was the result of me experimenting with Clojure. You can see
-how it all began
+The code was the result of admiring Daniel R. Collins'
+[original GridMapper 1.0](http://www.superdan.net/software/gridmapper/)
+and me experimenting with Clojure. You can see how it all began
 [on my website](http://alexschroeder.ch/wiki/2010-06-10_Clojure_Einf%C3%BChrung)
 (in German).
