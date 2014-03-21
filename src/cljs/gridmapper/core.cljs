@@ -17,18 +17,43 @@
            true
            (conj grid (Cell. x y "empty")))))
 
+;; --------------------------------------------------
+
 ;; this is our model
+
 (def model {:dim 30
-            :grid (atom (make-grid 30))})
+            :grid (atom (make-grid 30))
+            :pen (atom nil)})
 
 (defn set-tile [cell tile]
-  ;; (p tile)
-  (let [grid @(:grid model)]
-    (reset! (:grid model)
-            (conj (disj grid cell)
-                  (Cell. (:x cell) (:y cell) tile)))))
+  ;; (p (str "set-tile "tile))
+  (when tile
+    (let [grid @(:grid model)]
+      (reset! (:grid model)
+              (conj (disj grid cell)
+                    (Cell. (:x cell) (:y cell) tile))))))
+
+(defn draw-on [cell]
+  ;; use whatever the pen says
+  ;; (p "draw-on")
+  (set-tile cell @(:pen model)))
+
+(defn set-pen [cell]
+  ;; eventually this should depend on the mode
+  (reset! (:pen model)
+          (cond (not cell); no pen
+                nil
+                (= (:tile cell) "floor")
+                "empty"
+                (= (:tile cell) "empty")
+                "floor"
+                true; current tile is undefined
+                nil)))
+
+;; --------------------------------------------------
 
 ;; this is the view       
+
 (bind! "#mapper"
        (let [dim (:dim model)
              width 20
@@ -64,10 +89,28 @@
 
                      ))]]]))
 
-(on "#grid"
-    :click
+;; --------------------------------------------------
+
+;; this is the controller
+
+(on "#grid" :mousedown
     (fn [cell]
-      ;; (p cell)
-      (if (= (:tile cell) "floor")
-        (set-tile cell "empty")
-        (set-tile cell "floor"))))
+      ;; (p "down")
+      (set-pen cell)))
+
+(on "#grid" :mouseup
+    (fn [cell]
+      ;; (p "up")
+      (set-pen nil)))
+
+(on "#grid" :mousemove
+    (fn [cell node event]
+      (draw-on cell)))
+
+(on "#grid" :click
+    (fn [cell]
+      ;; a click is DOWN UP CLICK -- so the pen is NIL again
+      ;; (p "click")
+      (set-pen cell)
+      (draw-on cell)
+      (set-pen nil)))

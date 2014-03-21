@@ -33,3 +33,15 @@ The code was the result of admiring Daniel R. Collins'
 and me experimenting with Clojure. You can see how it all began
 [on my website](http://alexschroeder.ch/wiki/2010-06-10_Clojure_Einf%C3%BChrung)
 (in German).
+
+Web Application
+---------------
+
+The web application can be launched and developped using the
+following:
+
+    lein cljsbuild auto
+	open public/index.html
+
+Note: Currently only WebKit browser appear to be supported! Switch to
+Safari or Chrome.
