@@ -76,6 +76,7 @@
             (unify buttons
                    (fn [{:keys [key pos id description]}]
                      [:g {:id id :class "button"}
+                      ;; frame around button
                       [:rect {:x (+ (* dim width) 50)
                               :y (+ (* 100 pos) 20)
                               :width 80
@@ -83,6 +84,7 @@
                               :fill "#fff"
                               :stroke "#000"
                               :stroke-width 2}]
+                      ;; key
                       [:text {:x (+ (* dim width) 90)
                               :y (+ (* 100 pos) 60)
                               :text-anchor "middle"
@@ -91,6 +93,7 @@
                               :font-family "Courrier"
                               :fill "#000"}
                        key]
+                      ;; description
                       [:text {:x (+ (* dim width) 90)
                               :y (+ (* 100 pos) 95)
                               :text-anchor "middle"
@@ -129,6 +132,10 @@
                 true; current tile is undefined
                 nil)))
 
+(defn set-mode [mode]
+  (p mode)
+  (reset! (:mode model) mode))
+
 (on "#grid" :mousedown
     (fn [cell]
       ;; (p "down")
@@ -156,4 +163,4 @@
 
 (on "#buttons" :click
     (fn [button]
-      (p (:id button))))
+      (set-mode (:id button))))
