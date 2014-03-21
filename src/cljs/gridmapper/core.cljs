@@ -22,7 +22,7 @@
             :grid (atom (make-grid 30))})
 
 (defn set-tile [cell tile]
-  (p tile)
+  ;; (p tile)
   (let [grid @(:grid model)]
     (reset! (:grid model)
             (conj (disj grid cell)
@@ -67,7 +67,7 @@
 (on "#grid"
     :click
     (fn [cell]
-      (p cell)
+      ;; (p cell)
       (if (= (:tile cell) "floor")
         (set-tile cell "empty")
         (set-tile cell "floor"))))
