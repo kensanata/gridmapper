@@ -17,16 +17,16 @@
            true
            (conj grid (Cell. x y "empty")))))
 
+;; this is our model
+(def model {:dim 30
+            :grid (atom (make-grid 30))})
+
 (defn set-tile [cell tile]
   (p tile)
   (let [grid @(:grid model)]
     (reset! (:grid model)
             (conj (disj grid cell)
                   (Cell. (:x cell) (:y cell) tile)))))
-
-;; this is our model
-(def model {:dim 30
-            :grid (atom (make-grid 30))})
 
 ;; this is the view       
 (bind! "#mapper"
@@ -39,23 +39,25 @@
          [:div
                      
           [:svg {:xmlns "http://www.w3.org/2000/svg"
-                 :xmlns:xlink "http://www.w3.org/1999/xlink"
+                 ;; :xmlns:xlink "http://www.w3.org/1999/xlink"
                  :height (* dim width) :width (* dim width) }
            
-           [:defs
-            [:rect#empty {:x 0 :y 0 :height width :width width :fill "#555" :stroke "#000"}]
-            [:rect#floor {:x 0 :y 0 :height width :width width :fill "#fff" :stroke "#000"}]]
+           ;; [:defs
+           ;;  [:rect#empty {:x 0 :y 0 :height width :width width :fill "#555" :stroke "#000"}]
+           ;;  [:rect#floor {:x 0 :y 0 :height width :width width :fill "#fff" :stroke "#000"}]]
 
            [:g#grid
             
             (unify grid
                    (fn [cell]
-                     (if (= (:tile cell) "floor")
-                       [:rect#floor {:x (s (:x cell)) :y (s (:y cell))
-                                     :height width :width width :fill "#fff" :stroke "#000"}]
-                       [:rect#empty {:x (s (:x cell)) :y (s (:y cell))
-                                     :height width :width width :fill "#555" :stroke "#000"}])
 
+                     (cond (= (:tile cell) "floor")
+                           [:rect#floor {:x (s (:x cell)) :y (s (:y cell))
+                                         :height width :width width :fill "#fff" :stroke "#000"}]
+                           (= (:tile cell) "empty")
+                           [:rect#empty {:x (s (:x cell)) :y (s (:y cell))
+                                         :height width :width width :fill "#555" :stroke "#000"}])
+                     
                      ;; [:use {:xlink:href (str "#" (:tile cell))
                      ;;        :x (s (:x cell))
                      ;;        :y (s (:y cell))}]
