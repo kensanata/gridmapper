@@ -22,14 +22,13 @@
            true
            (conj grid (Cell. x y :empty :empty :empty)))))
 
-(let [dim 3 width 20]
+(let [dim 30 width 20]
   (def model {:dim dim ;; cells
               :width width ;; pixels
               :scale (scale/linear :domain [0 dim]
                                    :range [0 (* dim width)])
               :grid (atom (make-grid dim))
-              :pen (atom nil)
-              :mode (atom "door")}))
+              :pen (atom nil)}))
 
 ;; --------------------------------------------------
 
@@ -65,7 +64,7 @@
                       (when (< (:y cell) (- dim 1))
                         [:rect.south {:x (s (:x cell)) :y (s (+ (:y cell) 0.8))
                                       :height (* width 0.4) :width width
-                                      :opacity 0.2}])
+                                      :opacity 0.1}])
                       (when (not (= (:s-wall cell) :empty))
                         [:g
                          [:rect] ;; keep the default rect
@@ -84,7 +83,7 @@
                       (when (< (:x cell) (- dim 1))
                         [:rect.east {:x (s (+ (:x cell) 0.8)) :y (s (:y cell))
                                      :height width :width (* width 0.4)
-                                     :opacity 0.2}])
+                                     :opacity 0.1}])
                       (when (not (= (:e-wall cell) :empty))
                         [:g
                          [:rect] ;; keep the default rect
@@ -154,42 +153,27 @@
                 true; current tile is undefined
                 nil)))
 
-(defn set-mode [mode]
-  (reset! (:mode model) mode))
+(defn set-south [cell something]
+  (reset! (:grid model)
+          (conj (disj @(:grid model) cell) 
+                (Cell. (:x cell) (:y cell)
+                       (:tile cell)
+                       something
+                       (:e-wall cell)))))
 
-(defn set-south-wall [cell mode]
-  (when mode
-    (let [grid @(:grid model)
-          width (:width model)
-          s (:scale model)
-          new-cell (Cell. (:x cell) (:y cell)
-                          (:tile cell)
-                          (if (= (:s-wall cell) :empty) mode :empty)
-                          (:e-wall cell))
-          door-id (str "#sdoor" (:x cell) "_" (:y cell))]
-      ;; update model
-      (reset! (:grid model)
-              (conj (disj grid cell) new-cell)))))
+(defn draw-south-door [cell]
+  (set-south cell (if (= (:s-wall cell) :empty) :door :empty)))
 
-(defn draw-south-wall [cell]
-  (set-south-wall cell @(:mode model)))
+(defn set-east [cell something]
+  (reset! (:grid model)
+          (conj (disj @(:grid model) cell)
+                (Cell. (:x cell) (:y cell)
+                       (:tile cell)
+                       (:s-wall cell)
+                       something))))
 
-(defn set-east-wall [cell mode]
-  (when mode
-    (let [grid @(:grid model)
-          width (:width model)
-          s (:scale model)
-          new-cell (Cell. (:x cell) (:y cell)
-                          (:tile cell)
-                          (:s-wall cell)
-                          (if (= (:e-wall cell) :empty) mode :empty))
-          door-id (str "#edoor" (:x cell) "_" (:y cell))]
-      ;; update model
-      (reset! (:grid model)
-              (conj (disj grid cell) new-cell)))))
-
-(defn draw-east-wall [cell]
-  (set-east-wall cell @(:mode model)))
+(defn draw-east-door [cell]
+  (set-east cell (if (= (:e-wall cell) :empty) :door :empty)))
 
 ;; installing handlers
 
@@ -225,15 +209,11 @@
       (p event)))
 
 (on "#sdoors" :click
-    (fn [cell]
-      (draw-south-wall cell)))
+    (fn [cell $node event]
+      ;; FIXME: use event.shiftKey and event.platformModifierKey to do walls/doors
+      (draw-south-door cell)))
 
 (on "#edoors" :click
-    (fn [cell]
-      (draw-east-wall cell)))
-
-;; buttons
-
-(on "#buttons" :click
-    (fn [button]
-      (set-mode (:id button))))
+    (fn [cell $node event]
+      ;; FIXME: use event.shiftKey and event.platformModifierKey to do walls/doors
+      (draw-east-door cell)))
