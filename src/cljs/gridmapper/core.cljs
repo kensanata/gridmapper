@@ -65,7 +65,16 @@
                       (when (< (:y cell) (- dim 1))
                         [:rect.south {:x (s (:x cell)) :y (s (+ (:y cell) 0.8))
                                       :height (* width 0.4) :width width
-                                      :opacity 0.2}])]))]
+                                      :opacity 0.2}])
+                      (when (not (= (:s-wall cell) :empty))
+                        [:g
+                         [:rect] ;; keep the default rect
+                         [:line.wall  {:x1 (s (:x cell)) :y1 (s (+ (:y cell) 1))
+                                       :x2 (s (+ (:x cell) 1)) :y2 (s (+ (:y cell) 1))
+                                       :stroke-width 4 :stroke "#000"}]
+                         [:rect.door  {:x (s (+ (:x cell) 0.2)) :y (s (+ (:y cell) 0.85))
+                                       :height (* width 0.3) :width (* width 0.6)
+                                       :fill "#fff" :stroke-width 1 :stroke "#000"}]])]))]
 
            [:g#edoors
             (unify grid
@@ -75,7 +84,16 @@
                       (when (< (:x cell) (- dim 1))
                         [:rect.east {:x (s (+ (:x cell) 0.8)) :y (s (:y cell))
                                      :height width :width (* width 0.4)
-                                     :opacity 0.2}])]))]
+                                     :opacity 0.2}])
+                      (when (not (= (:e-wall cell) :empty))
+                        [:g
+                         [:rect] ;; keep the default rect
+                         [:line.wall  {:x1 (s (+ (:x cell) 1)) :y1 (s (:y cell))
+                                       :x2 (s (+ (:x cell) 1)) :y2 (s (+ (:y cell) 1))
+                                       :stroke-width 4 :stroke "#000"}]
+                         [:rect.door  {:x (s (+ (:x cell) 0.85)) :y (s (+ (:y cell) 0.2))
+                                       :height (* width 0.6) :width (* width 0.3)
+                                       :fill "#fff" :stroke-width 1 :stroke "#000"}]])]))]
 
            [:g#buttons
             (unify buttons
@@ -151,20 +169,7 @@
           door-id (str "#sdoor" (:x cell) "_" (:y cell))]
       ;; update model
       (reset! (:grid model)
-              (conj (disj grid cell) new-cell))
-      ;; change binding
-      (p door-id)
-      (if (= (:s-wall new-cell) :empty)
-        (bind! door-id [:g [:rect]]) ;; remove the door elements!
-        (bind! door-id
-               [:g
-                [:rect] ;; keep the default rect
-                [:line.wall  {:x1 (s (:x cell)) :y1 (s (+ (:y cell) 1))
-                              :x2 (s (+ (:x cell) 1)) :y2 (s (+ (:y cell) 1))
-                              :stroke-width 4 :stroke "#000"}]
-                [:rect.door  {:x (s (+ (:x cell) 0.2)) :y (s (+ (:y cell) 0.8))
-                              :height (* width 0.4) :width (* width 0.6)
-                              :fill "#fff" :stroke-width 1 :stroke "#000"}]])))))
+              (conj (disj grid cell) new-cell)))))
 
 (defn draw-south-wall [cell]
   (set-south-wall cell @(:mode model)))
@@ -181,20 +186,7 @@
           door-id (str "#edoor" (:x cell) "_" (:y cell))]
       ;; update model
       (reset! (:grid model)
-              (conj (disj grid cell) new-cell))
-      ;; change binding
-      (p door-id)
-      (if (= (:e-wall new-cell) :empty)
-        (bind! door-id [:g [:rect]]) ;; remove the door elements!
-        (bind! door-id
-               [:g
-                [:rect] ;; keep the default rect
-                [:line.wall  {:x1 (s (+ (:x cell) 1)) :y1 (s (:y cell))
-                              :x2 (s (+ (:x cell) 1)) :y2 (s (+ (:y cell) 1))
-                              :stroke-width 4 :stroke "#000"}]
-                [:rect.door  {:x (s (+ (:x cell) 0.8)) :y (s (+ (:y cell) 0.2))
-                              :height (* width 0.6) :width (* width 0.4)
-                              :fill "#fff" :stroke-width 1 :stroke "#000"}]])))))
+              (conj (disj grid cell) new-cell)))))
 
 (defn draw-east-wall [cell]
   (set-east-wall cell @(:mode model)))
