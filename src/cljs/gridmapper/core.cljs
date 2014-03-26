@@ -22,13 +22,14 @@
            true
            (conj grid (Cell. x y :empty :empty :empty)))))
 
-(def model {:dim 5 ;; cells
-            :width 20 ;; pixels
-            :scale (scale/linear :domain [0 5]
-                                 :range [0 (* 5 20)])
-            :grid (atom (make-grid 5))
-            :pen (atom nil)
-            :mode (atom "door")})
+(let [dim 3 width 20]
+  (def model {:dim dim ;; cells
+              :width width ;; pixels
+              :scale (scale/linear :domain [0 dim]
+                                   :range [0 (* dim width)])
+              :grid (atom (make-grid dim))
+              :pen (atom nil)
+              :mode (atom "door")}))
 
 ;; --------------------------------------------------
 
@@ -43,7 +44,7 @@
                       {:key "$" :pos 1 :id "secret" :description "secret door"}
                       {:key "t" :pos 2 :id "trap" :description "trap"}]]
          
-         [:div {:tabindex 1}
+         [:div
                      
           [:svg {:xmlns "http://www.w3.org/2000/svg"
                  :width (+ (* dim width) 200) ;; add sidebar for buttons
@@ -56,14 +57,25 @@
                              :height width :width width :stroke "#000"
                              :fill (if (= (:tile cell) :floor) "#fff" "#555")}]))]
 
-           [:g#doors
+           [:g#sdoors
             (unify grid
                    (fn [cell]
                      [:g ;; even cells without doors need this group
+                      {:id (str "sdoor" (:x cell) "_" (:y cell))}
                       (when (< (:y cell) (- dim 1))
                         [:rect.south {:x (s (:x cell)) :y (s (+ (:y cell) 0.8))
                                       :height (* width 0.4) :width width
-                                      :opacity 0.1}])]))]
+                                      :opacity 0.2}])]))]
+
+           [:g#edoors
+            (unify grid
+                   (fn [cell]
+                     [:g ;; even cells without doors need this group
+                      {:id (str "edoor" (:x cell) "_" (:y cell))}
+                      (when (< (:x cell) (- dim 1))
+                        [:rect.east {:x (s (+ (:x cell) 0.8)) :y (s (:y cell))
+                                     :height width :width (* width 0.4)
+                                     :opacity 0.2}])]))]
 
            [:g#buttons
             (unify buttons
@@ -127,45 +139,65 @@
 (defn set-mode [mode]
   (reset! (:mode model) mode))
 
-(defn set-south-wall [cell mode node]
+(defn set-south-wall [cell mode]
   (when mode
     (let [grid @(:grid model)
           width (:width model)
           s (:scale model)
-          s-wall (if (= (:s-wall cell) :empty) mode :empty)]
-      (p (str "add " s-wall " to " (:x cell) "/" (:y cell)))
+          new-cell (Cell. (:x cell) (:y cell)
+                          (:tile cell)
+                          (if (= (:s-wall cell) :empty) mode :empty)
+                          (:e-wall cell))
+          door-id (str "#sdoor" (:x cell) "_" (:y cell))]
+      ;; update model
       (reset! (:grid model)
-              (conj (disj grid cell)
-                    (Cell. (:x cell) (:y cell) (:tile cell) s-wall (:e-wall cell))))
-      (if (= s-wall :empty)
-        (dom/remove! node)
-        (dom/append! node 
-                     [:g.door
-                      [:rect.south {:x (s (:x cell)) :y (s (+ (:y cell) 0.8))
-                                    :height (* width 0.4) :width width
-                                    :fill "#000" :opacity 0.3 :stroke "#000"}]
-                      [:line.wall  {:x1 (s (:x cell)) :y1 (s (+ (:y cell) 1))
-                                    :x2 (s (+ (:x cell) 1)) :y2 (s (+ (:y cell) 1))
-                                    :stoke-width 4 :stroke "#000"}]
-                      [:rect.door  {:x (s (+ (:x cell) 0.2)) :y (s (+ (:y cell) 0.8))
-                                    :height (* width 0.4) :width (* width 0.6)
-                                    :fill-opacity 1 :fill "#fff"
-                                    :stoke-width 1 :stroke "#000"}]])))))
+              (conj (disj grid cell) new-cell))
+      ;; change binding
+      (p door-id)
+      (if (= (:s-wall new-cell) :empty)
+        (bind! door-id [:g [:rect]]) ;; remove the door elements!
+        (bind! door-id
+               [:g
+                [:rect] ;; keep the default rect
+                [:line.wall  {:x1 (s (:x cell)) :y1 (s (+ (:y cell) 1))
+                              :x2 (s (+ (:x cell) 1)) :y2 (s (+ (:y cell) 1))
+                              :stroke-width 4 :stroke "#000"}]
+                [:rect.door  {:x (s (+ (:x cell) 0.2)) :y (s (+ (:y cell) 0.8))
+                              :height (* width 0.4) :width (* width 0.6)
+                              :fill "#fff" :stroke-width 1 :stroke "#000"}]])))))
 
-(defn draw-south-wall [cell node]
-  (set-south-wall cell @(:mode model) node))
-          
-;; [:g
-;;  [:rect.south {:x (s (:x cell)) :y (s (+ (:y cell) 0.8))
-;;                :height (* width 0.4) :width width
-;;                :fill "#000" :opacity 0.3 :stroke "#000"}]
-;;  [:line.wall  {:x1 (s (:x cell)) :y1 (s (+ (:y cell) 1))
-;;                :x2 (s (+ (:x cell) 1)) :y2 (s (+ (:y cell) 1))
-;;                :stoke-width 4 :stroke "#000"}]
-;;  [:rect.door  {:x (s (+ (:x cell) 0.2)) :y (s (+ (:y cell) 0.8))
-;;                :height (* width 0.4) :width (* width 0.6)
-;;                :fill-opacity 1 :fill "#fff"
-;;                :stoke-width 1 :stroke "#000"}]]
+(defn draw-south-wall [cell]
+  (set-south-wall cell @(:mode model)))
+
+(defn set-east-wall [cell mode]
+  (when mode
+    (let [grid @(:grid model)
+          width (:width model)
+          s (:scale model)
+          new-cell (Cell. (:x cell) (:y cell)
+                          (:tile cell)
+                          (:s-wall cell)
+                          (if (= (:e-wall cell) :empty) mode :empty))
+          door-id (str "#edoor" (:x cell) "_" (:y cell))]
+      ;; update model
+      (reset! (:grid model)
+              (conj (disj grid cell) new-cell))
+      ;; change binding
+      (p door-id)
+      (if (= (:e-wall new-cell) :empty)
+        (bind! door-id [:g [:rect]]) ;; remove the door elements!
+        (bind! door-id
+               [:g
+                [:rect] ;; keep the default rect
+                [:line.wall  {:x1 (s (+ (:x cell) 1)) :y1 (s (:y cell))
+                              :x2 (s (+ (:x cell) 1)) :y2 (s (+ (:y cell) 1))
+                              :stroke-width 4 :stroke "#000"}]
+                [:rect.door  {:x (s (+ (:x cell) 0.8)) :y (s (+ (:y cell) 0.2))
+                              :height (* width 0.6) :width (* width 0.4)
+                              :fill "#fff" :stroke-width 1 :stroke "#000"}]])))))
+
+(defn draw-east-wall [cell]
+  (set-east-wall cell @(:mode model)))
 
 ;; installing handlers
 
@@ -200,9 +232,13 @@
     (fn [cell node event]
       (p event)))
 
-(on "#doors" :click
-    (fn [cell node]
-      (draw-south-wall cell node)))
+(on "#sdoors" :click
+    (fn [cell]
+      (draw-south-wall cell)))
+
+(on "#edoors" :click
+    (fn [cell]
+      (draw-east-wall cell)))
 
 ;; buttons
 
