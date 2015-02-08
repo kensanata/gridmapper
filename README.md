@@ -33,3 +33,12 @@ The code was the result of admiring Daniel R. Collins'
 and me experimenting with Clojure. You can see how it all began
 [on my website](http://alexschroeder.ch/wiki/2010-06-10_Clojure_Einf%C3%BChrung)
 (in German).
+
+Web App
+-------
+
+Note that there is a branch called
+[c2](https://github.com/kensanata/gridmapper/tree/c2) which uses
+[C2](https://keminglabs.com/c2/) to create a web application.
+Unfortunately, it doesn't scale well: when you use a 30×30 grid, it's
+too slow.
