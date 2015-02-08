@@ -41,6 +41,9 @@ The web application can be launched and developped using the
 following:
 
     lein cljsbuild auto
+
+While the above is running, start using the web application:
+
 	open public/index.html
 
 Note: Currently only WebKit browser appear to be supported! Switch to
