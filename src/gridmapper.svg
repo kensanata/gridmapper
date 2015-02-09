@@ -62,10 +62,19 @@ function create_tile(x, y, type) {
     tile.setAttributeNS(null, "id", "cell_" + x + "_" + y);
     tile.setAttributeNS(null, "x", x * tile_width);
     tile.setAttributeNS(null, "y", y * tile_width);
-    tile.setAttributeNS(xlink_ns, "href", "#empty");
+    tile.setAttributeNS(xlink_ns, "href", "#" + type);
     return tile;
 }
 
+function door(x, y) {
+    if (map_data[x][y] != null) {
+	map_element.removeChild(map_data[x][y]);
+    }
+    var tile = create_tile(x, y, "door-ew");
+    map_data[x][y] = tile;
+    map_element.appendChild(tile);
+}     
+ 
 function map_click(evt) {
     var x = Math.floor(evt.clientX / tile_width);
     var y = Math.floor(evt.clientY / tile_width);
@@ -114,6 +123,8 @@ function pen_down(evt) {
     }
     Pen.x = x;
     Pen.y = y;
+    // draw at least one tile
+    draw_to(evt);
     // install new handler
     map_element.onmousemove = function(evt) {
 	draw_to(evt);
@@ -132,6 +143,8 @@ function key_pressed(evt) {
 	} else {
 	    help.setAttributeNS(null, "visibility", "hidden");
 	}
+    } else if (evt.which===100 && Pen.x != null && Pen.y != null) {
+	door(Pen.x, Pen.y);
     }
 }
 
@@ -150,7 +163,12 @@ onload = function() {
 }
 ]]></script>
   <defs>
-    <rect id="empty" width="10px" height="10px" fill="white" stroke="black" stroke-width="1px"/>
+    <rect id="empty" width="10" height="10" fill="white" stroke="black" stroke-width="1"/>
+    <g id="door-ew" width="10" height="10">
+      <rect width="10" height="10" fill="white" stroke="black" stroke-width="1"/>
+      <line x1="5" y1="0" x2="5" y2="10" stroke="black" stroke-width="2"/>
+      <rect x="3" y="2" width="4" height="6" fill="white" stroke="black" stroke-width="1"/>
+    </g>
   </defs>
   <g id="map" width="0" height="0">
     <rect id="background" width="0" height="0" fill="lightgray" stroke="black" stroke-width="1"/>
