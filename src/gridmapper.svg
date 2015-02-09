@@ -8,11 +8,12 @@
   <script type="application/javascript"><![CDATA[
 var svg_ns = "http://www.w3.org/2000/svg";
 var xlink_ns = "http://www.w3.org/1999/xlink";
-var map_x = 30;
-var map_y = 30;
-var tile_width = 20;
-var map_element;
-var map_data = new Array();
+var Map = { width: 30, // how many columns
+	    height: 30, // how many rows
+	    tileWidth: 20, // tile size in pixels
+	    element: null, // the map element
+	    data: new Array(), // the model
+	  };
 
 function animate(opts) {
     var start = new Date;
@@ -50,7 +51,7 @@ function scale_tiles() {
     var tiles = document.getElementsByTagName("defs")[0].childNodes;
     for (var i = 0; i < tiles.length; ++i) {
         if (tiles[i].nodeType != Node.ELEMENT_NODE) continue;
-        var scale = tile_width / tiles[i].getAttribute("width");
+        var scale = Map.tileWidth / tiles[i].getAttribute("width");
         if (scale != 1) {
             tiles[i].setAttribute("transform", "scale("+scale+","+scale+")");
         }
@@ -60,75 +61,75 @@ function scale_tiles() {
 function create_tile(x, y, type) {
     var tile = document.createElementNS(svg_ns, "use");
     tile.setAttributeNS(null, "id", "cell_" + x + "_" + y);
-    tile.setAttributeNS(null, "x", x * tile_width);
-    tile.setAttributeNS(null, "y", y * tile_width);
+    tile.setAttributeNS(null, "x", x * Map.tileWidth);
+    tile.setAttributeNS(null, "y", y * Map.tileWidth);
     tile.type = type;
     tile.setAttributeNS(xlink_ns, "href", "#" + type);
     return tile;
 }
 
 function door(x, y) {
-    if (map_data[x][y] != null && map_data[x][y].type==="door") {
-        if (map_data[x][y].hasAttribute("transform")) {
-            map_data[x][y].removeAttributeNS(null,"transform");
+    if (Map.data[x][y] != null && Map.data[x][y].type==="door") {
+        if (Map.data[x][y].hasAttribute("transform")) {
+            Map.data[x][y].removeAttributeNS(null,"transform");
         } else {
-            var cx = (x + 0.5) * tile_width;
-            var cy = (y + 0.5) * tile_width;
-            map_data[x][y].setAttributeNS(null,"transform", "rotate(90,"+cx+","+cy+")");
+            var cx = (x + 0.5) * Map.tileWidth;
+            var cy = (y + 0.5) * Map.tileWidth;
+            Map.data[x][y].setAttributeNS(null,"transform", "rotate(90,"+cx+","+cy+")");
         };
     } else {
-        if (map_data[x][y] != null) {
-            map_element.removeChild(map_data[x][y]);
+        if (Map.data[x][y] != null) {
+            Map.element.removeChild(Map.data[x][y]);
         }
         var tile = create_tile(x, y, "door");
-        map_data[x][y] = tile;
-        map_element.appendChild(tile);
+        Map.data[x][y] = tile;
+        Map.element.appendChild(tile);
     }
 }     
 
 function trap(x, y) {
-    if (map_data[x][y] != null && map_data[x][y].type==="trap") {
-        map_element.removeChild(map_data[x][y]);
+    if (Map.data[x][y] != null && Map.data[x][y].type==="trap") {
+        Map.element.removeChild(Map.data[x][y]);
         var tile = create_tile(x, y, "empty");
-        map_data[x][y] = tile;
-        map_element.appendChild(tile);
+        Map.data[x][y] = tile;
+        Map.element.appendChild(tile);
     } else {
-        if (map_data[x][y] != null) {
-            map_element.removeChild(map_data[x][y]);
+        if (Map.data[x][y] != null) {
+            Map.element.removeChild(Map.data[x][y]);
         }
         var tile = create_tile(x, y, "trap");
-        map_data[x][y] = tile;
-        map_element.appendChild(tile);
+        Map.data[x][y] = tile;
+        Map.element.appendChild(tile);
     }
 }     
  
 function map_click(evt) {
-    var x = Math.floor(evt.clientX / tile_width);
-    var y = Math.floor(evt.clientY / tile_width);
-    if (map_data[x][y] == null) {
+    var x = Math.floor(evt.clientX / Map.tileWidth);
+    var y = Math.floor(evt.clientY / Map.tileWidth);
+    if (Map.data[x][y] == null) {
         var tile = create_tile(x, y, "empty");
-        map_data[x][y] = tile;
-        map_element.appendChild(tile);
+        Map.data[x][y] = tile;
+        Map.element.appendChild(tile);
     } else {
-        map_element.removeChild(map_data[x][y]);
-        map_data[x][y] = null;
+        Map.element.removeChild(Map.data[x][y]);
+        Map.data[x][y] = null;
     }
 }
 
 var Pen = new Object();;
 
 function draw_to(evt) {
-    var target_x = Math.floor(evt.clientX / tile_width);
-    var target_y = Math.floor(evt.clientY / tile_width);
+    var target_x = Math.floor(evt.clientX / Map.tileWidth);
+    var target_y = Math.floor(evt.clientY / Map.tileWidth);
     // draw up to the current position (at least once if we just started)
     do {
-        if (map_data[Pen.x][Pen.y] == null && Pen.type == "empty") {
+        if (Map.data[Pen.x][Pen.y] == null && Pen.type == "empty") {
             var tile = create_tile(Pen.x, Pen.y, "empty");
-            map_data[Pen.x][Pen.y] = tile;
-            map_element.appendChild(tile);
-        } else if (map_data[Pen.x][Pen.y] != null && Pen.type == "null") {
-            map_element.removeChild(map_data[Pen.x][Pen.y]);
-            map_data[Pen.x][Pen.y] = null;
+            Map.data[Pen.x][Pen.y] = tile;
+            Map.element.appendChild(tile);
+        } else if (Map.data[Pen.x][Pen.y] != null && Pen.type == "null") {
+            Map.element.removeChild(Map.data[Pen.x][Pen.y]);
+            Map.data[Pen.x][Pen.y] = null;
         }
         // move pen
         if (Pen.x != target_x) {
@@ -141,9 +142,9 @@ function draw_to(evt) {
  
 function pen_down(evt) {
     // init pen
-    var x = Math.floor(evt.clientX / tile_width);
-    var y = Math.floor(evt.clientY / tile_width);
-    if (map_data[x][y] != null) {
+    var x = Math.floor(evt.clientX / Map.tileWidth);
+    var y = Math.floor(evt.clientY / Map.tileWidth);
+    if (Map.data[x][y] != null) {
         Pen.type = "null";
     } else {
         Pen.type = "empty";
@@ -153,12 +154,12 @@ function pen_down(evt) {
     // draw at least one tile
     draw_to(evt);
     // install new handler
-    map_element.onmousemove = function(evt) {
+    Map.element.onmousemove = function(evt) {
         draw_to(evt);
     }
     // uninstall handler on mouse up *anywhere*
     document.onmouseup = function() {
-        map_element.onmousemove = null;
+        Map.element.onmousemove = null;
     }
 }
 
@@ -178,16 +179,16 @@ function key_pressed(evt) {
 }
 
 onload = function() {
-    resize(document.getElementById("background"), map_x * tile_width, map_y * tile_width, linear);
-    map_element = document.getElementById("map");
+    resize(document.getElementById("background"), Map.width * Map.tileWidth, Map.width * Map.tileWidth, linear);
+    Map.element = document.getElementById("map");
     // http://javascript.info/tutorial/mouse-events#drag-n-drop
-    map_element.ondragstart = function() { return false };
-    map_element.onmousedown = pen_down;
+    Map.element.ondragstart = function() { return false };
+    Map.element.onmousedown = pen_down;
     document.onkeypress = key_pressed;
-    resize(map_element, map_x * tile_width, map_y * tile_width, linear);
+    resize(Map.element, Map.width * Map.tileWidth, Map.width * Map.tileWidth, linear);
     scale_tiles();
-    for (var x = 0; x < map_x; x++) {
-        map_data[x] = new Array();
+    for (var x = 0; x < Map.width; x++) {
+        Map.data[x] = new Array();
     }
 }
 ]]></script>
