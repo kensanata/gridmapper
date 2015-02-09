@@ -9,12 +9,16 @@
 var svg_ns = "http://www.w3.org/2000/svg";
 var xlink_ns = "http://www.w3.org/1999/xlink";
 var Map = { width: 30, // how many columns
-	    height: 30, // how many rows
+	    height: 20, // how many rows
 	    tileWidth: 20, // tile size in pixels
-	    element: null, // the map element
-	    data: new Array(), // the model
+	    ui: null, // the SVG element with the event handlers
+	    floorElement: null, // the SVG element for the floor
+	    floor: new Array(), // the model for the floor
+	    doorsElement: null, // the SVG element for the doors
+	    doors: new Array(), // the model for the doors
 	  };
 
+// http://javascript.info/tutorial/animation
 function animate(opts) {
     var start = new Date;
     var id = setInterval(function() {
@@ -69,53 +73,37 @@ function create_tile(x, y, type) {
 }
 
 function door(x, y) {
-    if (Map.data[x][y] != null && Map.data[x][y].type==="door") {
-        if (Map.data[x][y].hasAttribute("transform")) {
-            Map.data[x][y].removeAttributeNS(null,"transform");
+    if (Map.doors[x][y] != null && Map.doors[x][y].type==="door") {
+        if (Map.doors[x][y].hasAttribute("transform")) {
+            Map.doors[x][y].removeAttributeNS(null,"transform");
         } else {
             var cx = (x + 0.5) * Map.tileWidth;
             var cy = (y + 0.5) * Map.tileWidth;
-            Map.data[x][y].setAttributeNS(null,"transform", "rotate(90,"+cx+","+cy+")");
+            Map.doors[x][y].setAttributeNS(null,"transform", "rotate(90,"+cx+","+cy+")");
         };
     } else {
-        if (Map.data[x][y] != null) {
-            Map.element.removeChild(Map.data[x][y]);
-        }
         var tile = create_tile(x, y, "door");
-        Map.data[x][y] = tile;
-        Map.element.appendChild(tile);
+        Map.doors[x][y] = tile;
+        Map.doorsElement.appendChild(tile);
     }
 }     
 
 function trap(x, y) {
-    if (Map.data[x][y] != null && Map.data[x][y].type==="trap") {
-        Map.element.removeChild(Map.data[x][y]);
+    if (Map.floor[x][y] != null && Map.floor[x][y].type==="trap") {
+        Map.floorElement.removeChild(Map.floor[x][y]);
         var tile = create_tile(x, y, "empty");
-        Map.data[x][y] = tile;
-        Map.element.appendChild(tile);
+        Map.floor[x][y] = tile;
+        Map.floorElement.appendChild(tile);
     } else {
-        if (Map.data[x][y] != null) {
-            Map.element.removeChild(Map.data[x][y]);
+        if (Map.floor[x][y] != null) {
+            Map.floorElement.removeChild(Map.floor[x][y]);
         }
         var tile = create_tile(x, y, "trap");
-        Map.data[x][y] = tile;
-        Map.element.appendChild(tile);
+        Map.floor[x][y] = tile;
+        Map.floorElement.appendChild(tile);
     }
 }     
  
-function map_click(evt) {
-    var x = Math.floor(evt.clientX / Map.tileWidth);
-    var y = Math.floor(evt.clientY / Map.tileWidth);
-    if (Map.data[x][y] == null) {
-        var tile = create_tile(x, y, "empty");
-        Map.data[x][y] = tile;
-        Map.element.appendChild(tile);
-    } else {
-        Map.element.removeChild(Map.data[x][y]);
-        Map.data[x][y] = null;
-    }
-}
-
 var Pen = new Object();;
 
 function draw_to(evt) {
@@ -123,13 +111,13 @@ function draw_to(evt) {
     var target_y = Math.floor(evt.clientY / Map.tileWidth);
     // draw up to the current position (at least once if we just started)
     do {
-        if (Map.data[Pen.x][Pen.y] == null && Pen.type == "empty") {
+        if (Map.floor[Pen.x][Pen.y] == null && Pen.type == "empty") {
             var tile = create_tile(Pen.x, Pen.y, "empty");
-            Map.data[Pen.x][Pen.y] = tile;
-            Map.element.appendChild(tile);
-        } else if (Map.data[Pen.x][Pen.y] != null && Pen.type == "null") {
-            Map.element.removeChild(Map.data[Pen.x][Pen.y]);
-            Map.data[Pen.x][Pen.y] = null;
+            Map.floor[Pen.x][Pen.y] = tile;
+            Map.floorElement.appendChild(tile);
+        } else if (Map.floor[Pen.x][Pen.y] != null && Pen.type == "null") {
+            Map.floorElement.removeChild(Map.floor[Pen.x][Pen.y]);
+            Map.floor[Pen.x][Pen.y] = null;
         }
         // move pen
         if (Pen.x != target_x) {
@@ -144,7 +132,7 @@ function pen_down(evt) {
     // init pen
     var x = Math.floor(evt.clientX / Map.tileWidth);
     var y = Math.floor(evt.clientY / Map.tileWidth);
-    if (Map.data[x][y] != null) {
+    if (Map.floor[x][y] != null) {
         Pen.type = "null";
     } else {
         Pen.type = "empty";
@@ -154,12 +142,12 @@ function pen_down(evt) {
     // draw at least one tile
     draw_to(evt);
     // install new handler
-    Map.element.onmousemove = function(evt) {
+    Map.ui.onmousemove = function(evt) {
         draw_to(evt);
     }
     // uninstall handler on mouse up *anywhere*
     document.onmouseup = function() {
-        Map.element.onmousemove = null;
+        Map.ui.onmousemove = null;
     }
 }
 
@@ -179,16 +167,20 @@ function key_pressed(evt) {
 }
 
 onload = function() {
-    resize(document.getElementById("background"), Map.width * Map.tileWidth, Map.width * Map.tileWidth, linear);
-    Map.element = document.getElementById("map");
+    resize(document.getElementById("background"), Map.width * Map.tileWidth, Map.height * Map.tileWidth, linear);
+    Map.floorElement = document.getElementById("floor");
+    Map.doorsElement = document.getElementById("doors");
+    Map.ui = document.getElementById("ui");
+    Map.ui.setAttribute("width",  Map.width * Map.tileWidth);
+    Map.ui.setAttribute("height", Map.width * Map.tileWidth);
     // http://javascript.info/tutorial/mouse-events#drag-n-drop
-    Map.element.ondragstart = function() { return false };
-    Map.element.onmousedown = pen_down;
+    Map.ui.ondragstart = function() { return false };
+    Map.ui.onmousedown = pen_down;
     document.onkeypress = key_pressed;
-    resize(Map.element, Map.width * Map.tileWidth, Map.width * Map.tileWidth, linear);
     scale_tiles();
     for (var x = 0; x < Map.width; x++) {
-        Map.data[x] = new Array();
+        Map.floor[x] = new Array();
+        Map.doors[x] = new Array();
     }
 }
 ]]></script>
@@ -206,9 +198,9 @@ onload = function() {
       <line x1="2" y1="8" x2="8" y2="2" stroke="black" stroke-width="0.8"/>
     </g>
   </defs>
-  <g id="map" width="0" height="0">
-    <rect id="background" width="0" height="0" fill="lightgray" stroke="black" stroke-width="1"/>
-  </g>
+  <rect id="background" width="0" height="0" fill="lightgray" stroke="black" stroke-width="1"/>
+  <g id="floor"/>
+  <g id="doors"/>
   <g id="help">
     <rect x="10" y="80" width="320" height="130" fill="ivory" stroke="black" stroke-width="1"/>
     <text id="help" y="100" width="300" height="100">
@@ -218,4 +210,5 @@ onload = function() {
       <tspan x="20" dy="20">Use ? to toggle help.</tspan>
     </text>
   </g>
+  <rect id="ui" opacity="0"/>
 </svg>
