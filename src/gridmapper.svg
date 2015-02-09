@@ -1,0 +1,52 @@
+<?xml version="1.0" standalone="no"?>
+<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN" "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
+<svg xmlns="http://www.w3.org/2000/svg" version="1.1">
+  <desc>Gridmapper, a simple tool to create dungeon maps</desc>
+  
+  <script type="application/javascript"> <![CDATA[
+var map_x = 30;
+var map_y = 30;
+
+function animate(opts) {
+    var start = new Date;
+    var id = setInterval(function() {
+	var timePassed = new Date - start;
+	var progress = timePassed / opts.duration;
+	if (progress > 1) progress = 1;
+	var delta = opts.delta(progress);
+	opts.step(delta);
+	if (progress == 1) {
+            clearInterval(id);
+	}
+    }, opts.delay || 10);
+}
+
+function linear(progress) {
+    return progress;
+}
+
+function resize(element, to_width, to_height, delta, duration) {
+    var from_width  = element.getBBox().width;  // assuming px
+    var from_height = element.getBBox().height; // assuming px
+    animate({
+	delay: 10,
+	duration: duration || 1000, // 1 sec by default
+	delta: delta,
+	step: function(delta) {
+            element.setAttribute("width",  from_width  + (to_width  - from_width)  * delta);
+            element.setAttribute("height", from_height + (to_height - from_height) * delta);
+	}
+    })
+}
+
+onload = function() {
+    resize(document.getElementById("map"), map_x * 10, map_y * 10, linear);
+}
+  ]]></script>
+  <defs>
+    <g id="empty" fill="white">
+      <rect x="0" y="0" width="10px" height="10px" stroke="black" stroke-width="1px"/>
+    </g>
+  </defs>
+  <rect id="map" width="100" height="100" fill="white" stroke="black" stroke-width="1px"/>
+</svg>
