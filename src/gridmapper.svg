@@ -1,11 +1,18 @@
 <?xml version="1.0" standalone="no"?>
 <!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN" "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
-<svg xmlns="http://www.w3.org/2000/svg" version="1.1">
+<svg version="1.1"
+     xmlns="http://www.w3.org/2000/svg"
+     xmlns:xlink="http://www.w3.org/1999/xlink">
   <desc>Gridmapper, a simple tool to create dungeon maps</desc>
-  
-  <script type="application/javascript"> <![CDATA[
+
+  <script type="application/javascript"><![CDATA[
+var svg_ns = "http://www.w3.org/2000/svg";
+var xlink_ns = "http://www.w3.org/1999/xlink";
 var map_x = 30;
 var map_y = 30;
+var tile_width = 10;
+var map_element;
+var map_data = new Array();
 
 function animate(opts) {
     var start = new Date;
@@ -40,13 +47,42 @@ function resize(element, to_width, to_height, delta, duration) {
 }
 
 onload = function() {
-    resize(document.getElementById("map"), map_x * 10, map_y * 10, linear);
+    resize(document.getElementById("background"), map_x * tile_width, map_y * tile_width, linear);
+    map_element = document.getElementById("map");
+    map_element.onclick = map_click;
+    resize(map_element, map_x * tile_width, map_y * tile_width, linear);
 }
-  ]]></script>
+
+function create_tile(x, y, type) {
+    var tile = document.createElementNS(svg_ns, "use");
+    tile.setAttributeNS(null, "id", "cell_" + x + "_" + y);
+    tile.setAttributeNS(null, "x", x * tile_width);
+    tile.setAttributeNS(null, "y", y * tile_width);
+    tile.setAttributeNS(xlink_ns, "href", "#empty");
+    return tile;
+}
+
+function map_click(evt) {
+    var x = Math.floor(evt.clientX / tile_width);
+    var y = Math.floor(evt.clientY / tile_width);
+    if (!map_data[x]) {
+	map_data[x] = new Array();
+    }
+    var elem = map_data[x][y];
+    if (elem == null) {
+        var tile = create_tile(x, y, "empty");
+	map_data[x][y] = tile;
+	map_element.appendChild(tile);
+    } else {
+	map_element.removeChild(elem);
+	map_data[x][y] = null;
+    }
+}
+]]></script>
   <defs>
-    <g id="empty" fill="white">
-      <rect x="0" y="0" width="10px" height="10px" stroke="black" stroke-width="1px"/>
-    </g>
+    <rect id="empty" width="10px" height="10px" fill="white" stroke="black" stroke-width="1px"/>
   </defs>
-  <rect id="map" width="100" height="100" fill="white" stroke="black" stroke-width="1px"/>
+  <g id="map" width="0" height="0">
+    <rect id="background" width="0" height="0" fill="lightgray" stroke="black" stroke-width="1"/>
+  </g>
 </svg>
