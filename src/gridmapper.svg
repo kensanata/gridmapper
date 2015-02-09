@@ -10,7 +10,7 @@ var svg_ns = "http://www.w3.org/2000/svg";
 var xlink_ns = "http://www.w3.org/1999/xlink";
 var map_x = 30;
 var map_y = 30;
-var tile_width = 10;
+var tile_width = 20;
 var map_element;
 var map_data = new Array();
 
@@ -45,12 +45,16 @@ function resize(element, to_width, to_height, delta, duration) {
 	}
     })
 }
-
-onload = function() {
-    resize(document.getElementById("background"), map_x * tile_width, map_y * tile_width, linear);
-    map_element = document.getElementById("map");
-    map_element.onclick = map_click;
-    resize(map_element, map_x * tile_width, map_y * tile_width, linear);
+ 
+function scale_tiles() {
+    var tiles = document.getElementsByTagName("defs")[0].childNodes;
+    for (var i = 0; i < tiles.length; ++i) {
+	if (tiles[i].nodeType != Node.ELEMENT_NODE) continue;
+	var scale = tile_width / tiles[i].getBBox().width;
+	if (scale != 1) {
+	    tiles[i].setAttribute("transform", "scale("+scale+","+scale+")");
+	}
+    }
 }
 
 function create_tile(x, y, type) {
@@ -65,17 +69,83 @@ function create_tile(x, y, type) {
 function map_click(evt) {
     var x = Math.floor(evt.clientX / tile_width);
     var y = Math.floor(evt.clientY / tile_width);
-    if (!map_data[x]) {
-	map_data[x] = new Array();
-    }
-    var elem = map_data[x][y];
-    if (elem == null) {
+    if (map_data[x][y] == null) {
         var tile = create_tile(x, y, "empty");
 	map_data[x][y] = tile;
 	map_element.appendChild(tile);
     } else {
-	map_element.removeChild(elem);
+	map_element.removeChild(map_data[x][y]);
 	map_data[x][y] = null;
+    }
+}
+
+var Pen = new Object();;
+
+function draw_to(evt) {
+    var target_x = Math.floor(evt.clientX / tile_width);
+    var target_y = Math.floor(evt.clientY / tile_width);
+    // draw up to the current position (at least once if we just started)
+    do {
+	if (map_data[Pen.x][Pen.y] == null && Pen.type == "empty") {
+            var tile = create_tile(Pen.x, Pen.y, "empty");
+	    map_data[Pen.x][Pen.y] = tile;
+	    map_element.appendChild(tile);
+	} else if (map_data[Pen.x][Pen.y] != null && Pen.type == "null") {
+	    map_element.removeChild(map_data[Pen.x][Pen.y]);
+	    map_data[Pen.x][Pen.y] = null;
+	}
+	// move pen
+	if (Pen.x != target_x) {
+	    Pen.x += target_x > Pen.x ? 1 : -1;
+	} else if (Pen.y != target_y) {
+	    Pen.y += target_y > Pen.y ? 1 : -1;
+	}
+    } while (Pen.x != target_x || Pen.y != target_y);
+}
+ 
+function pen_down(evt) {
+    // init pen
+    var x = Math.floor(evt.clientX / tile_width);
+    var y = Math.floor(evt.clientY / tile_width);
+    if (map_data[x][y] != null) {
+        Pen.type = "null";
+    } else {
+	Pen.type = "empty";
+    }
+    Pen.x = x;
+    Pen.y = y;
+    // install new handler
+    map_element.onmousemove = function(evt) {
+	draw_to(evt);
+    }
+    // uninstall handler on mouse up *anywhere*
+    document.onmouseup = function() {
+	map_element.onmousemove = null;
+    }
+}
+
+function key_pressed(evt) {
+    if(evt.which===63) {
+	var help = document.getElementById("help");
+	if (help.getAttributeNS(null, "visibility") == "hidden") {
+	    help.setAttributeNS(null, "visibility", "visible");
+	} else {
+	    help.setAttributeNS(null, "visibility", "hidden");
+	}
+    }
+}
+
+onload = function() {
+    resize(document.getElementById("background"), map_x * tile_width, map_y * tile_width, linear);
+    map_element = document.getElementById("map");
+    // http://javascript.info/tutorial/mouse-events#drag-n-drop
+    map_element.ondragstart = function() { return false };
+    map_element.onmousedown = pen_down;
+    document.onkeypress = key_pressed;
+    resize(map_element, map_x * tile_width, map_y * tile_width, linear);
+    scale_tiles();
+    for (var x = 0; x < map_x; x++) {
+	map_data[x] = new Array();
     }
 }
 ]]></script>
@@ -84,5 +154,13 @@ function map_click(evt) {
   </defs>
   <g id="map" width="0" height="0">
     <rect id="background" width="0" height="0" fill="lightgray" stroke="black" stroke-width="1"/>
+  </g>
+  <g id="help">
+    <rect x="10" y="80" width="320" height="130" fill="ivory" stroke="black" stroke-width="1"/>
+    <text id="help" y="100" width="300" height="100">
+      <tspan x="20">Just draw to create you map.</tspan>
+      <tspan x="20" dy="20">Use d to draw a door. Use d again to rotate it.</tspan>
+      <tspan x="20" dy="20">Use ? to toggle help.</tspan>
+    </text>
   </g>
 </svg>
