@@ -62,17 +62,28 @@ function create_tile(x, y, type) {
     tile.setAttributeNS(null, "id", "cell_" + x + "_" + y);
     tile.setAttributeNS(null, "x", x * tile_width);
     tile.setAttributeNS(null, "y", y * tile_width);
+    tile.type = type;
     tile.setAttributeNS(xlink_ns, "href", "#" + type);
     return tile;
 }
 
 function door(x, y) {
-    if (map_data[x][y] != null) {
-	map_element.removeChild(map_data[x][y]);
+    if (map_data[x][y] != null && map_data[x][y].type==="door") {
+	if (map_data[x][y].hasAttribute("transform")) {
+	    map_data[x][y].removeAttributeNS(null,"transform");
+	} else {
+	    var cx = (x + 0.5) * tile_width;
+	    var cy = (y + 0.5) * tile_width;
+	    map_data[x][y].setAttributeNS(null,"transform", "rotate(90,"+cx+","+cy+")");
+	};
+    } else {
+	if (map_data[x][y] != null) {
+	    map_element.removeChild(map_data[x][y]);
+	}
+	var tile = create_tile(x, y, "door");
+	map_data[x][y] = tile;
+	map_element.appendChild(tile);
     }
-    var tile = create_tile(x, y, "door-ew");
-    map_data[x][y] = tile;
-    map_element.appendChild(tile);
 }     
  
 function map_click(evt) {
@@ -164,7 +175,7 @@ onload = function() {
 ]]></script>
   <defs>
     <rect id="empty" width="10" height="10" fill="white" stroke="black" stroke-width="1"/>
-    <g id="door-ew" width="10" height="10">
+    <g id="door" width="10" height="10">
       <rect width="10" height="10" fill="white" stroke="black" stroke-width="1"/>
       <line x1="5" y1="0" x2="5" y2="10" stroke="black" stroke-width="2"/>
       <rect x="3" y="2" width="4" height="6" fill="white" stroke="black" stroke-width="1"/>
