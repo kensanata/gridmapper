@@ -85,6 +85,22 @@ function door(x, y) {
 	map_element.appendChild(tile);
     }
 }     
+
+function trap(x, y) {
+    if (map_data[x][y] != null && map_data[x][y].type==="trap") {
+        map_element.removeChild(map_data[x][y]);
+	var tile = create_tile(x, y, "empty");
+	map_data[x][y] = tile;
+	map_element.appendChild(tile);
+    } else {
+	if (map_data[x][y] != null) {
+            map_element.removeChild(map_data[x][y]);
+	}
+	var tile = create_tile(x, y, "trap");
+	map_data[x][y] = tile;
+	map_element.appendChild(tile);
+    }
+}     
  
 function map_click(evt) {
     var x = Math.floor(evt.clientX / tile_width);
@@ -156,6 +172,8 @@ function key_pressed(evt) {
 	}
     } else if (evt.which===100 && Pen.x != null && Pen.y != null) {
 	door(Pen.x, Pen.y);
+    } else if (evt.which===116 && Pen.x != null && Pen.y != null) {
+	trap(Pen.x, Pen.y);
     }
 }
 
@@ -180,6 +198,12 @@ onload = function() {
       <line x1="5" y1="0" x2="5" y2="10" stroke="black" stroke-width="2"/>
       <rect x="3" y="2" width="4" height="6" fill="white" stroke="black" stroke-width="1"/>
     </g>
+    <g id="trap" width="10" height="10">
+      <rect width="10" height="10" fill="white" stroke="black" stroke-width="1"/>
+      <rect x="2" y="2" width="6" height="6" fill="white" stroke="black" stroke-width="1"/>
+      <line x1="2" y1="2" x2="8" y2="8" stroke="black" stroke-width="0.8"/>
+      <line x1="2" y1="8" x2="8" y2="2" stroke="black" stroke-width="0.8"/>
+    </g>
   </defs>
   <g id="map" width="0" height="0">
     <rect id="background" width="0" height="0" fill="lightgray" stroke="black" stroke-width="1"/>
@@ -187,8 +211,9 @@ onload = function() {
   <g id="help">
     <rect x="10" y="80" width="320" height="130" fill="ivory" stroke="black" stroke-width="1"/>
     <text id="help" y="100" width="300" height="100">
-      <tspan x="20">Just draw to create you map.</tspan>
+      <tspan x="20">Use the mouse to draw the map.</tspan>
       <tspan x="20" dy="20">Use d to draw a door. Use d again to rotate it.</tspan>
+      <tspan x="20" dy="20">Use t to draw a trap. Use t again to toggle it.</tspan>
       <tspan x="20" dy="20">Use ? to toggle help.</tspan>
     </text>
   </g>
