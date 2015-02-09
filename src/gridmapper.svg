@@ -17,14 +17,14 @@ var map_data = new Array();
 function animate(opts) {
     var start = new Date;
     var id = setInterval(function() {
-	var timePassed = new Date - start;
-	var progress = timePassed / opts.duration;
-	if (progress > 1) progress = 1;
-	var delta = opts.delta(progress);
-	opts.step(delta);
-	if (progress == 1) {
+        var timePassed = new Date - start;
+        var progress = timePassed / opts.duration;
+        if (progress > 1) progress = 1;
+        var delta = opts.delta(progress);
+        opts.step(delta);
+        if (progress == 1) {
             clearInterval(id);
-	}
+        }
     }, opts.delay || 10);
 }
 
@@ -36,24 +36,24 @@ function resize(element, to_width, to_height, delta, duration) {
     var from_width  = element.getBBox().width;  // assuming px
     var from_height = element.getBBox().height; // assuming px
     animate({
-	delay: 10,
-	duration: duration || 1000, // 1 sec by default
-	delta: delta,
-	step: function(delta) {
+        delay: 10,
+        duration: duration || 1000, // 1 sec by default
+        delta: delta,
+        step: function(delta) {
             element.setAttribute("width",  from_width  + (to_width  - from_width)  * delta);
             element.setAttribute("height", from_height + (to_height - from_height) * delta);
-	}
+        }
     })
 }
  
 function scale_tiles() {
     var tiles = document.getElementsByTagName("defs")[0].childNodes;
     for (var i = 0; i < tiles.length; ++i) {
-	if (tiles[i].nodeType != Node.ELEMENT_NODE) continue;
-	var scale = tile_width / tiles[i].getBBox().width;
-	if (scale != 1) {
-	    tiles[i].setAttribute("transform", "scale("+scale+","+scale+")");
-	}
+        if (tiles[i].nodeType != Node.ELEMENT_NODE) continue;
+        var scale = tile_width / tiles[i].getAttribute("width");
+        if (scale != 1) {
+            tiles[i].setAttribute("transform", "scale("+scale+","+scale+")");
+        }
     }
 }
 
@@ -69,36 +69,36 @@ function create_tile(x, y, type) {
 
 function door(x, y) {
     if (map_data[x][y] != null && map_data[x][y].type==="door") {
-	if (map_data[x][y].hasAttribute("transform")) {
-	    map_data[x][y].removeAttributeNS(null,"transform");
-	} else {
-	    var cx = (x + 0.5) * tile_width;
-	    var cy = (y + 0.5) * tile_width;
-	    map_data[x][y].setAttributeNS(null,"transform", "rotate(90,"+cx+","+cy+")");
-	};
+        if (map_data[x][y].hasAttribute("transform")) {
+            map_data[x][y].removeAttributeNS(null,"transform");
+        } else {
+            var cx = (x + 0.5) * tile_width;
+            var cy = (y + 0.5) * tile_width;
+            map_data[x][y].setAttributeNS(null,"transform", "rotate(90,"+cx+","+cy+")");
+        };
     } else {
-	if (map_data[x][y] != null) {
-	    map_element.removeChild(map_data[x][y]);
-	}
-	var tile = create_tile(x, y, "door");
-	map_data[x][y] = tile;
-	map_element.appendChild(tile);
+        if (map_data[x][y] != null) {
+            map_element.removeChild(map_data[x][y]);
+        }
+        var tile = create_tile(x, y, "door");
+        map_data[x][y] = tile;
+        map_element.appendChild(tile);
     }
 }     
 
 function trap(x, y) {
     if (map_data[x][y] != null && map_data[x][y].type==="trap") {
         map_element.removeChild(map_data[x][y]);
-	var tile = create_tile(x, y, "empty");
-	map_data[x][y] = tile;
-	map_element.appendChild(tile);
+        var tile = create_tile(x, y, "empty");
+        map_data[x][y] = tile;
+        map_element.appendChild(tile);
     } else {
-	if (map_data[x][y] != null) {
+        if (map_data[x][y] != null) {
             map_element.removeChild(map_data[x][y]);
-	}
-	var tile = create_tile(x, y, "trap");
-	map_data[x][y] = tile;
-	map_element.appendChild(tile);
+        }
+        var tile = create_tile(x, y, "trap");
+        map_data[x][y] = tile;
+        map_element.appendChild(tile);
     }
 }     
  
@@ -107,11 +107,11 @@ function map_click(evt) {
     var y = Math.floor(evt.clientY / tile_width);
     if (map_data[x][y] == null) {
         var tile = create_tile(x, y, "empty");
-	map_data[x][y] = tile;
-	map_element.appendChild(tile);
+        map_data[x][y] = tile;
+        map_element.appendChild(tile);
     } else {
-	map_element.removeChild(map_data[x][y]);
-	map_data[x][y] = null;
+        map_element.removeChild(map_data[x][y]);
+        map_data[x][y] = null;
     }
 }
 
@@ -122,20 +122,20 @@ function draw_to(evt) {
     var target_y = Math.floor(evt.clientY / tile_width);
     // draw up to the current position (at least once if we just started)
     do {
-	if (map_data[Pen.x][Pen.y] == null && Pen.type == "empty") {
+        if (map_data[Pen.x][Pen.y] == null && Pen.type == "empty") {
             var tile = create_tile(Pen.x, Pen.y, "empty");
-	    map_data[Pen.x][Pen.y] = tile;
-	    map_element.appendChild(tile);
-	} else if (map_data[Pen.x][Pen.y] != null && Pen.type == "null") {
-	    map_element.removeChild(map_data[Pen.x][Pen.y]);
-	    map_data[Pen.x][Pen.y] = null;
-	}
-	// move pen
-	if (Pen.x != target_x) {
-	    Pen.x += target_x > Pen.x ? 1 : -1;
-	} else if (Pen.y != target_y) {
-	    Pen.y += target_y > Pen.y ? 1 : -1;
-	}
+            map_data[Pen.x][Pen.y] = tile;
+            map_element.appendChild(tile);
+        } else if (map_data[Pen.x][Pen.y] != null && Pen.type == "null") {
+            map_element.removeChild(map_data[Pen.x][Pen.y]);
+            map_data[Pen.x][Pen.y] = null;
+        }
+        // move pen
+        if (Pen.x != target_x) {
+            Pen.x += target_x > Pen.x ? 1 : -1;
+        } else if (Pen.y != target_y) {
+            Pen.y += target_y > Pen.y ? 1 : -1;
+        }
     } while (Pen.x != target_x || Pen.y != target_y);
 }
  
@@ -146,7 +146,7 @@ function pen_down(evt) {
     if (map_data[x][y] != null) {
         Pen.type = "null";
     } else {
-	Pen.type = "empty";
+        Pen.type = "empty";
     }
     Pen.x = x;
     Pen.y = y;
@@ -154,26 +154,26 @@ function pen_down(evt) {
     draw_to(evt);
     // install new handler
     map_element.onmousemove = function(evt) {
-	draw_to(evt);
+        draw_to(evt);
     }
     // uninstall handler on mouse up *anywhere*
     document.onmouseup = function() {
-	map_element.onmousemove = null;
+        map_element.onmousemove = null;
     }
 }
 
 function key_pressed(evt) {
     if(evt.which===63) {
-	var help = document.getElementById("help");
-	if (help.getAttributeNS(null, "visibility") == "hidden") {
-	    help.setAttributeNS(null, "visibility", "visible");
-	} else {
-	    help.setAttributeNS(null, "visibility", "hidden");
-	}
+        var help = document.getElementById("help");
+        if (help.getAttributeNS(null, "visibility") == "hidden") {
+            help.setAttributeNS(null, "visibility", "visible");
+        } else {
+            help.setAttributeNS(null, "visibility", "hidden");
+        }
     } else if (evt.which===100 && Pen.x != null && Pen.y != null) {
-	door(Pen.x, Pen.y);
+        door(Pen.x, Pen.y);
     } else if (evt.which===116 && Pen.x != null && Pen.y != null) {
-	trap(Pen.x, Pen.y);
+        trap(Pen.x, Pen.y);
     }
 }
 
@@ -187,7 +187,7 @@ onload = function() {
     resize(map_element, map_x * tile_width, map_y * tile_width, linear);
     scale_tiles();
     for (var x = 0; x < map_x; x++) {
-	map_data[x] = new Array();
+        map_data[x] = new Array();
     }
 }
 ]]></script>
