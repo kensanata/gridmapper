@@ -1,44 +1,41 @@
 Gridmapper
 ==========
 
-A little clojure program to create maps for role-playing games. It is
-written using [Clojure](http://clojure.org/). Run it from the
-command-line using [Leiningen](http://leiningen.org/). Here is what I
-needed to do on my Mac, assuming I already have
-[Homebrew](http://brew.sh/) installed.
+Open the `gridmapper.svg` file using your browser and you have a very
+simple dungeon mapping tool.
 
-    brew install leiningen
-    git clone git@github.com:kensanata/gridmapper.git
-	cd gridmapper
-	lein run
+If you click into the empty space and move your mouse, you will be
+drawing dungeon floor tiles. If you click on a dungeon floor tile and
+move your mouse, you will be erasing them instead.
 
-Click to draw a tile. Click on a tile toggles it. There are two modes
-which you can enter by pressing a key:
+`d` draws a door on the left edge. If you press `d` again within two
+seconds, the door moves to the upper edge, then on to the right edge
+and finally to the bottom edge. To add more doors, just wait two
+seconds before hitting `d` again. Use `D` to remove the last door
+added.
 
-`n` enters *normal mode* and it's the default. Clicking a tile will
-toggle between the tile and empty space.
+`s` will eventually draw a secret door. This has not been implemented,
+yet.
 
-`t` enters *trap mode*. Clicking a tile will toggle between the tile
-and a trap.
+`t` draws a trap door. Hitting `t` again replaces the trap door with
+an empty dungeon floor tile.
 
-`d` enters *door mode*. Clicking a tile will toggle between the tile
-and a door, if possible. A door is possible when two opposing sides
-are empty and the other two opposing sides contain tiles, ie. we're
-looking at a corridor.
+`l` draws some stairs. If you press `l` again, the stairs are rotated
+by 90°. Use `L` to remove the stairs.
 
-![Screenshot](http://alexschroeder.ch/pics/gridmapper-3.png)
+The code was the result of admiring Daniel R. Collins' [original
+GridMapper 1.0](http://www.superdan.net/software/gridmapper/).
 
-The code was the result of admiring Daniel R. Collins'
-[original GridMapper 1.0](http://www.superdan.net/software/gridmapper/)
-and me experimenting with Clojure. You can see how it all began
-[on my website](http://alexschroeder.ch/wiki/2010-06-10_Clojure_Einf%C3%BChrung)
-(in German).
+See Also
+--------
 
-Web App
--------
+This originally started a s a Clojure project. You can find the
+original code on the
+[clojure](https://github.com/kensanata/gridmapper/tree/clojure)
+branch.
 
-Note that there is a branch called
+There is also a branch called
 [c2](https://github.com/kensanata/gridmapper/tree/c2) which uses
 [C2](https://keminglabs.com/c2/) to create a web application.
 Unfortunately, it doesn't scale well: when you use a 30×30 grid, it's
-too slow.
+too slow. I decided to move to [VanillaJS](http://vanilla-js.com/).
