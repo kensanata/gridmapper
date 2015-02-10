@@ -208,7 +208,13 @@ function draw_to(evt) {
             Pen.y += target_y > Pen.y ? 1 : -1;
         }
     } while (Pen.x != target_x || Pen.y != target_y);
+    pen_track(evt);
 }
+
+// need to track the pen for keyboard events
+function pen_track(evt) {
+    Pen.evt = evt;
+} 
 
 function pen_down(evt) {
     // init pen
@@ -224,12 +230,10 @@ function pen_down(evt) {
     // draw at least one tile
     draw_to(evt);
     // install new handler
-    Map.ui.onmousemove = function(evt) {
-        draw_to(evt);
-    }
-    // uninstall handler on mouse up *anywhere*
+    Map.ui.onmousemove = draw_to;
+    // revert to pen tracking on mouse up *anywhere*
     document.onmouseup = function() {
-        Map.ui.onmousemove = null;
+        Map.ui.onmousemove = pen_track;
     }
 }
 
@@ -241,19 +245,22 @@ function key_pressed(evt) {
         } else {
             help.setAttributeNS(null, "visibility", "hidden");
         }
-    } else if (Pen.x != null && Pen.y != null) {
+    } else if (Pen.evt) {
+	// extract last known mouse position
+	var x = Math.floor(Pen.evt.clientX / Map.tileWidth);
+	var y = Math.floor(Pen.evt.clientY / Map.tileWidth);
         if (evt.which===100) { // d
-            door(Pen.x, Pen.y);
+            door(x, y);
         } else if (evt.which===68) { // D
-            remove_door(Pen.x, Pen.y);
+            remove_door(x, y);
         } else if (evt.which===116) { // t
-            trap(Pen.x, Pen.y);
+            trap(x, y);
         } else if (evt.which===108) { // l
-            stairs(Pen.x, Pen.y);
+            stairs(x, y);
         } else if (evt.which===108) { // l
-            stairs(Pen.x, Pen.y);
+            stairs(x, y);
         } else if (evt.which===76) { // L
-            remove_stairs(Pen.x, Pen.y);
+            remove_stairs(x, y);
         }
     }
 }
@@ -269,6 +276,7 @@ onload = function() {
     // http://javascript.info/tutorial/mouse-events#drag-n-drop
     Map.ui.ondragstart = function() { return false };
     Map.ui.onmousedown = pen_down;
+    Map.ui.onmousemove = pen_track;
     document.onkeypress = key_pressed;
     scale_tiles();
     for (var x = 0; x < Map.width; x++) {
