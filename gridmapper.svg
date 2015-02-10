@@ -41,15 +41,15 @@ function linear(progress) {
 
 function bounce(progress) {
     for(var a = 0, b = 1, result; 1; a += b, b /= 2) {
-	if (progress >= (7 - 4 * a) / 11) {
-	    return -Math.pow((11 - 6 * a - 11 * progress) / 4, 2) + Math.pow(b, 2)
-	}
+        if (progress >= (7 - 4 * a) / 11) {
+            return -Math.pow((11 - 6 * a - 11 * progress) / 4, 2) + Math.pow(b, 2)
+        }
     }
 }
 
 function makeEaseOut(delta) {  
     return function(progress) {
-	return 1 - delta(1 - progress);
+        return 1 - delta(1 - progress);
     }
 }
 
@@ -129,7 +129,9 @@ function wall(x, y, type) {
         var rotate = wall_rotation(x, y, (parseInt(tile.getAttribute("rotate")) + 90) % 360);
         if (rotate != null) {
             tile.setAttribute("rotate", rotate);
-            if (rotate > 0) {
+            if (rotate===180 && type==="concealed") {
+                tile.setAttributeNS(null,"transform", "translate("+Map.tileWidth+",0)");
+            } else if (rotate > 0) {
                 var cx = (x + 0.5) * Map.tileWidth;
                 var cy = (y + 0.5) * Map.tileWidth;
                 tile.setAttributeNS(null,"transform", "rotate("+rotate+","+cx+","+cy+")");
@@ -146,7 +148,9 @@ function wall(x, y, type) {
         if (rotate != null) {
             var tile = create_tile(x, y, type);
             tile.setAttribute("rotate", rotate);
-            if (rotate) {
+            if (rotate===180 && type==="concealed") {
+                tile.setAttributeNS(null,"transform", "translate("+Map.tileWidth+",0)");
+            } else if (rotate > 0) {
                 var cx = (x + 0.5) * Map.tileWidth;
                 var cy = (y + 0.5) * Map.tileWidth;
                 tile.setAttributeNS(null,"transform", "rotate("+rotate+","+cx+","+cy+")");
@@ -156,21 +160,6 @@ function wall(x, y, type) {
         }
     }
     Pen.ts = now;
-}
-
-function door(x, y) {
-    wall(x, y, "door");
-    Pen.type = "door";
-}
-
-function secret(x, y) {
-    wall(x, y, "secret");
-    Pen.type = "secret";
-}
-
-function gate(x, y) {
-    wall(x, y, "gate");
-    Pen.type = "gate";
 }
 
 function remove_wall (x, y) {
@@ -183,6 +172,26 @@ function remove_wall (x, y) {
             Map.walls[x][y] = null;
         }
     }
+}
+
+function door(x, y) {
+    wall(x, y, "door");
+    Pen.type = "door";
+}
+
+function secret(x, y) {
+    wall(x, y, "secret");
+    Pen.type = "secret";
+}
+
+function concealed(x, y) {
+    wall(x, y, "concealed");
+    Pen.type = "concealed";
+}
+
+function gate(x, y) {
+    wall(x, y, "gate");
+    Pen.type = "gate";
 }
 
 function trap(x, y) {
@@ -288,13 +297,15 @@ function key_pressed(evt) {
             help.setAttributeNS(null, "visibility", "hidden");
         }
     } else if (Pen.evt) {
-	// extract last known mouse position
-	var x = Math.floor(Pen.evt.clientX / Map.tileWidth);
-	var y = Math.floor(Pen.evt.clientY / Map.tileWidth);
+        // extract last known mouse position
+        var x = Math.floor(Pen.evt.clientX / Map.tileWidth);
+        var y = Math.floor(Pen.evt.clientY / Map.tileWidth);
         if (evt.which===100) { // d
             door(x, y);
         } else if (evt.which===115) { // s
             secret(x, y);
+        } else if (evt.which===99) { // c
+            concealed(x, y);
         } else if (evt.which===103) { // g
             gate(x, y);
         } else if (evt.which===87) { // W
@@ -342,6 +353,9 @@ onload = function() {
     <g id="secret" width="10" height="10">
       <path fill="none" stroke="black" stroke-width="1" d="M 2,3 C -2,1 -3,5 0,5 S 2,9 -2,7" />
     </g>
+    <g id="concealed" width="10" height="10">
+      <path fill="none" stroke="black" stroke-width="1" d="M 2,3 C -3,1 -3,9 2,7" />
+    </g>
     <g id="gate" width="10" height="20">
       <rect x="-2" y="4" width="4" height="12" fill="white" stroke="black" stroke-width="1"/>
     </g>
@@ -366,13 +380,14 @@ onload = function() {
   <g id="walls"/>
   <rect id="ui" opacity="0"/>
   <g id="help">
-    <rect x="10" y="80" width="400" height="190" fill="ivory" stroke="black" stroke-width="1"/>
+    <rect x="10" y="80" width="400" height="210" fill="ivory" stroke="black" stroke-width="1"/>
     <text id="help" y="100">
       <tspan x="20">Use the mouse to draw the map.</tspan>
       <tspan x="20" dy="20">Use d to draw a door. Use d again to rotate it.</tspan>
       <tspan x="20" dy="20">Use s to draw a secret door. Use s again to rotate it.</tspan>
+      <tspan x="20" dy="20">Use c to draw a concealed door. Use c again to rotate it.</tspan>
       <tspan x="20" dy="20">Use g to draw a big gate. Use g again to rotate it.</tspan>
-      <tspan x="20" dy="20">Use W to delete a door, a secret door or a gate.</tspan>
+      <tspan x="20" dy="20">Use W to delete any kind of wall feature such as doors.</tspan>
       <tspan x="20" dy="20">Use l to draw some stairs. Use l again to rotate the stairs.</tspan>
       <tspan x="20" dy="20">Use L to delete the stairs.</tspan>
       <tspan x="20" dy="20">Use t to draw a trap. Use t again to delete it.</tspan>
