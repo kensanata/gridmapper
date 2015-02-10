@@ -14,6 +14,8 @@ var Map = { width: 30, // how many columns
             ui: null, // the SVG element with the event handlers
             floorElement: null, // the SVG element for the floor
             floor: new Array(), // the model for the floor
+            stairsElement: null, // the SVG element for the stairs
+            stairs: new Array(), // the model for the stairs
             doorsElement: null, // the SVG element for the doors
             doors: new Array(), // the model for the doors
           };
@@ -157,6 +159,33 @@ function trap(x, y) {
     }
 }
 
+function stairs(x, y) {
+    if (Map.stairs[x][y] != null) {
+        var tile = Map.stairs[x][y];
+        var rotate = (parseInt(tile.getAttribute("rotate")) + 90) % 360;
+        tile.setAttribute("rotate", rotate);
+        if (rotate > 0) {
+            var cx = (x + 0.5) * Map.tileWidth;
+            var cy = (y + 0.5) * Map.tileWidth;
+            tile.setAttributeNS(null,"transform", "rotate("+rotate+","+cx+","+cy+")");
+        } else {
+            tile.removeAttributeNS(null,"transform");
+        }
+    } else {
+        var tile = create_tile(x, y, "stair");
+        tile.setAttribute("rotate", 0);
+        Map.stairs[x][y] = tile;
+        Map.stairsElement.appendChild(tile);
+    }
+}
+
+function remove_stairs(x, y) {
+    if (Map.stairs[x][y] != null) {
+        Map.stairsElement.removeChild(Map.stairs[x][y]);
+        Map.doors[x][y] = null;
+    }
+}
+      
 var Pen = new Object();
 
 function draw_to(evt) {
@@ -205,19 +234,27 @@ function pen_down(evt) {
 }
 
 function key_pressed(evt) {
-    if(evt.which===63) {
+    if(evt.which===63) { // ?
         var help = document.getElementById("help");
         if (help.getAttributeNS(null, "visibility") == "hidden") {
             help.setAttributeNS(null, "visibility", "visible");
         } else {
             help.setAttributeNS(null, "visibility", "hidden");
         }
-    } else if (evt.which===100 && Pen.x != null && Pen.y != null) {
-        door(Pen.x, Pen.y);
-    } else if (evt.which===68 && Pen.x != null && Pen.y != null) {
-        remove_door(Pen.x, Pen.y);
-    } else if (evt.which===116 && Pen.x != null && Pen.y != null) {
-        trap(Pen.x, Pen.y);
+    } else if (Pen.x != null && Pen.y != null) {
+        if (evt.which===100) { // d
+            door(Pen.x, Pen.y);
+        } else if (evt.which===68) { // D
+            remove_door(Pen.x, Pen.y);
+        } else if (evt.which===116) { // t
+            trap(Pen.x, Pen.y);
+        } else if (evt.which===108) { // l
+            stairs(Pen.x, Pen.y);
+        } else if (evt.which===108) { // l
+            stairs(Pen.x, Pen.y);
+        } else if (evt.which===76) { // L
+            remove_stairs(Pen.x, Pen.y);
+        }
     }
 }
 
@@ -225,6 +262,7 @@ onload = function() {
     resize(document.getElementById("background"), Map.width * Map.tileWidth, Map.height * Map.tileWidth, linear);
     Map.floorElement = document.getElementById("floor");
     Map.doorsElement = document.getElementById("doors");
+    Map.stairsElement = document.getElementById("stairs");
     Map.ui = document.getElementById("ui");
     Map.ui.setAttribute("width",  Map.width * Map.tileWidth);
     Map.ui.setAttribute("height", Map.width * Map.tileWidth);
@@ -236,6 +274,7 @@ onload = function() {
     for (var x = 0; x < Map.width; x++) {
         Map.floor[x] = new Array();
         Map.doors[x] = new Array();
+        Map.stairs[x] = new Array();
     }
 }
 ]]></script>
@@ -250,16 +289,27 @@ onload = function() {
       <line x1="2" y1="2" x2="8" y2="8" stroke="black" stroke-width="0.8"/>
       <line x1="2" y1="8" x2="8" y2="2" stroke="black" stroke-width="0.8"/>
     </g>
+    <g id="stair" width="10" height="10">
+      <rect width="10" height="20" fill="white" stroke="black" stroke-width="1"/>
+      <line x1="0" y1="3" x2="10" y2="3" stroke="black" stroke-width="0.8"/>
+      <line x1="1" y1="6" x2="9" y2="6" stroke="black" stroke-width="0.8"/>
+      <line x1="2" y1="9" x2="8" y2="9" stroke="black" stroke-width="0.8"/>
+      <line x1="3" y1="12" x2="7" y2="12" stroke="black" stroke-width="0.8"/>
+      <line x1="4" y1="15" x2="6" y2="15" stroke="black" stroke-width="0.8"/>
+    </g>
   </defs>
   <rect id="background" width="0" height="0" fill="lightgray" stroke="black" stroke-width="1"/>
   <g id="floor"/>
+  <g id="stairs"/>
   <g id="doors"/>
   <g id="help">
-    <rect x="10" y="80" width="320" height="130" fill="ivory" stroke="black" stroke-width="1"/>
+    <rect x="10" y="80" width="400" height="150" fill="ivory" stroke="black" stroke-width="1"/>
     <text id="help" y="100" width="300" height="100">
       <tspan x="20">Use the mouse to draw the map.</tspan>
       <tspan x="20" dy="20">Use d to draw a door. Use d again to rotate it.</tspan>
       <tspan x="20" dy="20">Use D to delete a door.</tspan>
+      <tspan x="20" dy="20">Use l to draw some stairs. Use l again to rotate the stairs.</tspan>
+      <tspan x="20" dy="20">Use L to delete the stairs.</tspan>
       <tspan x="20" dy="20">Use t to draw a trap. Use t again to delete it.</tspan>
       <tspan x="20" dy="20">Use ? to toggle help.</tspan>
     </text>
