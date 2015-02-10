@@ -16,8 +16,8 @@ var Map = { width: 30, // how many columns
             floor: new Array(), // the model for the floor
             stairsElement: null, // the SVG element for the stairs
             stairs: new Array(), // the model for the stairs
-            doorsElement: null, // the SVG element for the doors
-            doors: new Array(), // the model for the doors
+            wallsElement: null, // the SVG element for the walls
+            walls: new Array(), // the model for the walls
           };
 
 // http://javascript.info/tutorial/animation
@@ -38,6 +38,22 @@ function animate(opts) {
 function linear(progress) {
     return progress;
 }
+
+function bounce(progress) {
+    for(var a = 0, b = 1, result; 1; a += b, b /= 2) {
+	if (progress >= (7 - 4 * a) / 11) {
+	    return -Math.pow((11 - 6 * a - 11 * progress) / 4, 2) + Math.pow(b, 2)
+	}
+    }
+}
+
+function makeEaseOut(delta) {  
+    return function(progress) {
+	return 1 - delta(1 - progress);
+    }
+}
+
+var bounceEaseOut = makeEaseOut(bounce);
 
 function resize(element, to_width, to_height, delta, duration) {
     var from_width  = element.getBBox().width;  // assuming px
@@ -85,32 +101,32 @@ function create_tile(x, y, type) {
     return tile;
 }
 
-function door_rotation(x, y, rotate) {
+function wall_rotation(x, y, rotate) {
     // find an unused rotation
     var candidate = [rotate,
                      (rotate + 90) % 360,
                      (rotate + 180) % 360,
                      (rotate + 270) % 360];
-    var existingDoors = [];
-    for (var i = 0; i < Map.doors[x][y].length; i++) {
-        existingDoors.push(Map.doors[x][y][i].getAttribute("rotate"));
+    var existingWalls = [];
+    for (var i = 0; i < Map.walls[x][y].length; i++) {
+        existingWalls.push(Map.walls[x][y][i].getAttribute("rotate"));
     }
     search: for (var c = 0; c < 4; c++) {
-        for (var i = 0; i < existingDoors.length; i++) {
-            if (candidate[c]==existingDoors[i]) {
+        for (var i = 0; i < existingWalls.length; i++) {
+            if (candidate[c]==existingWalls[i]) {
                 continue search;
             }
         }
         return candidate[c];
     }
 }
- 
-function door(x, y) {
+
+function wall(x, y, type) {
     var now = new Date;
-    if (Map.doors[x][y] != null && Pen.ts && now - Pen.ts <= 2000) {
+    if (Pen.type===type && Map.walls[x][y] != null && Pen.ts && now - Pen.ts <= 2000) {
         // we just placed a door: take the last one and rotate it
-        var tile = Map.doors[x][y][Map.doors[x][y].length - 1];
-        var rotate = door_rotation(x, y, (parseInt(tile.getAttribute("rotate")) + 90) % 360);
+        var tile = Map.walls[x][y][Map.walls[x][y].length - 1];
+        var rotate = wall_rotation(x, y, (parseInt(tile.getAttribute("rotate")) + 90) % 360);
         if (rotate != null) {
             tile.setAttribute("rotate", rotate);
             if (rotate > 0) {
@@ -123,33 +139,43 @@ function door(x, y) {
         }
     } else {
         // make sure the data structure exists
-        if (!Map.doors[x][y]) {
-            Map.doors[x][y] = new Array();
+        if (!Map.walls[x][y]) {
+            Map.walls[x][y] = new Array();
         }
-        var rotate = door_rotation(x, y, 0);
+        var rotate = wall_rotation(x, y, 0);
         if (rotate != null) {
-            var tile = create_tile(x, y, "door");
+            var tile = create_tile(x, y, type);
             tile.setAttribute("rotate", rotate);
             if (rotate) {
                 var cx = (x + 0.5) * Map.tileWidth;
                 var cy = (y + 0.5) * Map.tileWidth;
                 tile.setAttributeNS(null,"transform", "rotate("+rotate+","+cx+","+cy+")");
             }
-            Map.doors[x][y].push(tile);
-            Map.doorsElement.appendChild(tile);
+            Map.walls[x][y].push(tile);
+            Map.wallsElement.appendChild(tile);
         }
     }
     Pen.ts = now;
 }
 
-function remove_door (x, y) {
-    if (Map.doors[x][y] != null) {
+function door(x, y) {
+    wall(x, y, "door");
+    Pen.type = "door";
+}
+
+function secret(x, y) {
+    wall(x, y, "secret");
+    Pen.type = "secret";
+}
+
+function remove_wall (x, y) {
+    if (Map.walls[x][y] != null) {
         // take the last one and remove it
-        var tile = Map.doors[x][y].pop();
-        Map.doorsElement.removeChild(tile);
+        var tile = Map.walls[x][y].pop();
+        Map.wallsElement.removeChild(tile);
         // clean up
-        if (Map.doors[x][y].length == 0) {
-            Map.doors[x][y] = null;
+        if (Map.walls[x][y].length == 0) {
+            Map.walls[x][y] = null;
         }
     }
 }
@@ -193,7 +219,7 @@ function stairs(x, y) {
 function remove_stairs(x, y) {
     if (Map.stairs[x][y] != null) {
         Map.stairsElement.removeChild(Map.stairs[x][y]);
-        Map.doors[x][y] = null;
+        Map.walls[x][y] = null;
     }
 }
       
@@ -262,8 +288,10 @@ function key_pressed(evt) {
 	var y = Math.floor(Pen.evt.clientY / Map.tileWidth);
         if (evt.which===100) { // d
             door(x, y);
-        } else if (evt.which===68) { // D
-            remove_door(x, y);
+        } else if (evt.which===115) { // s
+            secret(x, y);
+        } else if (evt.which===87) { // W
+            remove_wall(x, y);
         } else if (evt.which===116) { // t
             trap(x, y);
         } else if (evt.which===108) { // l
@@ -279,13 +307,13 @@ function key_pressed(evt) {
 onload = function() {
     resize(document.getElementById("background"), Map.width * Map.tileWidth, Map.height * Map.tileWidth, linear);
     var help = document.getElementById("help");
-    move(help, Map.width * Map.tileWidth + 20 - help.firstElementChild.getAttribute("x"), 20 - help.firstElementChild.getAttribute("y"), linear);
+    move(help, Map.width * Map.tileWidth + 20 - help.firstElementChild.getAttribute("x"), 20 - help.firstElementChild.getAttribute("y"), bounceEaseOut);
     Map.floorElement = document.getElementById("floor");
-    Map.doorsElement = document.getElementById("doors");
+    Map.wallsElement = document.getElementById("walls");
     Map.stairsElement = document.getElementById("stairs");
     Map.ui = document.getElementById("ui");
     Map.ui.setAttribute("width",  Map.width * Map.tileWidth);
-    Map.ui.setAttribute("height", Map.width * Map.tileWidth);
+    Map.ui.setAttribute("height", Map.height * Map.tileWidth);
     // http://javascript.info/tutorial/mouse-events#drag-n-drop
     Map.ui.ondragstart = function() { return false };
     Map.ui.onmousedown = pen_down;
@@ -294,7 +322,7 @@ onload = function() {
     scale_tiles();
     for (var x = 0; x < Map.width; x++) {
         Map.floor[x] = new Array();
-        Map.doors[x] = new Array();
+        Map.walls[x] = new Array();
         Map.stairs[x] = new Array();
     }
 }
@@ -303,6 +331,9 @@ onload = function() {
     <rect id="empty" width="10" height="10" fill="white" stroke="black" stroke-width="1"/>
     <g id="door" width="10" height="10">
       <rect x="-1.5" y="2" width="3" height="6" fill="white" stroke="black" stroke-width="1"/>
+    </g>
+    <g id="secret" width="10" height="10">
+      <path fill="none" stroke="black" stroke-width="1" d="M 2,3 C -2,1 -3,5 0,5 S 2,9 -2,7" />
     </g>
     <g id="trap" width="10" height="10">
       <rect width="10" height="10" fill="white" stroke="black" stroke-width="1"/>
@@ -322,14 +353,15 @@ onload = function() {
   <rect id="background" width="0" height="0" fill="lightgray" stroke="black" stroke-width="1"/>
   <g id="floor"/>
   <g id="stairs"/>
-  <g id="doors"/>
+  <g id="walls"/>
   <rect id="ui" opacity="0"/>
   <g id="help">
-    <rect x="10" y="80" width="400" height="150" fill="ivory" stroke="black" stroke-width="1"/>
-    <text id="help" y="100" width="300" height="100">
+    <rect x="10" y="80" width="400" height="190" fill="ivory" stroke="black" stroke-width="1"/>
+    <text id="help" y="100">
       <tspan x="20">Use the mouse to draw the map.</tspan>
       <tspan x="20" dy="20">Use d to draw a door. Use d again to rotate it.</tspan>
-      <tspan x="20" dy="20">Use D to delete a door.</tspan>
+      <tspan x="20" dy="20">Use s to draw a secret door. Use s again to rotate it.</tspan>
+      <tspan x="20" dy="20">Use W to delete a door or a secret door.</tspan>
       <tspan x="20" dy="20">Use l to draw some stairs. Use l again to rotate the stairs.</tspan>
       <tspan x="20" dy="20">Use L to delete the stairs.</tspan>
       <tspan x="20" dy="20">Use t to draw a trap. Use t again to delete it.</tspan>

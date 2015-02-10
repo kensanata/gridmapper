@@ -11,11 +11,11 @@ move your mouse, you will be erasing them instead.
 `d` draws a door on the left edge. If you press `d` again within two
 seconds, the door moves to the upper edge, then on to the right edge
 and finally to the bottom edge. To add more doors, just wait two
-seconds before hitting `d` again. Use `D` to remove the last door
-added.
+seconds before hitting `d` again. Use `W` to remove features on walls
+like doors.
 
-`s` will eventually draw a secret door. This has not been implemented,
-yet.
+`s` draws a secret door instead of a door. It works exactly the same
+in all other aspects.
 
 `t` draws a trap door. Hitting `t` again replaces the trap door with
 an empty dungeon floor tile.
