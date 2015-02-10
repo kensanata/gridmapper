@@ -9,14 +9,14 @@
 var svg_ns = "http://www.w3.org/2000/svg";
 var xlink_ns = "http://www.w3.org/1999/xlink";
 var Map = { width: 30, // how many columns
-	    height: 20, // how many rows
-	    tileWidth: 20, // tile size in pixels
-	    ui: null, // the SVG element with the event handlers
-	    floorElement: null, // the SVG element for the floor
-	    floor: new Array(), // the model for the floor
-	    doorsElement: null, // the SVG element for the doors
-	    doors: new Array(), // the model for the doors
-	  };
+            height: 20, // how many rows
+            tileWidth: 20, // tile size in pixels
+            ui: null, // the SVG element with the event handlers
+            floorElement: null, // the SVG element for the floor
+            floor: new Array(), // the model for the floor
+            doorsElement: null, // the SVG element for the doors
+            doors: new Array(), // the model for the doors
+          };
 
 // http://javascript.info/tutorial/animation
 function animate(opts) {
@@ -50,7 +50,7 @@ function resize(element, to_width, to_height, delta, duration) {
         }
     })
 }
- 
+
 function scale_tiles() {
     var tiles = document.getElementsByTagName("defs")[0].childNodes;
     for (var i = 0; i < tiles.length; ++i) {
@@ -72,21 +72,74 @@ function create_tile(x, y, type) {
     return tile;
 }
 
-function door(x, y) {
-    if (Map.doors[x][y] != null && Map.doors[x][y].type==="door") {
-        if (Map.doors[x][y].hasAttribute("transform")) {
-            Map.doors[x][y].removeAttributeNS(null,"transform");
-        } else {
-            var cx = (x + 0.5) * Map.tileWidth;
-            var cy = (y + 0.5) * Map.tileWidth;
-            Map.doors[x][y].setAttributeNS(null,"transform", "rotate(90,"+cx+","+cy+")");
-        };
-    } else {
-        var tile = create_tile(x, y, "door");
-        Map.doors[x][y] = tile;
-        Map.doorsElement.appendChild(tile);
+function door_rotation(x, y, rotate) {
+    // find an unused rotation
+    var candidate = [rotate,
+                     (rotate + 90) % 360,
+                     (rotate + 180) % 360,
+                     (rotate + 270) % 360];
+    var existingDoors = [];
+    for (var i = 0; i < Map.doors[x][y].length; i++) {
+        existingDoors.push(Map.doors[x][y][i].getAttribute("rotate"));
     }
-}     
+    search: for (var c = 0; c < 4; c++) {
+        for (var i = 0; i < existingDoors.length; i++) {
+            if (candidate[c]==existingDoors[i]) {
+                continue search;
+            }
+        }
+        return candidate[c];
+    }
+}
+ 
+function door(x, y) {
+    var now = new Date;
+    if (Map.doors[x][y] != null && Pen.ts && now - Pen.ts <= 2000) {
+        // we just placed a door: take the last one and rotate it
+        var tile = Map.doors[x][y][Map.doors[x][y].length - 1];
+        var rotate = door_rotation(x, y, (parseInt(tile.getAttribute("rotate")) + 90) % 360);
+        if (rotate != null) {
+            tile.setAttribute("rotate", rotate);
+            if (rotate > 0) {
+                var cx = (x + 0.5) * Map.tileWidth;
+                var cy = (y + 0.5) * Map.tileWidth;
+                tile.setAttributeNS(null,"transform", "rotate("+rotate+","+cx+","+cy+")");
+            } else {
+                tile.removeAttributeNS(null,"transform");
+            }
+        }
+    } else {
+        // make sure the data structure exists
+        if (!Map.doors[x][y]) {
+            Map.doors[x][y] = new Array();
+        }
+        var rotate = door_rotation(x, y, 0);
+        if (rotate != null) {
+            var tile = create_tile(x, y, "door");
+            tile.setAttribute("rotate", rotate);
+            if (rotate) {
+                var cx = (x + 0.5) * Map.tileWidth;
+                var cy = (y + 0.5) * Map.tileWidth;
+                tile.setAttributeNS(null,"transform", "rotate("+rotate+","+cx+","+cy+")");
+            }
+            Map.doors[x][y].push(tile);
+            Map.doorsElement.appendChild(tile);
+        }
+    }
+    Pen.ts = now;
+}
+
+function remove_door (x, y) {
+    if (Map.doors[x][y] != null) {
+        // take the last one and remove it
+        var tile = Map.doors[x][y].pop();
+        Map.doorsElement.removeChild(tile);
+        // clean up
+        if (Map.doors[x][y].length == 0) {
+            Map.doors[x][y] = null;
+        }
+    }
+}
 
 function trap(x, y) {
     if (Map.floor[x][y] != null && Map.floor[x][y].type==="trap") {
@@ -102,9 +155,9 @@ function trap(x, y) {
         Map.floor[x][y] = tile;
         Map.floorElement.appendChild(tile);
     }
-}     
- 
-var Pen = new Object();;
+}
+
+var Pen = new Object();
 
 function draw_to(evt) {
     var target_x = Math.floor(evt.clientX / Map.tileWidth);
@@ -127,7 +180,7 @@ function draw_to(evt) {
         }
     } while (Pen.x != target_x || Pen.y != target_y);
 }
- 
+
 function pen_down(evt) {
     // init pen
     var x = Math.floor(evt.clientX / Map.tileWidth);
@@ -161,6 +214,8 @@ function key_pressed(evt) {
         }
     } else if (evt.which===100 && Pen.x != null && Pen.y != null) {
         door(Pen.x, Pen.y);
+    } else if (evt.which===68 && Pen.x != null && Pen.y != null) {
+        remove_door(Pen.x, Pen.y);
     } else if (evt.which===116 && Pen.x != null && Pen.y != null) {
         trap(Pen.x, Pen.y);
     }
@@ -187,9 +242,7 @@ onload = function() {
   <defs>
     <rect id="empty" width="10" height="10" fill="white" stroke="black" stroke-width="1"/>
     <g id="door" width="10" height="10">
-      <rect width="10" height="10" fill="white" stroke="black" stroke-width="1"/>
-      <line x1="5" y1="0" x2="5" y2="10" stroke="black" stroke-width="2"/>
-      <rect x="3" y="2" width="4" height="6" fill="white" stroke="black" stroke-width="1"/>
+      <rect x="-1.5" y="2" width="3" height="6" fill="white" stroke="black" stroke-width="1"/>
     </g>
     <g id="trap" width="10" height="10">
       <rect width="10" height="10" fill="white" stroke="black" stroke-width="1"/>
@@ -206,7 +259,8 @@ onload = function() {
     <text id="help" y="100" width="300" height="100">
       <tspan x="20">Use the mouse to draw the map.</tspan>
       <tspan x="20" dy="20">Use d to draw a door. Use d again to rotate it.</tspan>
-      <tspan x="20" dy="20">Use t to draw a trap. Use t again to toggle it.</tspan>
+      <tspan x="20" dy="20">Use D to delete a door.</tspan>
+      <tspan x="20" dy="20">Use t to draw a trap. Use t again to delete it.</tspan>
       <tspan x="20" dy="20">Use ? to toggle help.</tspan>
     </text>
   </g>
