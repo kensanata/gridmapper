@@ -168,6 +168,11 @@ function secret(x, y) {
     Pen.type = "secret";
 }
 
+function gate(x, y) {
+    wall(x, y, "gate");
+    Pen.type = "gate";
+}
+
 function remove_wall (x, y) {
     if (Map.walls[x][y] != null) {
         // take the last one and remove it
@@ -290,6 +295,8 @@ function key_pressed(evt) {
             door(x, y);
         } else if (evt.which===115) { // s
             secret(x, y);
+        } else if (evt.which===103) { // g
+            gate(x, y);
         } else if (evt.which===87) { // W
             remove_wall(x, y);
         } else if (evt.which===116) { // t
@@ -335,6 +342,9 @@ onload = function() {
     <g id="secret" width="10" height="10">
       <path fill="none" stroke="black" stroke-width="1" d="M 2,3 C -2,1 -3,5 0,5 S 2,9 -2,7" />
     </g>
+    <g id="gate" width="10" height="20">
+      <rect x="-2" y="4" width="4" height="12" fill="white" stroke="black" stroke-width="1"/>
+    </g>
     <g id="trap" width="10" height="10">
       <rect width="10" height="10" fill="white" stroke="black" stroke-width="1"/>
       <rect x="2" y="2" width="6" height="6" fill="white" stroke="black" stroke-width="1"/>
@@ -361,7 +371,8 @@ onload = function() {
       <tspan x="20">Use the mouse to draw the map.</tspan>
       <tspan x="20" dy="20">Use d to draw a door. Use d again to rotate it.</tspan>
       <tspan x="20" dy="20">Use s to draw a secret door. Use s again to rotate it.</tspan>
-      <tspan x="20" dy="20">Use W to delete a door or a secret door.</tspan>
+      <tspan x="20" dy="20">Use g to draw a big gate. Use g again to rotate it.</tspan>
+      <tspan x="20" dy="20">Use W to delete a door, a secret door or a gate.</tspan>
       <tspan x="20" dy="20">Use l to draw some stairs. Use l again to rotate the stairs.</tspan>
       <tspan x="20" dy="20">Use L to delete the stairs.</tspan>
       <tspan x="20" dy="20">Use t to draw a trap. Use t again to delete it.</tspan>
