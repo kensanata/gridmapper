@@ -23,14 +23,14 @@ an empty dungeon floor tile.
 `l` draws some stairs. If you press `l` again, the stairs are rotated
 by 90°. Use `L` to remove the stairs.
 
-The code was the result of admiring Daniel R. Collins' [original
-GridMapper 1.0](http://www.superdan.net/software/gridmapper/).
-
 See Also
 --------
 
-This originally started a s a Clojure project. You can find the
-original code on the
+The project was the result of admiring Daniel R. Collins' [original
+GridMapper 1.0](http://www.superdan.net/software/gridmapper/).
+
+This originally started as a Clojure project. You can find the Clojure
+code on the
 [clojure](https://github.com/kensanata/gridmapper/tree/clojure)
 branch.
 
@@ -39,3 +39,6 @@ There is also a branch called
 [C2](https://keminglabs.com/c2/) to create a web application.
 Unfortunately, it doesn't scale well: when you use a 30×30 grid, it's
 too slow. I decided to move to [VanillaJS](http://vanilla-js.com/).
+
+There's also a very good looking, Flash based website with a similar
+interface called [ANAmap](http://deepnight.net/anamap/).
