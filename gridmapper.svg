@@ -53,6 +53,17 @@ function resize(element, to_width, to_height, delta, duration) {
     })
 }
 
+function move(element, dx, dy, delta, duration) {
+    animate({
+        delay: 10,
+        duration: duration || 1000, // 1 sec by default
+        delta: delta,
+        step: function(delta) {
+            element.setAttribute("transform", "translate(" + dx * delta + "," + dy * delta + ")");
+        }
+    })
+}
+
 function scale_tiles() {
     var tiles = document.getElementsByTagName("defs")[0].childNodes;
     for (var i = 0; i < tiles.length; ++i) {
@@ -267,6 +278,8 @@ function key_pressed(evt) {
 
 onload = function() {
     resize(document.getElementById("background"), Map.width * Map.tileWidth, Map.height * Map.tileWidth, linear);
+    var help = document.getElementById("help");
+    move(help, Map.width * Map.tileWidth + 20 - help.firstElementChild.getAttribute("x"), 20 - help.firstElementChild.getAttribute("y"), linear);
     Map.floorElement = document.getElementById("floor");
     Map.doorsElement = document.getElementById("doors");
     Map.stairsElement = document.getElementById("stairs");
@@ -310,6 +323,7 @@ onload = function() {
   <g id="floor"/>
   <g id="stairs"/>
   <g id="doors"/>
+  <rect id="ui" opacity="0"/>
   <g id="help">
     <rect x="10" y="80" width="400" height="150" fill="ivory" stroke="black" stroke-width="1"/>
     <text id="help" y="100" width="300" height="100">
@@ -319,8 +333,8 @@ onload = function() {
       <tspan x="20" dy="20">Use l to draw some stairs. Use l again to rotate the stairs.</tspan>
       <tspan x="20" dy="20">Use L to delete the stairs.</tspan>
       <tspan x="20" dy="20">Use t to draw a trap. Use t again to delete it.</tspan>
-      <tspan x="20" dy="20">Use ? to toggle help.</tspan>
+      <tspan x="20" dy="20">Use ? to toggle help. </tspan>
+      <a fill="blue" xlink:href="https://github.com/kensanata/gridmapper"><tspan>Source available</tspan></a><tspan>.</tspan>
     </text>
   </g>
-  <rect id="ui" opacity="0"/>
 </svg>
