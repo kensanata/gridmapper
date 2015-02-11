@@ -335,11 +335,11 @@ function draw_to(evt) {
     do {
 	var x = Pen.x;
 	var y = Pen.y;
-        if (Map.floor[Pen.x][Pen.y] == null && Pen.type == "empty") {
+        if (Map.floor[x][y] == null && Pen.type == "empty") {
             var tile = create_tile(x, y, "empty");
 	    Commands.push(
 		function(){
-		    Map.floorElement.removeChild(Map.floor[x][y]);
+		    Map.floorElement.removeChild(tile);
 		    Map.floor[x][y] = null;
 		},
 		function(){
