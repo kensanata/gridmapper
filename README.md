@@ -38,7 +38,7 @@ _Prepare Download_ link will change to a _Download_ link. Click it and
 save the file. If it looks as if nothing changed (if you're using
 Firefox, for example), no problem: If you save the file, you'll save
 the state of the map it had when you clicked the _Download_ link. The
-_Download_ link will revert back to _Prepare Download_ after two
+_Download_ link will revert back to _Prepare Download_ after ten
 seconds.
 
 See Also
