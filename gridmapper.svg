@@ -152,7 +152,7 @@ function scale_tiles() {
 
 function create_tile(x, y, type) {
     var tile = document.createElementNS(svg_ns, "use");
-    tile.setAttributeNS(null, "id", "cell_" + x + "_" + y);
+    tile.setAttributeNS(null, "id", type + "_" + x + "_" + y);
     tile.setAttributeNS(null, "x", x * Map.tileWidth);
     tile.setAttributeNS(null, "y", y * Map.tileWidth);
     tile.type = type;
@@ -432,14 +432,32 @@ function key_pressed(evt) {
     }
 }
 
-function recreate_model() {
-    var re = /^cell_(\d+)_(\d+)$/;
-    for (var i = 0; i < Map.floorElement.children.length; i++) {
-        var result = Map.floorElement.children[i].getAttribute("id").match(re);
+function recreate_model_for(re, model, element) {
+    for (var i = 0; i < element.children.length; i++) {
+        var result = element.children[i].getAttribute("id").match(re);
         if (result) {
             var x = result[1];
             var y = result[2];
-            Map.floor[x][y] = Map.floorElement.children[i];
+            model[x][y] = element.children[i];
+        }
+    }
+}
+
+function recreate_model() {
+    var re = /^\w+_(\d+)_(\d+)$/;
+    recreate_model_for(re, Map.floor, Map.floorElement);
+    recreate_model_for(re, Map.stairs, Map.stairsElement);
+    // doors are a special case because of the array
+    for (var i = 0; i < Map.wallsElement.children.length; i++) {
+        var result = Map.wallsElement.children[i].getAttribute("id").match(re);
+        if (result) {
+            var x = result[1];
+            var y = result[2];
+            // make sure the data structure exists
+            if (!Map.walls[x][y]) {
+                Map.walls[x][y] = [];
+            }
+	    Map.walls[x][y].push(Map.wallsElement.children[i]);
         }
     }
 }
