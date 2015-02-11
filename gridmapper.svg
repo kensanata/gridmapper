@@ -56,9 +56,9 @@ var Commands = {
 
 // http://javascript.info/tutorial/animation
 function animate(opts) {
-    var start = new Date;
+    var start = new Date();
     var id = setInterval(function() {
-        var timePassed = new Date - start;
+        var timePassed = new Date() - start;
         var progress = timePassed / opts.duration;
         if (progress > 1) progress = 1;
         var delta = opts.delta(progress);
@@ -74,7 +74,7 @@ function linear(progress) {
 }
 
 function bounce(progress) {
-    for(var a = 0, b = 1, result; 1; a += b, b /= 2) {
+    for(var a = 0, b = 1; 1; a += b, b /= 2) {
         if (progress >= (7 - 4 * a) / 11) {
             return -Math.pow((11 - 6 * a - 11 * progress) / 4, 2) + Math.pow(b, 2)
         }
@@ -195,7 +195,7 @@ function rotate_tile(tile, type, x, y, angle) {
 }
       
 function wall(x, y, type) {
-    var now = new Date;
+    var now = new Date();
     if (Pen.type===type && Map.walls[x][y] != null && Pen.ts && now - Pen.ts <= 2000) {
         // we just placed a door: take the last one and rotate it
         var tile = Map.walls[x][y][Map.walls[x][y].length - 1];
