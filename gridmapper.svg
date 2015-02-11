@@ -233,7 +233,7 @@ function stairs(x, y) {
 function remove_stairs(x, y) {
     if (Map.stairs[x][y] != null) {
         Map.stairsElement.removeChild(Map.stairs[x][y]);
-        Map.walls[x][y] = null;
+        Map.stairs[x][y] = null;
     }
 }
       
