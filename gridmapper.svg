@@ -6,20 +6,53 @@
   <desc>Gridmapper, a simple tool to create dungeon maps</desc>
 
   <script type="application/javascript"><![CDATA[
+
 var svg_ns   = "http://www.w3.org/2000/svg";
 var xlink_ns = "http://www.w3.org/1999/xlink";
-var Map = { width: 30, // how many columns
-            height: 20, // how many rows
-            tileWidth: 20, // tile size in pixels
-            ui: null, // the SVG element with the event handlers
-            floorElement: null, // the SVG element for the floor
-            floor: new Array(), // the model for the floor
-            stairsElement: null, // the SVG element for the stairs
-            stairs: new Array(), // the model for the stairs
-            wallsElement: null, // the SVG element for the walls
-            walls: new Array(), // the model for the walls
-	    undo: new Array(),
-          };
+
+var Map = {
+    width: 30, // how many columns
+    height: 20, // how many rows
+    tileWidth: 20, // tile size in pixels
+    ui: null, // the SVG element with the event handlers
+    floorElement: null, // the SVG element for the floor
+    floor: new Array(), // the model for the floor
+    stairsElement: null, // the SVG element for the stairs
+    stairs: new Array(), // the model for the stairs
+    wallsElement: null, // the SVG element for the walls
+    walls: new Array(), // the model for the walls
+};
+
+var Commands = {
+    i: -1, // where are we in the undo/redo chain
+    undoSteps: new Array(),
+    redoSteps: new Array(),
+    push: function(undoStep, redoStep) {
+	// once we're pushing new steps, discard the undone steps
+	while (this.undoSteps.length - 1 > this.i) {
+	    this.undoSteps.pop();
+	    this.redoSteps.pop();
+	}
+	this.undoSteps.push(undoStep);
+	this.redoSteps.push(redoStep);
+	this.i++;
+	// finally, execute the last step
+	redoStep();
+    },
+    exec: function() {
+	this.redoSteps[this.redoSteps.length-1]();
+    },
+    undo: function() {
+	if (this.i >= 0) {
+	    this.undoSteps[this.i--]();
+	}
+    },
+    redo: function() {
+	if (this.i < this.redoSteps.length - 1) {
+	    this.redoSteps[++this.i]();
+	}
+    },
+};
 
 // http://javascript.info/tutorial/animation
 function animate(opts) {
@@ -170,11 +203,13 @@ function wall(x, y, type) {
 	var angle = parseInt(tile.getAttribute("rotate"));
         var rotate = wall_rotation(x, y, (angle + 90) % 360);
         if (rotate != null) {
-	    rotate_tile(tile, type, x, y, rotate);
-
-	    Map.undo.push(function(){
-		rotate_tile(tile, type, x, y, angle);
-	    });
+	    Commands.push(
+		function(){
+		    rotate_tile(tile, type, x, y, angle);
+		},
+		function(){
+		    rotate_tile(tile, type, x, y, rotate);
+		});
         }
     } else {
         // make sure the data structure exists
@@ -185,12 +220,14 @@ function wall(x, y, type) {
         if (rotate != null) {
             var tile = create_tile(x, y, type);
 	    rotate_tile(tile, type, x, y, rotate);
-            Map.walls[x][y].push(tile);
-            Map.wallsElement.appendChild(tile);
-
-	    Map.undo.push(function(){
-		remove_wall (x, y);
-	    });
+	    Commands.push(
+		function(){
+		    remove_wall (x, y);
+		},
+		function(){
+		    Map.walls[x][y].push(tile);
+		    Map.wallsElement.appendChild(tile);
+		});
         }
     }
     Pen.ts = now;
@@ -201,10 +238,8 @@ function remove_wall (x, y) {
         // take the last one and remove it
         var tile = Map.walls[x][y].pop();
         Map.wallsElement.removeChild(tile);
-        // clean up
-        if (Map.walls[x][y].length == 0) {
-            Map.walls[x][y] = null;
-        }
+        // don't clean up if Map.walls[x][y].length == 0 because of
+        // redo
     }
 }
 
@@ -229,62 +264,68 @@ function gate(x, y) {
 }
 
 function trap(x, y) {
-    var old;
+    var old = Map.floor[x][y];
     var tile;
     if (Map.floor[x][y] != null && Map.floor[x][y].type==="trap") {
-        old = Map.floorElement.removeChild(Map.floor[x][y]);
         tile = create_tile(x, y, "empty");
-        Map.floor[x][y] = tile;
-        Map.floorElement.appendChild(tile);
     } else {
-        if (Map.floor[x][y] != null) {
-            old = Map.floorElement.removeChild(Map.floor[x][y]);
-        }
         tile = create_tile(x, y, "trap");
-        Map.floor[x][y] = tile;
-        Map.floorElement.appendChild(tile);
     }
-
-    Map.undo.push(function(){
-	Map.floorElement.removeChild(tile);
-	if (old != null) {
-	    Map.floorElement.appendChild(old);
-	}
-	Map.floor[x][y] = old;
-    });
+    Commands.push(
+	function(){
+	    Map.floorElement.removeChild(tile);
+	    if (old != null) {
+		Map.floorElement.appendChild(old);
+	    }
+	    Map.floor[x][y] = old;
+	},
+	function(){
+	    if (old != null) {
+		Map.floorElement.removeChild(old);
+	    }
+            Map.floor[x][y] = tile;
+            Map.floorElement.appendChild(tile);
+	});
 }
 
 function stairs(x, y) {
     if (Map.stairs[x][y] != null) {
         var tile = Map.stairs[x][y];
 	var angle = parseInt(tile.getAttribute("rotate"));
-	rotate_tile(tile, "stairs", x, y, (angle + 90) % 360);
-
-	Map.undo.push(function(){
-	    rotate_tile(tile, "stairs", x, y, angle);
-	});
+	Commands.push(
+	    function(){
+		rotate_tile(tile, "stairs", x, y, angle);
+	    },
+	    function() {
+		rotate_tile(tile, "stairs", x, y, (angle + 90) % 360);
+	    });
     } else {
         var tile = create_tile(x, y, "stair");
         tile.setAttribute("rotate", 0);
-        Map.stairs[x][y] = tile;
-        Map.stairsElement.appendChild(tile);
-
-	Map.undo.push(function(){
-	    Map.stairsElement.removeChild(tile);
-	    Map.stairs[x][y] = null;
-	});
+	Commands.push(
+	    function(){
+		Map.stairsElement.removeChild(tile);
+		Map.stairs[x][y] = null;
+	    },
+	    function(){
+		Map.stairs[x][y] = tile;
+		Map.stairsElement.appendChild(tile);
+	    });
     }
 }
 
 function remove_stairs(x, y) {
     if (Map.stairs[x][y] != null) {
-        var tile = Map.stairsElement.removeChild(Map.stairs[x][y]);
-        Map.stairs[x][y] = null;
-
-	Map.undo.push(function(){
-	    Map.stairsElement.appendChild(tile);
-	    Map.stairs[x][y] = tile;
-	});
+        var tile = Map.stairs[x][y];
+	Commands.push(
+	    function(){
+		Map.stairsElement.appendChild(tile);
+		Map.stairs[x][y] = tile;
+	    },
+	    function(){
+		Map.stairsElement.removeChild(tile);
+		Map.stairs[x][y] = null;
+	    });
     }
 }
       
@@ -299,21 +340,26 @@ function draw_to(evt) {
 	var y = Pen.y;
         if (Map.floor[Pen.x][Pen.y] == null && Pen.type == "empty") {
             var tile = create_tile(x, y, "empty");
-            Map.floor[x][y] = tile;
-            Map.floorElement.appendChild(tile);
-
-	    Map.undo.push(function(){
-		Map.floorElement.removeChild(Map.floor[x][y]);
-		Map.floor[x][y] = null;
-	    });
+	    Commands.push(
+		function(){
+		    Map.floorElement.removeChild(Map.floor[x][y]);
+		    Map.floor[x][y] = null;
+		},
+		function(){
+		    Map.floor[x][y] = tile;
+		    Map.floorElement.appendChild(tile);
+		});
         } else if (Map.floor[x][y] != null && Pen.type == "null") {
-            var tile = Map.floorElement.removeChild(Map.floor[x][y]);
-            Map.floor[x][y] = null;
-	    
-	    Map.undo.push(function(){
-		Map.floorElement.appendChild(tile);
-		Map.floor[x][y] = tile;
-	    });
+            var tile = Map.floor[x][y];
+	    Commands.push(
+		function(){
+		    Map.floorElement.appendChild(tile);
+		    Map.floor[x][y] = tile;
+		},
+		function(){
+		    Map.floorElement.removeChild(tile);
+		    Map.floor[x][y] = null;
+		});
         }
         // move pen
         if (x != target_x) {
@@ -351,14 +397,6 @@ function pen_down(evt) {
     }
 }
 
-function undo() {
-    if (Map.undo.length > 0) {
-	var step = Map.undo.pop();
-	// some redo magic here?
-	step();
-    }
-}
-
 function key_pressed(evt) {
     if(evt.which===63) { // ?
         var help = document.getElementById("help");
@@ -368,7 +406,9 @@ function key_pressed(evt) {
             help.setAttributeNS(null, "visibility", "hidden");
         }
     } else if (evt.which===117) { // u
-        undo();
+        Commands.undo();
+    } else if (evt.which===114) { // r
+        Commands.redo();
     } else if (Pen.evt) {
         // extract last known mouse position
         var x = Math.floor(Pen.evt.clientX / Map.tileWidth);
@@ -464,7 +504,7 @@ onload = function() {
       <tspan x="20" dy="20">Use l to draw some stairs. Use l again to rotate the stairs.</tspan>
       <tspan x="20" dy="20">Use L to delete the stairs.</tspan>
       <tspan x="20" dy="20">Use t to draw a trap. Use t again to delete it.</tspan>
-      <tspan x="20" dy="20">Use u to undo. There is no redo.</tspan>
+      <tspan x="20" dy="20">Use u to undo. Use r to redo.</tspan>
       <tspan x="20" dy="20">Use ? to toggle help. </tspan>
       <a fill="blue" xlink:href="https://github.com/kensanata/gridmapper"><tspan>Source available</tspan></a><tspan>.</tspan>
       <tspan x="20" dy="20"/><a id="download" fill="blue" xlink:href="javascript:download()"><tspan>Prepare Download</tspan></a><tspan>.</tspan>

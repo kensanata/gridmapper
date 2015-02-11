@@ -30,6 +30,8 @@ an empty dungeon floor tile.
 `l` draws some stairs. If you press `l` again, the stairs are rotated
 by 90°. Use `L` to remove the stairs.
 
+`u` will undo an action. `r` will redo the action.
+
 In order to save the file, click on the _Prepare Download_ link. The
 _Prepare Download_ link will change to a _Download_ link. Click it and
 save the file. The _Download_ link will revert back to _Prepare
