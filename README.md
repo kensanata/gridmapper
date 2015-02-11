@@ -17,11 +17,23 @@ like doors.
 `s` draws a secret door instead of a door. It works exactly the same
 in all other aspects.
 
+`c` draws a concealed door instead of a door. It works exactly the
+same in all other aspects.
+
+`g` draws a double width gate instead of a door. It works exactly the
+same in all other aspects. Rotating it is a bit confusing because of
+its double width.
+
 `t` draws a trap door. Hitting `t` again replaces the trap door with
 an empty dungeon floor tile.
 
 `l` draws some stairs. If you press `l` again, the stairs are rotated
 by 90°. Use `L` to remove the stairs.
+
+In order to save the file, click on the _Prepare Download_ link. The
+_Prepare Download_ link will change to a _Download_ link. Click it and
+save the file. The _Download_ link will revert back to _Prepare
+Download_ after two seconds.
 
 See Also
 --------
