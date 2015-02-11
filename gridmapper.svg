@@ -6,7 +6,7 @@
   <desc>Gridmapper, a simple tool to create dungeon maps</desc>
 
   <script type="application/javascript"><![CDATA[
-var svg_ns = "http://www.w3.org/2000/svg";
+var svg_ns   = "http://www.w3.org/2000/svg";
 var xlink_ns = "http://www.w3.org/1999/xlink";
 var Map = { width: 30, // how many columns
             height: 20, // how many rows
@@ -78,6 +78,32 @@ function move(element, dx, dy, delta, duration) {
             element.setAttribute("transform", "translate(" + dx * delta + "," + dy * delta + ")");
         }
     })
+}
+
+function download() {
+    var source = btoa("<?xml version=\"1.0\" standalone=\"no\"?>\n"
+                      + "<!DOCTYPE svg PUBLIC \"-//W3C//DTD SVG 1.1//EN\" \"http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd\">\n"
+                      + "<svg version=\"1.1\"\n"
+                      + "     xmlns=\"http://www.w3.org/2000/svg\"\n"
+                      + "     xmlns:xlink=\"http://www.w3.org/1999/xlink\">"
+                      + document.documentElement.innerHTML
+                      + "</svg>");
+    var link = document.getElementById("download");
+    var child = link.firstChild;
+    link.removeChild(child);
+    var text = document.createElementNS(svg_ns, "tspan");
+    text.appendChild(document.createTextNode("Download"));
+    link.appendChild(text);
+    var href = link.getAttributeNS(xlink_ns, "href");
+    link.setAttributeNS(null, "download", "gridmapper.svg");
+    link.setAttributeNS(xlink_ns, "href", "data:image/svg+xml;base64," + source);
+    // reset after 2s
+    var t = setInterval(function() {
+        link.setAttributeNS(xlink_ns, "href", href);
+        link.removeChild(link.firstChild);
+        link.appendChild(child);
+        clearInterval(t);
+    }, 2000);
 }
 
 function scale_tiles() {
@@ -393,6 +419,7 @@ onload = function() {
       <tspan x="20" dy="20">Use t to draw a trap. Use t again to delete it.</tspan>
       <tspan x="20" dy="20">Use ? to toggle help. </tspan>
       <a fill="blue" xlink:href="https://github.com/kensanata/gridmapper"><tspan>Source available</tspan></a><tspan>.</tspan>
+      <tspan x="20" dy="20"/><a id="download" fill="blue" xlink:href="javascript:download()"><tspan>Prepare Download</tspan></a><tspan>.</tspan>
     </text>
   </g>
 </svg>
