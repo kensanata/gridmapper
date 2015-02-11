@@ -1,8 +1,9 @@
 Gridmapper
 ==========
 
-Open the `gridmapper.svg` file using your browser and you have a very
-simple dungeon mapping tool.
+Open the [gridmapper.svg](https://campaignwiki.org/gridmapper.svg)
+file using your browser and you have a very simple dungeon mapping
+tool.
 
 If you click into the empty space and move your mouse, you will be
 drawing dungeon floor tiles. If you click on a dungeon floor tile and
