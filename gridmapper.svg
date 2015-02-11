@@ -140,10 +140,12 @@ function download() {
 function scale_tiles() {
     var tiles = document.getElementsByTagName("defs")[0].childNodes;
     for (var i = 0; i < tiles.length; ++i) {
-        if (tiles[i].nodeType != Node.ELEMENT_NODE) continue;
-        var scale = Map.tileWidth / tiles[i].getAttribute("width");
-        if (scale != 1) {
-            tiles[i].setAttribute("transform", "scale("+scale+","+scale+")");
+        if (tiles[i].nodeType===Node.ELEMENT_NODE
+	    && tiles[i].hasAttribute("width")) {
+            var scale = Map.tileWidth / tiles[i].getAttribute("width");
+            if (scale != 1) {
+                tiles[i].setAttribute("transform", "scale("+scale+","+scale+")");
+            }
         }
     }
 }
@@ -430,10 +432,28 @@ function key_pressed(evt) {
     }
 }
 
-onload = function() {
-    resize(document.getElementById("background"), Map.width * Map.tileWidth, Map.height * Map.tileWidth, linear);
+function recreate_model() {
+    var re = /^cell_(\d+)_(\d+)$/;
+    for (var i = 0; i < Map.floorElement.children.length; i++) {
+        var result = Map.floorElement.children[i].getAttribute("id").match(re);
+        if (result) {
+            var x = result[1];
+            var y = result[2];
+            Map.floor[x][y] = Map.floorElement.children[i];
+        }
+    }
+}
+      
+function initialize() {
+    resize(document.getElementById("background"),
+           Map.width * Map.tileWidth,
+           Map.height * Map.tileWidth,
+           linear);
     var help = document.getElementById("help");
-    move(help, Map.width * Map.tileWidth + 40 - help.firstElementChild.getAttribute("x"), 20 - help.firstElementChild.getAttribute("y"), bounceEaseOut);
+    move(help,
+         Map.width * Map.tileWidth + 40 - help.firstElementChild.getAttribute("x"),
+         20 - help.firstElementChild.getAttribute("y"),
+         bounceEaseOut);
     Map.floorElement = document.getElementById("floor");
     Map.wallsElement = document.getElementById("walls");
     Map.stairsElement = document.getElementById("stairs");
@@ -451,7 +471,10 @@ onload = function() {
         Map.walls[x] = [];
         Map.stairs[x] = [];
     }
+    recreate_model();
 }
+
+onload = initialize;
 ]]></script>
   <defs>
     <rect id="empty" width="10" height="10" fill="white" stroke="black" stroke-width="1"/>
