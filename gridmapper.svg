@@ -16,17 +16,17 @@ var Map = {
     tileWidth: 20, // tile size in pixels
     ui: null, // the SVG element with the event handlers
     floorElement: null, // the SVG element for the floor
-    floor: new Array(), // the model for the floor
+    floor: [], // the model for the floor
     stairsElement: null, // the SVG element for the stairs
-    stairs: new Array(), // the model for the stairs
+    stairs: [], // the model for the stairs
     wallsElement: null, // the SVG element for the walls
-    walls: new Array(), // the model for the walls
+    walls: [], // the model for the walls
 };
 
 var Commands = {
     i: -1, // where are we in the undo/redo chain
-    undoSteps: new Array(),
-    redoSteps: new Array(),
+    undoSteps: [],
+    redoSteps: [],
     push: function(undoStep, redoStep) {
 	// once we're pushing new steps, discard the undone steps
 	while (this.undoSteps.length - 1 > this.i) {
@@ -214,7 +214,7 @@ function wall(x, y, type) {
     } else {
         // make sure the data structure exists
         if (!Map.walls[x][y]) {
-            Map.walls[x][y] = new Array();
+            Map.walls[x][y] = [];
         }
         var rotate = wall_rotation(x, y, 0);
         if (rotate != null) {
@@ -452,9 +452,9 @@ onload = function() {
     document.onkeypress = key_pressed;
     scale_tiles();
     for (var x = 0; x < Map.width; x++) {
-        Map.floor[x] = new Array();
-        Map.walls[x] = new Array();
-        Map.stairs[x] = new Array();
+        Map.floor[x] = [];
+        Map.walls[x] = [];
+        Map.stairs[x] = [];
     }
 }
 ]]></script>
