@@ -73,6 +73,38 @@ var Pen = {
             y: Math.floor(evt.clientY / Map.tileWidth) - 1
         }; // empty row at the top
     },
+    // guess which wall the user is closest
+    //  +------------------+
+    //  |--     90°       /+
+    //  |  \-           /- |
+    //  |    \--      /-   |
+    // b|       \- /--     |
+    // ↓|  0°    /\-   180°|
+    //  |     /--   \--    |
+    //  |   /-         \-  |
+    //  | /-   270°      \>|
+    //  +------------------+
+    //           a →
+    angle: function(evt) {
+        // ignore diagonals
+        var a = evt.clientX % Map.tileWidth;
+        var b = evt.clientY % Map.tileWidth;
+        if (a + b > Map.tileWidth * 1.4 || Math.abs(a - b) < Map.tileWidth * 0.6) {
+            return null;
+        } else if (b >= a) {
+            if (a + b <= Map.tileWidth) {
+                return 0;
+            } else {
+                return 270;
+            }
+        } else {
+            if (a + b > Map.tileWidth) {
+                return 180;
+            } else {
+                return 90;
+            }
+        }
+    },
     // to update our current position
     update: function(evt) {
         if (evt) {
@@ -170,7 +202,7 @@ function bounce(progress) {
     }
 }
 
-function makeEaseOut(delta) {  
+function makeEaseOut(delta) {
     return function(progress) {
         return 1 - delta(1 - progress);
     }
@@ -254,7 +286,7 @@ function move_elements() {
          Map.tileWidth / scale,
          linear, 500);
     var help = document.getElementById("help");
-}          
+}
 
 /* We store the entire document in a data URI and offer it for downlod
  * using the HTML5 download attribute. Chrome 40 will still load that
@@ -341,7 +373,7 @@ function text_export() {
         clearInterval(t);
     }, 10000);
 }
-      
+
 /* You can add more tiles at whatever scale you want and this code
  * will determine the scale by comparing your tile's width with the
  * tile width in use by the map. The original tiles are all based on a
@@ -581,6 +613,36 @@ function floor(x, y) {
     }
 }
 
+function draw_line_to_command(x, y, angle, tile, type) {
+    // make sure the data structure exists
+    if (!Map.walls[x][y]) {
+        Map.walls[x][y] = [];
+    }
+    var found = false;
+    for (var i = 0; i < Map.walls[x][y].length; i++) {
+        if (Map.walls[x][y][i].getAttribute("rotate") == angle) {
+            found = true;
+            break;
+        }
+    }
+    if (!found) {
+        rotate_tile(tile, type, x, y, angle);
+        var remove = function(){
+            Map.walls[x][y].pop();
+            Map.wallsElement.removeChild(tile);
+        };
+        var add = function(){
+            Map.walls[x][y].push(tile);
+            Map.wallsElement.appendChild(tile);
+        };
+        if (type == "add") {
+            Commands.push(remove, add); // add new tile
+        } else {
+            Commands.push(add, remove); // remove existing tile
+        }
+    }
+}
+    
 /* This is where we draw (or erase) floor tiles. The key point to
  * remember is that we might not get a mouse event for every
  * coordinate. That's why we need to store where we want to draw to
@@ -615,7 +677,10 @@ function draw_to(evt) {
         if (Map.floor[Pen.x][Pen.y] == null && Pen.type == "empty") {
             draw_to_command(Pen.x, Pen.y, create_tile(Pen.x, Pen.y, "empty"), "add");
         } else if (Map.floor[Pen.x][Pen.y] != null && Pen.type == "null") {
-            draw_to_command(Pen.x, Pen.y, Map.floor[Pen.x][Pen.y], Pen.type, "remove");
+            draw_to_command(Pen.x, Pen.y, Map.floor[Pen.x][Pen.y], "remove");
+        } else if (Pen.type == "wall") {
+            draw_line_to_command(Pen.x, Pen.y, Pen.angle(evt),
+                                 create_tile(Pen.x, Pen.y, "wall"), "add");
         }
     } while (Pen.move_to(target));
     pen_track(evt);
@@ -641,7 +706,11 @@ function pen_down(evt) {
     if (Map.floor[Pen.x][Pen.y] != null) {
         Pen.type = "null";
     } else {
-        Pen.type = "empty";
+        if (evt.shiftKey) {
+            Pen.type = "wall";
+        } else {
+            Pen.type = "empty";
+        }
     }
     // draw at least one tile
     draw_to(evt);
@@ -706,10 +775,18 @@ function key_pressed(evt) {
         } else {
             help.setAttributeNS(null, "visibility", "hidden");
         }
-    } else if (key == "ArrowDown" || key == "Down") { move_down();
-    } else if (key == "ArrowUp" || key == "Up")   { move_up();
-    } else if (key == "ArrowLeft" || key == "Left") { move_left();
-    } else if (key == "ArrowRight" || key == "Right") { move_right();
+    } else if (key == "ArrowDown" || key == "Down") {
+        if (evt.shiftKey) floor(Pen.x, Pen.y);
+        move_down();
+    } else if (key == "ArrowUp" || key == "Up") {
+        if (evt.shiftKey) floor(Pen.x, Pen.y);
+        move_up();
+    } else if (key == "ArrowLeft" || key == "Left") {
+        if (evt.shiftKey) floor(Pen.x, Pen.y);
+        move_left();
+    } else if (key == "ArrowRight" || key == "Right") {
+        if (evt.shiftKey) floor(Pen.x, Pen.y);
+        move_right();
     } else if (key==="u") {
         Commands.undo();
     } else if (key==="r") {
@@ -820,6 +897,9 @@ onload = initialize;
   <defs>
     <rect id="cursor" width="10" height="10" fill="forestgreen" opacity="0.2"/>
     <rect id="empty" width="10" height="10" fill="white" stroke="black" stroke-width="1"/>
+    <g id="wall" width="10">
+      <line x1="0" y1="0" x2="0" y2="10" stroke="black" stroke-width="3"/>
+    </g>
     <g id="door" width="10">
       <rect x="-1.5" y="2" width="3" height="6" fill="white" stroke="black" stroke-width="1"/>
     </g>
@@ -862,7 +942,7 @@ text { font: 14px 'Courier New', Courier, monospace; }
 .key { fill: forestgreen; font-weight: bold; }
 ]]></style>
   <g id="help">
-    <rect x="10" y="80" width="400" height="420" fill="ivory" stroke="black" stroke-width="1"/>
+    <rect x="10" y="80" width="440" height="440" fill="ivory" stroke="black" stroke-width="1"/>
     <use x="20" y="90" xlink:href="#empty"/>
     <text x="50" y="105">Use the mouse to draw and erase the floor</text>
     <use x="20" y="120" xlink:href="#trap"/>
@@ -881,24 +961,24 @@ text { font: 14px 'Courier New', Courier, monospace; }
     <use x="20" y="240" xlink:href="#gate"/>
     <text x="50" y="255"><tspan class="key">g</tspan> : a gate, repeat to rotate</text>
     <g>
-      <use x="340" y="260" xlink:href="#empty" opacity="0.3"/>
-      <use x="320" y="280" xlink:href="#empty" opacity="0.3"/>
-      <use x="340" y="280" xlink:href="#empty"/>
-      <use x="340" y="280" xlink:href="#cursor"/>
-      <use x="360" y="280" xlink:href="#empty" opacity="0.3"/>
-      <use x="340" y="300" xlink:href="#empty" opacity="0.3"/>
-      <rect x="336" y="288" width="8" height="24" fill="olive" stroke="black" stroke-width="2"/>
-      <use x="340" y="280" transform="rotate(90,350,290)" xlink:href="#gate"/>
-      <use x="340" y="280" transform="rotate(180,350,290)" xlink:href="#gate"/>
-      <use x="340" y="280" transform="rotate(270,350,290)" xlink:href="#gate"/>
-      <text x="305" y="295" style="fill: olive; font-weight: bold;">1</text>
-      <text x="345" y="255" class="key">2</text>
-      <text x="385" y="295" class="key">3</text>
-      <text x="345" y="335" class="key">4</text>
-      <use x="310" y="250" xlink:href="#curved-arrow"/>
-      <use x="310" y="250" xlink:href="#curved-arrow" transform="rotate(90,350,290)"/>
-      <use x="310" y="250" xlink:href="#curved-arrow" transform="rotate(180,350,290)"/>
-      <use x="310" y="250" xlink:href="#curved-arrow" transform="rotate(270,350,290)"/>
+      <use x="360" y="260" xlink:href="#empty" opacity="0.3"/>
+      <use x="340" y="280" xlink:href="#empty" opacity="0.3"/>
+      <use x="360" y="280" xlink:href="#empty"/>
+      <use x="360" y="280" xlink:href="#cursor"/>
+      <use x="380" y="280" xlink:href="#empty" opacity="0.3"/>
+      <use x="360" y="300" xlink:href="#empty" opacity="0.3"/>
+      <rect x="356" y="288" width="8" height="24" fill="olive" stroke="black" stroke-width="2"/>
+      <use x="360" y="280" transform="rotate(90,370,290)" xlink:href="#gate"/>
+      <use x="360" y="280" transform="rotate(180,370,290)" xlink:href="#gate"/>
+      <use x="360" y="280" transform="rotate(270,370,290)" xlink:href="#gate"/>
+      <text x="325" y="295" style="fill: olive; font-weight: bold;">1</text>
+      <text x="365" y="255" class="key">2</text>
+      <text x="405" y="295" class="key">3</text>
+      <text x="365" y="335" class="key">4</text>
+      <use x="330" y="250" xlink:href="#curved-arrow"/>
+      <use x="330" y="250" xlink:href="#curved-arrow" transform="rotate(90,370,290)"/>
+      <use x="330" y="250" xlink:href="#curved-arrow" transform="rotate(180,370,290)"/>
+      <use x="330" y="250" xlink:href="#curved-arrow" transform="rotate(270,370,290)"/>
     </g>
     <use x="20" y="290" xlink:href="#stair"/>
     <text x="50" y="305"><tspan class="key">s</tspan> : stairs, repeat to rotate</text>
@@ -911,6 +991,8 @@ text { font: 14px 'Courier New', Courier, monospace; }
       <tspan x="50" dy="20" class="key">r</tspan><tspan> : redo</tspan>
       <tspan x="200" class="key">Enter</tspan><tspan> : begin new line</tspan>
       <tspan x="50" dy="20" class="key">?</tspan><tspan> : toggle help</tspan>
+      <tspan x="200" class="key">Arrows</tspan><tspan> : move around</tspan>
+      <tspan x="200" dy="20" class="key">Shift Arrows</tspan><tspan> : draw / erase</tspan>
       <a fill="blue" xlink:href="https://github.com/kensanata/gridmapper">
         <tspan x="50" dy="30">Source available</tspan>
       </a>
