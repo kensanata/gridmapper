@@ -487,36 +487,54 @@ function pen_down(evt) {
  * pen_track). */
 
 function key_pressed(evt) {
-    if(evt.which===63) { // ?
+    var key = evt.key;
+
+    //Google Chrome
+    if(!key && evt.keyIdentifier) {
+        if (evt.keyIdentifier.substring(0,2) == "U+") { // U+0044 = D
+            key = String.fromCharCode(parseInt(event.keyIdentifier.substr(2), 16));
+            if (!evt.shiftKey) {
+                key = key.toLowerCase(); // "D" to "d"
+            }
+        } else {
+            key = evt.keyIdentifier; // "Left"
+        }
+    }
+
+    if(key==="?") {
         var help = document.getElementById("help");
         if (help.getAttributeNS(null, "visibility") == "hidden") {
             help.setAttributeNS(null, "visibility", "visible");
         } else {
             help.setAttributeNS(null, "visibility", "hidden");
         }
-    } else if (evt.which===117) { // u
+    } else if (key == "ArrowDown" || key == "Down") { move_down();
+    } else if (key == "ArrowUp" || key == "Up")   { move_up();
+    } else if (key == "ArrowLeft" || key == "Left") { move_left();
+    } else if (key == "ArrowRight" || key == "Right") { move_right();
+    } else if (key===117) { // u
         Commands.undo();
-    } else if (evt.which===114) { // r
+    } else if (key===114) { // r
         Commands.redo();
     } else if (Pen.evt) {
         // extract last known mouse position
         var x = Math.floor(Pen.evt.clientX / Map.tileWidth);
         var y = Math.floor(Pen.evt.clientY / Map.tileWidth);
-        if (evt.which===100) { // d
+        if (key==="d") {
             door(x, y);
-        } else if (evt.which===115) { // s
+        } else if (key==="s") {
             secret(x, y);
-        } else if (evt.which===99) { // c
+        } else if (key==="c") {
             concealed(x, y);
-        } else if (evt.which===103) { // g
+        } else if (key==="g") {
             gate(x, y);
-        } else if (evt.which===119) { // w
+        } else if (key==="w") {
             remove_wall(x, y);
-        } else if (evt.which===116) { // t
+        } else if (key==="t") {
             trap(x, y);
-        } else if (evt.which===108) { // l
+        } else if (key==="l") {
             stairs(x, y);
-        } else if (evt.which===102) { // f
+        } else if (key==="f") {
             floor(x, y);
         }
     }
@@ -588,6 +606,7 @@ function initialize() {
     Map.ui.onmousedown = pen_down;
     Map.ui.onmousemove = pen_track;
     document.onkeypress = key_pressed;
+    document.onkeydown = key_pressed; // capture arrow keys
     for (var x = 0; x < Map.width; x++) {
         Map.floor[x] = [];
         Map.walls[x] = [];
@@ -599,6 +618,7 @@ function initialize() {
 onload = initialize;
 ]]></script>
   <defs>
+    <rect id="cursor" width="10" height="10" fill="white" stroke="black" stroke-width="1" opacity="0.2"/>
     <rect id="empty" width="10" height="10" fill="white" stroke="black" stroke-width="1"/>
     <g id="door" width="10">
       <rect x="-1.5" y="2" width="3" height="6" fill="white" stroke="black" stroke-width="1"/>
