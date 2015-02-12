@@ -25,6 +25,7 @@ var Map = {
     height: 21, // how many rows
     tileWidth: 20, // tile size in pixels
     ui: null, // the SVG element with the event handlers
+    pointer: null, // the SVG element for the current position
     floorElement: null, // the SVG element for the floor
     floor: [], // the model for the floor
     stairsElement: null, // the SVG element for the stairs
@@ -33,22 +34,30 @@ var Map = {
     walls: [], // the model for the walls
 };
 
-/* The Pen holds information about the mouse. */
+/* The Pen holds information about the mouse. We're trying to keep as
+   much of the coordinate messing to ourselves, here. Remember: there
+   is an empty column to the left and an empty row at the top. */
 
 var Pen = {
-    x: null,
-    y: null,
+    x: 0,
+    y: 0,
     type: null,
+    // to compute a target position
     position: function(evt) {
         return {
-            x: Math.floor(Pen.evt.clientX / Map.tileWidth) - 1, // empty column to the left
-            y: Math.floor(Pen.evt.clientY / Map.tileWidth) - 1
+            x: Math.floor(evt.clientX / Map.tileWidth) - 1,
+            y: Math.floor(evt.clientY / Map.tileWidth) - 1
         }; // empty row at the top
     },
+    // to update our current position
     update: function(evt) {
-        var pos = this.position(evt);
-        this.x = pos.x;
-        this.y = pos.y;
+        if (evt) {
+            var pos = this.position(evt);
+            this.x = pos.x;
+            this.y = pos.y;
+        }
+        Map.pointer.setAttribute("x", (this.x + 1) * Map.tileWidth);
+        Map.pointer.setAttribute("y", (this.y + 1) * Map.tileWidth);
     },
     // return true if we moved
     move_to: function(target) {
@@ -292,7 +301,8 @@ function wall(x, y, type) {
             rotate_tile(tile, type, x, y, rotate);
             Commands.push(
                 function(){
-                    remove_wall (x, y);
+                    Map.walls[x][y].pop();
+                    Map.wallsElement.removeChild(tile);
                 },
                 function(){
                     Map.walls[x][y].push(tile);
@@ -306,10 +316,16 @@ function wall(x, y, type) {
 function remove_wall (x, y) {
     if (Map.walls[x][y] != null) {
         // take the last one and remove it
-        var tile = Map.walls[x][y].pop();
-        Map.wallsElement.removeChild(tile);
-        // don't clean up if Map.walls[x][y].length == 0 because of
-        // redo
+        var tile = Map.walls[x][y][Map.walls[x][y].length - 1];
+        Commands.push(
+            function(){
+                Map.walls[x][y].push(tile);
+                Map.wallsElement.appendChild(tile);
+            },
+            function(){
+                Map.walls[x][y].pop();
+                Map.wallsElement.removeChild(tile);
+            });
     }
 }
 
@@ -400,7 +416,7 @@ function floor(x, y) {
         Commands.push(
             function(){
                 if (stair != null) {
-                Map.stairsElement.appendChild(stair);
+                    Map.stairsElement.appendChild(stair);
                     Map.stairs[x][y] = stair;
                 }
                 Map.floorElement.removeChild(tile);
@@ -419,6 +435,16 @@ function floor(x, y) {
             }
                 Map.floorElement.appendChild(tile);
                 Map.floor[x][y] = tile;
+            });
+    } else {
+        Commands.push(
+            function(){
+                Map.floorElement.appendChild(tile);
+                Map.floor[x][y] = tile;
+            },
+            function(){
+                Map.floorElement.removeChild(old);
+                Map.floor[x][y] = null;
             });
     }
 }
@@ -466,12 +492,11 @@ function draw_to(evt) {
 /* When we're drawing (draw_to), the position of the pen is always
  * updated. When we're not drawing, we still need to store something
  * because of possible keypress events (which don't come with a
- * position). Simply storing the event seems to be the cheapest
- * option. */
+ * position). */
 
 function pen_track(evt) {
-    Pen.evt = evt;
-} 
+    Pen.update(evt)
+}
 
 /* When setting down the pen (onmousedown, pen_down), we look at the
  * current tile. If it's the empty floor tile, we'll want to erase it.
@@ -480,7 +505,7 @@ function pen_track(evt) {
  * drawing (onmousemove, draw_to), we don't change it. */
 
 function pen_down(evt) {
-    Pen.update();
+    Pen.update(evt);
     if (Map.floor[Pen.x][Pen.y] != null) {
         Pen.type = "null";
     } else {
@@ -496,6 +521,29 @@ function pen_down(evt) {
     }
 }
 
+function move_left(){
+    if (Pen.x > 0)
+        Pen.x--;
+    Pen.update(null);
+}
+
+function move_right(){
+    if (Pen.x < Map.width)
+        Pen.x++;
+    Pen.update(null);
+}
+
+function move_up(){
+    if (Pen.y > 0)
+        Pen.y--;
+    Pen.update(null);
+}
+
+function move_down(){
+     if (Pen.y < Map.height)
+        Pen.y++;
+    Pen.update(null);
+}
 /* Many of the key commands need a "current" position. We determine it
  * by looking at the Pen. It's position is always tracked (onmousemove,
  * pen_track). */
@@ -530,8 +578,7 @@ function key_pressed(evt) {
         Commands.undo();
     } else if (key==="r") {
         Commands.redo();
-    } else if (Pen.evt) {
-        Pen.update();
+    } else {
         if (key==="d") {
             door(Pen.x, Pen.y);
         } else if (key==="s") {
@@ -607,6 +654,8 @@ function initialize() {
          // an empty column at the top
          Map.tileWidth / scale - help.firstElementChild.getAttribute("y"),
          bounceEaseOut);
+    Map.pointer = document.getElementById("pointer");
+    Pen.update(null); // show it
     Map.ui = document.getElementById("ui");
     Map.ui.setAttribute("x", Map.tileWidth);
     Map.ui.setAttribute("y", Map.tileWidth);
@@ -631,7 +680,7 @@ function initialize() {
 onload = initialize;
 ]]></script>
   <defs>
-    <rect id="cursor" width="10" height="10" fill="white" stroke="black" stroke-width="1" opacity="0.2"/>
+    <rect id="cursor" width="10" height="10" fill="forestgreen" opacity="0.2"/>
     <rect id="empty" width="10" height="10" fill="white" stroke="black" stroke-width="1"/>
     <g id="door" width="10">
       <rect x="-1.5" y="2" width="3" height="6" fill="white" stroke="black" stroke-width="1"/>
@@ -667,6 +716,7 @@ onload = initialize;
   <rect id="background" x="20" y="20" width="0" height="0" fill="lightgray" stroke="black" stroke-width="1"/>
   <g id="floor"/>
   <g id="stairs"/>
+  <use id="pointer" xlink:href="#cursor"/>
   <g id="walls"/>
   <rect id="ui" opacity="0"/>
   <style><![CDATA[
@@ -695,9 +745,10 @@ text { font: 14px 'Courier New', Courier, monospace; }
     <g>
       <use x="350" y="250" xlink:href="#empty" opacity="0.3"/>
       <use x="330" y="270" xlink:href="#empty" opacity="0.3"/>
+      <use x="350" y="270" xlink:href="#empty"/>
+      <use x="350" y="270" xlink:href="#cursor"/>
       <use x="370" y="270" xlink:href="#empty" opacity="0.3"/>
       <use x="350" y="290" xlink:href="#empty" opacity="0.3"/>
-      <use x="350" y="270" xlink:href="#empty"/>
       <rect x="346" y="278" width="8" height="24" fill="olive" stroke="black" stroke-width="2"/>
       <use x="350" y="270" transform="rotate(90,360,280)" xlink:href="#gate"/>
       <use x="350" y="270" transform="rotate(180,360,280)" xlink:href="#gate"/>
