@@ -743,35 +743,36 @@ text { font: 14px 'Courier New', Courier, monospace; }
     <use x="20" y="240" xlink:href="#gate"/>
     <text x="50" y="255"><tspan class="key">g</tspan> : a gate, repeat to rotate</text>
     <g>
-      <use x="350" y="250" xlink:href="#empty" opacity="0.3"/>
-      <use x="330" y="270" xlink:href="#empty" opacity="0.3"/>
-      <use x="350" y="270" xlink:href="#empty"/>
-      <use x="350" y="270" xlink:href="#cursor"/>
-      <use x="370" y="270" xlink:href="#empty" opacity="0.3"/>
-      <use x="350" y="290" xlink:href="#empty" opacity="0.3"/>
-      <rect x="346" y="278" width="8" height="24" fill="olive" stroke="black" stroke-width="2"/>
-      <use x="350" y="270" transform="rotate(90,360,280)" xlink:href="#gate"/>
-      <use x="350" y="270" transform="rotate(180,360,280)" xlink:href="#gate"/>
-      <use x="350" y="270" transform="rotate(270,360,280)" xlink:href="#gate"/>
-      <text x="315" y="285" style="fill: olive; font-weight: bold;">1</text>
-      <text x="355" y="245" class="key">2</text>
-      <text x="395" y="285" class="key">3</text>
-      <text x="355" y="325" class="key">4</text>
-      <use x="320" y="240" xlink:href="#curved-arrow"/>
-      <use x="320" y="240" xlink:href="#curved-arrow" transform="rotate(90,360,280)"/>
-      <use x="320" y="240" xlink:href="#curved-arrow" transform="rotate(180,360,280)"/>
-      <use x="320" y="240" xlink:href="#curved-arrow" transform="rotate(270,360,280)"/>
+      <use x="340" y="260" xlink:href="#empty" opacity="0.3"/>
+      <use x="320" y="280" xlink:href="#empty" opacity="0.3"/>
+      <use x="340" y="280" xlink:href="#empty"/>
+      <use x="340" y="280" xlink:href="#cursor"/>
+      <use x="360" y="280" xlink:href="#empty" opacity="0.3"/>
+      <use x="340" y="300" xlink:href="#empty" opacity="0.3"/>
+      <rect x="336" y="288" width="8" height="24" fill="olive" stroke="black" stroke-width="2"/>
+      <use x="340" y="280" transform="rotate(90,350,290)" xlink:href="#gate"/>
+      <use x="340" y="280" transform="rotate(180,350,290)" xlink:href="#gate"/>
+      <use x="340" y="280" transform="rotate(270,350,290)" xlink:href="#gate"/>
+      <text x="305" y="295" style="fill: olive; font-weight: bold;">1</text>
+      <text x="345" y="255" class="key">2</text>
+      <text x="385" y="295" class="key">3</text>
+      <text x="345" y="335" class="key">4</text>
+      <use x="310" y="250" xlink:href="#curved-arrow"/>
+      <use x="310" y="250" xlink:href="#curved-arrow" transform="rotate(90,350,290)"/>
+      <use x="310" y="250" xlink:href="#curved-arrow" transform="rotate(180,350,290)"/>
+      <use x="310" y="250" xlink:href="#curved-arrow" transform="rotate(270,350,290)"/>
     </g>
     <use x="20" y="290" xlink:href="#stair"/>
     <text x="50" y="305"><tspan class="key">l</tspan> : stairs, repeat to rotate</text>
-    <text y="350">
+    <use x="20" y="340" xlink:href="#empty"/>
+    <text y="355">
       <tspan x="50"><tspan class="key">f</tspan> : floor, remove traps and stairs</tspan>
       <tspan x="50" dy="20"><tspan class="key">w</tspan> : remove gates and all kinds of doors</tspan>
       <tspan x="50" dy="20" class="key">u</tspan><tspan> : undo</tspan>
       <tspan x="50" dy="20" class="key">r</tspan><tspan> : redo</tspan>
       <tspan x="50" dy="20" class="key">?</tspan><tspan> : toggle help</tspan>
       <a fill="blue" xlink:href="https://github.com/kensanata/gridmapper">
-        <tspan x="50" dy="40">Source available</tspan>
+        <tspan x="50" dy="30">Source available</tspan>
       </a>
       <a id="download" fill="blue" xlink:href="javascript:download()">
         <tspan x="50" dy="20">Prepare Download</tspan>
