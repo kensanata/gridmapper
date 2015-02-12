@@ -272,7 +272,7 @@ function rotate_tile(tile, type, x, y, angle) {
         tile.removeAttributeNS(null,"transform");
     }
 }
-      
+
 function wall(x, y, type) {
     var now = new Date();
     if (Pen.type===type && Map.walls[x][y] != null && Pen.ts && now - Pen.ts <= 2000) {
@@ -579,9 +579,14 @@ function key_pressed(evt) {
     } else if (key==="r") {
         Commands.redo();
     } else {
-        if (key==="d") {
+        if (key===" ") {
+            move_right();
+        } else if (key==="Enter") {
+            Pen.x = 0;
+            move_down();
+        } else if (key==="d") {
             door(Pen.x, Pen.y);
-        } else if (key==="s") {
+        } else if (key==="$") {
             secret(Pen.x, Pen.y);
         } else if (key==="c") {
             concealed(Pen.x, Pen.y);
@@ -591,7 +596,7 @@ function key_pressed(evt) {
             remove_wall(Pen.x, Pen.y);
         } else if (key==="t") {
             trap(Pen.x, Pen.y);
-        } else if (key==="l") {
+        } else if (key==="s") {
             stairs(Pen.x, Pen.y);
         } else if (key==="f") {
             floor(Pen.x, Pen.y);
@@ -610,6 +615,11 @@ function recreate_model_for(re, model, element) {
     }
 }
 
+/* When loading a file, the first section is used: We go through the elements
+   and add the appropriate data to the various data models. When loading from
+   a URL, we look at the keyword parameter and interpret it as a key sequence
+   one might conceivably type. The only difference is the / character which is
+   used to simulate a little pause (to prevent doors from rotating). */
 function recreate_model() {
     var re = /^\w+_(\d+)_(\d+)$/;
     recreate_model_for(re, Map.floor, Map.floorElement);
@@ -627,8 +637,28 @@ function recreate_model() {
             Map.walls[x][y].push(Map.wallsElement.children[i]);
         }
     }
+    var code = decodeURIComponent(window.location.search);
+    if (code) {
+        var rows = code.substring(1).split("\n");
+        for (var y = 0; y < rows.length; y++) {
+            for (var x = 0, i = 0; i < rows[y].length; i++) {
+                switch(rows[y][i]) {
+                case "f": floor(x++,y); break
+                case "t": trap(x++,y); break;
+                case "+":
+                case " ": x++; break;
+                case "d": door(x,y,"door"); break;
+                case "$": door(x,y,"secret"); break;
+                case "c": door(x,y,"concealed"); break;
+                case "g": gate(x,y); break;
+                case "/": Pen.ts = null; break;
+                case "s": stairs(x,y); break;
+                }
+            }
+        }
+    }
 }
-      
+
 function initialize() {
     scale_tiles();
     var scale = Map.tileWidth / 20;
@@ -734,7 +764,7 @@ text { font: 14px 'Courier New', Courier, monospace; }
     <text x="50" y="165"><tspan class="key">d</tspan> : a door, repeat to rotate</text>
     <use x="20" y="180" xlink:href="#empty"/>
     <use x="20" y="180" xlink:href="#secret"/>
-    <text x="50" y="195"><tspan class="key">s</tspan> : a secret door, repeat to rotate</text>
+    <text x="50" y="195"><tspan class="key">$</tspan> : a secret door, repeat to rotate</text>
     <use x="20" y="210" xlink:href="#empty"/>
     <use x="20" y="210" xlink:href="#concealed"/>
     <text x="50" y="225"><tspan class="key">c</tspan> : a concealed door, repeat to rotate</text>
@@ -763,7 +793,7 @@ text { font: 14px 'Courier New', Courier, monospace; }
       <use x="310" y="250" xlink:href="#curved-arrow" transform="rotate(270,350,290)"/>
     </g>
     <use x="20" y="290" xlink:href="#stair"/>
-    <text x="50" y="305"><tspan class="key">l</tspan> : stairs, repeat to rotate</text>
+    <text x="50" y="305"><tspan class="key">s</tspan> : stairs, repeat to rotate</text>
     <use x="20" y="340" xlink:href="#empty"/>
     <text y="355">
       <tspan x="50"><tspan class="key">f</tspan> : floor, remove traps and stairs</tspan>
