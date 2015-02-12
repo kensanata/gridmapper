@@ -254,13 +254,13 @@ function text_export() {
     source = source.replace(/ +$/gm,"");
     source = source.replace(/\n+$/,"");
     source = encodeURIComponent(source);
-    console.log(source);
-    var link = document.getElementById("download");
+    var link = document.getElementById("export");
     var text = link.firstElementChild.firstChild.nodeValue;
-    link.firstElementChild.firstChild.nodeValue = "Download";
+    link.firstElementChild.firstChild.nodeValue = "Link";
     var href = link.getAttributeNS(xlink_ns, "href");
-    link.setAttributeNS(null, "download", "gridmapper.text");
-    link.setAttributeNS(xlink_ns, "href", "data:text/plain," + source);
+    var location = window.location.href.substr(
+        0, window.location.href.length - window.location.search.length)
+    link.setAttributeNS(xlink_ns, "href", location + "?" + source);
     // reset after 10s
     var t = setInterval(function() {
         link.setAttributeNS(xlink_ns, "href", href);
@@ -659,8 +659,6 @@ function key_pressed(evt) {
             stairs(Pen.x, Pen.y);
         } else if (key==="f") {
             floor(Pen.x, Pen.y);
-        } else if (key==="x") {
-            text_export(Pen.x, Pen.y);
         }
     }
 }
@@ -867,6 +865,9 @@ text { font: 14px 'Courier New', Courier, monospace; }
       </a>
       <a id="download" fill="blue" xlink:href="javascript:download()">
         <tspan x="50" dy="20">Prepare Download</tspan>
+      </a><tspan> / </tspan>
+      <a id="export" fill="blue" xlink:href="javascript:text_export()">
+        <tspan>Prepare Link</tspan>
       </a>
     </text>
   </g>
