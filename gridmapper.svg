@@ -65,7 +65,8 @@ var Map = {
 var Pen = {
     x: 0,
     y: 0,
-    type: null,
+    ts: null, // when was the pen last used to draw a door
+    type: null, // type of tile we last used
     // to compute a target position
     position: function(evt) {
         return {
@@ -73,40 +74,9 @@ var Pen = {
             y: Math.floor(evt.clientY / Map.tileWidth) - 1
         }; // empty row at the top
     },
-    // guess which wall the user is closest
-    //  +------------------+
-    //  |--     90°       /+
-    //  |  \-           /- |
-    //  |    \--      /-   |
-    // b|       \- /--     |
-    // ↓|  0°    /\-   180°|
-    //  |     /--   \--    |
-    //  |   /-         \-  |
-    //  | /-   270°      \>|
-    //  +------------------+
-    //           a →
-    angle: function(evt) {
-        // ignore diagonals
-        var a = evt.clientX % Map.tileWidth;
-        var b = evt.clientY % Map.tileWidth;
-        if (a + b > Map.tileWidth * 1.4 || Math.abs(a - b) < Map.tileWidth * 0.6) {
-            return null;
-        } else if (b >= a) {
-            if (a + b <= Map.tileWidth) {
-                return 0;
-            } else {
-                return 270;
-            }
-        } else {
-            if (a + b > Map.tileWidth) {
-                return 180;
-            } else {
-                return 90;
-            }
-        }
-    },
     // to update our current position
     update: function(evt) {
+        this.ts = null;
         if (evt) {
             var pos = this.position(evt);
             this.x = pos.x;
@@ -513,6 +483,11 @@ function gate(x, y) {
     Pen.type = "gate";
 }
 
+function just_wall(x, y) {
+    wall(x, y, "wall");
+    Pen.type = "wall";
+}
+
 function trap(x, y) {
     var old = Map.floor[x][y];
     if (old != null && old.type==="trap") {
@@ -678,9 +653,6 @@ function draw_to(evt) {
             draw_to_command(Pen.x, Pen.y, create_tile(Pen.x, Pen.y, "empty"), "add");
         } else if (Map.floor[Pen.x][Pen.y] != null && Pen.type == "null") {
             draw_to_command(Pen.x, Pen.y, Map.floor[Pen.x][Pen.y], "remove");
-        } else if (Pen.type == "wall") {
-            draw_line_to_command(Pen.x, Pen.y, Pen.angle(evt),
-                                 create_tile(Pen.x, Pen.y, "wall"), "add");
         }
     } while (Pen.move_to(target));
     pen_track(evt);
@@ -706,11 +678,7 @@ function pen_down(evt) {
     if (Map.floor[Pen.x][Pen.y] != null) {
         Pen.type = "null";
     } else {
-        if (evt.shiftKey) {
-            Pen.type = "wall";
-        } else {
-            Pen.type = "empty";
-        }
+        Pen.type = "empty";
     }
     // draw at least one tile
     draw_to(evt);
@@ -806,6 +774,8 @@ function key_pressed(evt) {
         } else if (key==="g") {
             gate(Pen.x, Pen.y);
         } else if (key==="w") {
+            just_wall(Pen.x, Pen.y);
+        } else if (key==="W") {
             remove_wall(Pen.x, Pen.y);
         } else if (key==="t") {
             trap(Pen.x, Pen.y);
