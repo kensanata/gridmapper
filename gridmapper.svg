@@ -210,6 +210,65 @@ function download() {
     }, 10000);
 }
 
+/* We store the entire document in a sequence of keystrokes with which
+ * to recreate it. */
+
+function text_export() {
+    var source = "";
+    for (var y = 0; y < Map.height; y++) {
+        for (var x = 0; x < Map.width; x++) {
+            if (Map.stairs[x][y]) {
+                source += "s".repeat(1 + Map.stairs[x][y].getAttribute("rotate") / 90);
+            }
+            if (Map.walls[x][y]) {
+                for (var i = 0; i < Map.walls[x][y].length; i++) {
+                    var tile = Map.walls[x][y][i];
+                    var type;
+                    if (tile.type == "door") {
+                        type = "d";
+                    } else if (tile.type == "secret") {
+                        type = "$";
+                    } else if (tile.type == "concealed") {
+                        type = "c";
+                    } else if (tile.type == "gate") {
+                        type = "g";
+                    }
+                    if (type) {
+                        source += type.repeat(1 + tile.getAttribute("rotate") / 90);
+                    }
+                }
+            }
+            if (Map.floor[x][y]) {
+                var tile = Map.floor[x][y];
+                if (tile.type == "trap") {
+                    source += "t";
+                } else if (tile.type == "empty") {
+                    source += "f";
+                }
+            } else {
+                source += " ";
+            }
+        }
+        source += "\n";
+    }
+    source = source.replace(/ +$/gm,"");
+    source = source.replace(/\n+$/,"");
+    source = encodeURIComponent(source);
+    console.log(source);
+    var link = document.getElementById("download");
+    var text = link.firstElementChild.firstChild.nodeValue;
+    link.firstElementChild.firstChild.nodeValue = "Download";
+    var href = link.getAttributeNS(xlink_ns, "href");
+    link.setAttributeNS(null, "download", "gridmapper.text");
+    link.setAttributeNS(xlink_ns, "href", "data:text/plain," + source);
+    // reset after 10s
+    var t = setInterval(function() {
+        link.setAttributeNS(xlink_ns, "href", href);
+        link.firstElementChild.firstChild.nodeValue = text;
+        clearInterval(t);
+    }, 10000);
+}
+      
 /* You can add more tiles at whatever scale you want and this code
  * will determine the scale by comparing your tile's width with the
  * tile width in use by the map. The original tiles are all based on a
@@ -600,6 +659,8 @@ function key_pressed(evt) {
             stairs(Pen.x, Pen.y);
         } else if (key==="f") {
             floor(Pen.x, Pen.y);
+        } else if (key==="x") {
+            text_export(Pen.x, Pen.y);
         }
     }
 }
