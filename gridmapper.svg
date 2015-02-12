@@ -6,6 +6,7 @@
   <desc>Gridmapper, a simple tool to create dungeon maps</desc>
 
   <script type="application/javascript"><![CDATA[
+
 /* The Map is where we store everything about the map. The fooElement
  * members point to the SVG elements where we'll be adding stuff and
  * the foo member are arrays with references to those elements,
@@ -15,14 +16,15 @@
  * we'll register the mouse event handlers.
  *
  * If you want to change the size of the map, simply change width and
- * height. The tileWidth is the size of one square, in pixels. You can
- * change that as well. Everything shold be scaled accordingly
+ * height. 30x30 was the template for the first One Page Dungeon
+ * Contest. The tileWidth is the size of one square, in pixels. You
+ * can change that as well. Everything shold be scaled accordingly
  * (including the help screen).
  */
 
 var Map = {
     width: 30, // how many columns
-    height: 21, // how many rows
+    height: 30, // how many rows
     tileWidth: 20, // tile size in pixels
     ui: null, // the SVG element with the event handlers
     pointer: null, // the SVG element for the current position
@@ -32,6 +34,28 @@ var Map = {
     stairs: [], // the model for the stairs
     wallsElement: null, // the SVG element for the walls
     walls: [], // the model for the walls
+    initialize: function() {
+        for (var i = 0; i <= Map.width; i++) {
+            Map.floor[i] = [];
+            Map.walls[i] = [];
+            Map.stairs[i] = [];
+        }
+        move_elements();
+    },
+    minimum_size: function(width) {
+        var growth = false;
+        // first call will create all the columns
+        while (width >= Map.width) {
+            Map.floor[Map.width] = [];
+            Map.walls[Map.width] = [];
+            Map.stairs[Map.width] = [];
+            Map.width++;
+            growth = true;
+        }
+        // show it
+        if (growth)
+            move_elements();
+    }
 };
 
 /* The Pen holds information about the mouse. We're trying to keep as
@@ -636,13 +660,7 @@ function move_left(){
 }
 
 function move_right(){
-    if (Pen.x + 1 >= Map.width) {
-        Map.floor[Map.width] = [];
-        Map.walls[Map.width] = [];
-        Map.stairs[Map.width] = [];
-        Map.width++;
-        move_elements();
-    }
+    Map.minimum_size(Pen.x + 1);
     Pen.x++;
     Pen.update(null);
 }
@@ -728,6 +746,7 @@ function recreate_model_for(re, model, element) {
         if (result) {
             var x = result[1];
             var y = result[2];
+            Map.minimum_size(x);
             model[x][y] = element.children[i];
         }
     }
@@ -738,6 +757,7 @@ function recreate_model_for(re, model, element) {
    a URL, we look at the keyword parameter and interpret it as a key sequence
    one might conceivably type. The only difference is the / character which is
    used to simulate a little pause (to prevent doors from rotating). */
+
 function recreate_model() {
     var re = /^\w+_(\d+)_(\d+)$/;
     recreate_model_for(re, Map.floor, Map.floorElement);
@@ -760,6 +780,7 @@ function recreate_model() {
         var rows = code.substring(1).split("\n");
         for (var y = 0; y < rows.length; y++) {
             for (var x = 0, i = 0; i < rows[y].length; i++) {
+                Map.minimum_size(x);
                 switch(rows[y][i]) {
                 case "f": floor(x++,y); break
                 case "t": trap(x++,y); break;
@@ -778,25 +799,20 @@ function recreate_model() {
 }
 
 function initialize() {
-    Map.ui = document.getElementById("ui"); // will be moved, too
     scale_tiles();
-    move_elements();
     Map.pointer = document.getElementById("pointer");
     Pen.update(null); // show it
     Map.floorElement = document.getElementById("floor");
     Map.wallsElement = document.getElementById("walls");
     Map.stairsElement = document.getElementById("stairs");
     // http://javascript.info/tutorial/mouse-events#drag-n-drop
+    Map.ui = document.getElementById("ui"); // will be moved, too
     Map.ui.ondragstart = function() { return false };
     Map.ui.onmousedown = pen_down;
     Map.ui.onmousemove = pen_track;
     document.onkeydown = key_pressed; // capture arrow keys
-    for (var x = 0; x < Map.width; x++) {
-        Map.floor[x] = [];
-        Map.walls[x] = [];
-        Map.stairs[x] = [];
-    }
-    recreate_model();
+    Map.initialize(); // quickly create the first columns
+    recreate_model(); // create model
 }
 
 onload = initialize;
