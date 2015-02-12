@@ -858,7 +858,9 @@ text { font: 14px 'Courier New', Courier, monospace; }
       <tspan x="50"><tspan class="key">f</tspan> : floor, remove traps and stairs</tspan>
       <tspan x="50" dy="20"><tspan class="key">w</tspan> : remove gates and all kinds of doors</tspan>
       <tspan x="50" dy="20" class="key">u</tspan><tspan> : undo</tspan>
+      <tspan x="200" class="key">Space</tspan><tspan> : move right</tspan>
       <tspan x="50" dy="20" class="key">r</tspan><tspan> : redo</tspan>
+      <tspan x="200" class="key">Enter</tspan><tspan> : begin new line</tspan>
       <tspan x="50" dy="20" class="key">?</tspan><tspan> : toggle help</tspan>
       <a fill="blue" xlink:href="https://github.com/kensanata/gridmapper">
         <tspan x="50" dy="30">Source available</tspan>
