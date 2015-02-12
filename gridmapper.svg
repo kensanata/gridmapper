@@ -168,20 +168,69 @@ function resize(element, to_width, to_height, delta, duration) {
     })
 }
 
-function move(element, dx, dy, delta, duration) {
-    var old = element.getAttribute("transform")||"";
-    if (old != "") {
-        old += ",";
-    }
-    animate({
-        delay: 10,
-        duration: duration || 1000, // 1 sec by default
-        delta: delta,
-        step: function(delta) {
-            element.setAttribute("transform", old + "translate(" + dx * delta + "," + dy * delta + ")");
-        }
-    })
+function move(element, x1, y1, x2, y2, delta, duration) {
+    var re = /translate\(.*?\)/;
+    var current_x = element.current_x || x1;
+    var current_y = element.current_y || y1;
+    var old_dx = current_x - x1;
+    var old_dy = current_y - y1;
+    var new_dx = x2 - current_x;
+    var new_dy = y2 - current_y;
+    element.current_x = x2;
+    element.current_y = y2;
+    if (new_dx != 0 || new_dy != 0)
+        animate({
+            delay: 10,
+            duration: duration || 1000, // 1 sec by default
+            delta: delta,
+            step: function(delta) {
+                var transform = "translate(" + (old_dx + new_dx * delta) + "," + (old_dy + new_dy * delta) + ")";
+                if (!element.hasAttribute("transform"))
+                    element.setAttribute("transform", transform);
+                else if (element.getAttribute("transform").match(re))
+                    element.setAttribute("transform", element.getAttribute("transform").replace(re, transform));
+                else
+                    element.setAttribute("transform", element.getAttribute("transform") + "," + transform);
+            }
+        })
 }
+
+function move_elements() {
+    Map.ui.setAttribute("x", Map.tileWidth);
+    Map.ui.setAttribute("y", Map.tileWidth);
+    Map.ui.setAttribute("width",  Map.width * Map.tileWidth);
+    Map.ui.setAttribute("height", Map.height * Map.tileWidth);
+    var background = document.getElementById("background");
+    resize(background,
+           Map.width * Map.tileWidth,
+           Map.height * Map.tileWidth,
+           linear, 600);
+    move(background,
+         parseInt(background.getAttribute("x")),
+         parseInt(background.getAttribute("y")),
+         Map.tileWidth, // an empty column to the left
+         Map.tileWidth, // an empty column at the top
+         linear, 500);
+    var scale = Map.tileWidth / 20;
+    var help = document.getElementById("help");
+    if (scale != 1) {
+        // from now on, we need to scale all coordinates!
+        if (help.hasAttribute("transform")) {
+            help.setAttribute("transform", help.getAttribute("transform").replace(/scale\(.*?\)/, "scale("+scale+","+scale+")"));
+        } else {
+            help.setAttribute("transform", "scale("+scale+","+scale+")");
+        }
+    }
+    move(help,
+         help.getBBox().x,
+         help.getBBox().y,
+         // an empty column, the background, and another empty column to the left
+         (Map.width + 2) * Map.tileWidth / scale,
+         // an empty column at the top
+         Map.tileWidth / scale,
+         linear, 500);
+    var help = document.getElementById("help");
+}          
 
 /* We store the entire document in a data URI and offer it for downlod
  * using the HTML5 download attribute. Chrome 40 will still load that
@@ -587,8 +636,14 @@ function move_left(){
 }
 
 function move_right(){
-    if (Pen.x < Map.width)
-        Pen.x++;
+    if (Pen.x + 1 >= Map.width) {
+        Map.floor[Map.width] = [];
+        Map.walls[Map.width] = [];
+        Map.stairs[Map.width] = [];
+        Map.width++;
+        move_elements();
+    }
+    Pen.x++;
     Pen.update(null);
 }
 
@@ -599,10 +654,14 @@ function move_up(){
 }
 
 function move_down(){
-     if (Pen.y < Map.height)
-        Pen.y++;
+    if (Pen.y + 1 >= Map.height) {
+        Map.height++;
+        move_elements();
+    }
+    Pen.y++;
     Pen.update(null);
 }
+
 /* Many of the key commands need a "current" position. We determine it
  * by looking at the Pen. It's position is always tracked (onmousemove,
  * pen_track). */
@@ -719,37 +778,11 @@ function recreate_model() {
 }
 
 function initialize() {
+    Map.ui = document.getElementById("ui"); // will be moved, too
     scale_tiles();
-    var scale = Map.tileWidth / 20;
-    var background = document.getElementById("background");
-    resize(background,
-           Map.width * Map.tileWidth,
-           Map.height * Map.tileWidth,
-           linear);
-    move(background,
-         // an empty column to the left
-         Map.tileWidth - background.getAttribute("x"),
-         // an empty column at the top
-         Map.tileWidth - background.getAttribute("y"),
-         linear);
-    var help = document.getElementById("help");
-    if (scale != 1) {
-        // from now on, we need to scale all coordinates!
-        help.setAttribute("transform", "scale("+scale+","+scale+")");
-    }
-    move(help,
-         // an empty column, the background, and another empty column to the left
-         (Map.width + 2) * Map.tileWidth / scale - help.firstElementChild.getAttribute("x"),
-         // an empty column at the top
-         Map.tileWidth / scale - help.firstElementChild.getAttribute("y"),
-         bounceEaseOut);
+    move_elements();
     Map.pointer = document.getElementById("pointer");
     Pen.update(null); // show it
-    Map.ui = document.getElementById("ui");
-    Map.ui.setAttribute("x", Map.tileWidth);
-    Map.ui.setAttribute("y", Map.tileWidth);
-    Map.ui.setAttribute("width",  Map.width * Map.tileWidth);
-    Map.ui.setAttribute("height", Map.height * Map.tileWidth);
     Map.floorElement = document.getElementById("floor");
     Map.wallsElement = document.getElementById("walls");
     Map.stairsElement = document.getElementById("stairs");
