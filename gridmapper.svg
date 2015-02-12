@@ -59,26 +59,26 @@ var Commands = {
     undoSteps: [],
     redoSteps: [],
     push: function(undoStep, redoStep) {
-	// once we're pushing new steps, discard the undone steps
-	while (this.undoSteps.length - 1 > this.i) {
-	    this.undoSteps.pop();
-	    this.redoSteps.pop();
-	}
-	this.undoSteps.push(undoStep);
-	this.redoSteps.push(redoStep);
-	this.i++;
-	// finally, execute the last step
-	redoStep();
+        // once we're pushing new steps, discard the undone steps
+        while (this.undoSteps.length - 1 > this.i) {
+            this.undoSteps.pop();
+            this.redoSteps.pop();
+        }
+        this.undoSteps.push(undoStep);
+        this.redoSteps.push(redoStep);
+        this.i++;
+        // finally, execute the last step
+        redoStep();
     },
     undo: function() {
-	if (this.i >= 0) {
-	    this.undoSteps[this.i--]();
-	}
+        if (this.i >= 0) {
+            this.undoSteps[this.i--]();
+        }
     },
     redo: function() {
-	if (this.i < this.redoSteps.length - 1) {
-	    this.redoSteps[++this.i]();
-	}
+        if (this.i < this.redoSteps.length - 1) {
+            this.redoSteps[++this.i]();
+        }
     },
 };
 
@@ -170,7 +170,7 @@ function download() {
     // reset after 10s
     var t = setInterval(function() {
         link.setAttributeNS(xlink_ns, "href", href);
-	link.firstElementChild.firstChild.nodeValue = text;
+        link.firstElementChild.firstChild.nodeValue = text;
         clearInterval(t);
     }, 10000);
 }
@@ -186,7 +186,7 @@ function scale_tiles() {
     var tiles = document.getElementsByTagName("defs")[0].childNodes;
     for (var i = 0; i < tiles.length; ++i) {
         if (tiles[i].nodeType===Node.ELEMENT_NODE
-	    && tiles[i].hasAttribute("width")) {
+            && tiles[i].hasAttribute("width")) {
             var scale = Map.tileWidth / tiles[i].getAttribute("width");
             if (scale != 1) {
                 tiles[i].setAttribute("transform", "scale("+scale+","+scale+")");
@@ -198,8 +198,8 @@ function scale_tiles() {
 function create_tile(x, y, type) {
     var tile = document.createElementNS(svg_ns, "use");
     tile.setAttributeNS(null, "id", type + "_" + x + "_" + y);
-    tile.setAttributeNS(null, "x", x * Map.tileWidth);
-    tile.setAttributeNS(null, "y", y * Map.tileWidth);
+    tile.setAttributeNS(null, "x", (x + 1) * Map.tileWidth); // empty column to the left
+    tile.setAttributeNS(null, "y", (y + 1) * Map.tileWidth); // empty row at the top
     tile.type = type;
     tile.setAttributeNS(xlink_ns, "href", "#" + type);
     return tile;
@@ -243,17 +243,17 @@ function wall(x, y, type) {
     if (Pen.type===type && Map.walls[x][y] != null && Pen.ts && now - Pen.ts <= 2000) {
         // we just placed a door: take the last one and rotate it
         var tile = Map.walls[x][y][Map.walls[x][y].length - 1];
-	var old = tile.getAttributeNS(null,"transform");
-	var angle = parseInt(tile.getAttribute("rotate"));
+        var old = tile.getAttributeNS(null,"transform");
+        var angle = parseInt(tile.getAttribute("rotate"));
         var rotate = wall_rotation(x, y, (angle + 90) % 360);
         if (rotate != null) {
-	    Commands.push(
-		function(){
-		    rotate_tile(tile, type, x, y, angle);
-		},
-		function(){
-		    rotate_tile(tile, type, x, y, rotate);
-		});
+            Commands.push(
+                function(){
+                    rotate_tile(tile, type, x, y, angle);
+                },
+                function(){
+                    rotate_tile(tile, type, x, y, rotate);
+                });
         }
     } else {
         // make sure the data structure exists
@@ -263,15 +263,15 @@ function wall(x, y, type) {
         var rotate = wall_rotation(x, y, 0);
         if (rotate != null) {
             var tile = create_tile(x, y, type);
-	    rotate_tile(tile, type, x, y, rotate);
-	    Commands.push(
-		function(){
-		    remove_wall (x, y);
-		},
-		function(){
-		    Map.walls[x][y].push(tile);
-		    Map.wallsElement.appendChild(tile);
-		});
+            rotate_tile(tile, type, x, y, rotate);
+            Commands.push(
+                function(){
+                    remove_wall (x, y);
+                },
+                function(){
+                    Map.walls[x][y].push(tile);
+                    Map.wallsElement.appendChild(tile);
+                });
         }
     }
     Pen.ts = now;
@@ -315,54 +315,54 @@ function trap(x, y) {
         var stair = Map.stairs[x][y];
         var tile = create_tile(x, y, "trap");
         Commands.push(
-	    function(){
-	        Map.floorElement.removeChild(tile);
-	        if (old != null) {
-		    Map.floorElement.appendChild(old);
-	        }
-	        Map.floor[x][y] = old;
+            function(){
+                Map.floorElement.removeChild(tile);
+                if (old != null) {
+                    Map.floorElement.appendChild(old);
+                }
+                Map.floor[x][y] = old;
                 if (stair != null) {
                     Map.stairsElement.appendChild(stair);
                     Map.stairs[x][y] = stair;
                 }
-	    },
-	    function(){
-	        if (stair != null) {
-		    Map.stairsElement.removeChild(stair);
+            },
+            function(){
+                if (stair != null) {
+                    Map.stairsElement.removeChild(stair);
                     Map.stairs[x][y] = null;
-	        }
-	        if (old != null) {
-		    Map.floorElement.removeChild(old);
-	        }
+                }
+                if (old != null) {
+                    Map.floorElement.removeChild(old);
+                }
                 Map.floor[x][y] = tile;
                 Map.floorElement.appendChild(tile);
-	    });
+            });
     }
 }
 
 function stairs(x, y) {
     if (Map.stairs[x][y] != null) {
         var tile = Map.stairs[x][y];
-	var angle = parseInt(tile.getAttribute("rotate"));
-	Commands.push(
-	    function(){
-		rotate_tile(tile, "stairs", x, y, angle);
-	    },
-	    function() {
-		rotate_tile(tile, "stairs", x, y, (angle + 90) % 360);
-	    });
+        var angle = parseInt(tile.getAttribute("rotate"));
+        Commands.push(
+            function(){
+                rotate_tile(tile, "stairs", x, y, angle);
+            },
+            function() {
+                rotate_tile(tile, "stairs", x, y, (angle + 90) % 360);
+            });
     } else {
         var tile = create_tile(x, y, "stair");
         tile.setAttribute("rotate", 0);
-	Commands.push(
-	    function(){
-		Map.stairsElement.removeChild(tile);
-		Map.stairs[x][y] = null;
-	    },
-	    function(){
-		Map.stairs[x][y] = tile;
-		Map.stairsElement.appendChild(tile);
-	    });
+        Commands.push(
+            function(){
+                Map.stairsElement.removeChild(tile);
+                Map.stairs[x][y] = null;
+            },
+            function(){
+                Map.stairs[x][y] = tile;
+                Map.stairsElement.appendChild(tile);
+            });
     }
 }
 
@@ -372,7 +372,7 @@ function floor(x, y) {
     var tile  = create_tile(x, y, "empty");
     if (stair != null || old == null || old.type != "empty") {
         Commands.push(
-	    function(){
+            function(){
                 if (stair != null) {
                 Map.stairsElement.appendChild(stair);
                     Map.stairs[x][y] = stair;
@@ -380,20 +380,20 @@ function floor(x, y) {
                 Map.floorElement.removeChild(tile);
                 if (old != null) {
                     Map.floorElement.appendChild(old);
-	        }
-	        Map.floor[x][y] = old;
-	    },
-	    function(){
+                }
+                Map.floor[x][y] = old;
+            },
+            function(){
                 if (stair != null) {
-	            Map.stairsElement.removeChild(stair);
-	            Map.stairs[x][y] = null;
+                    Map.stairsElement.removeChild(stair);
+                    Map.stairs[x][y] = null;
                 }
                 if (old != null) {
                     Map.floorElement.removeChild(old);
             }
                 Map.floorElement.appendChild(tile);
                 Map.floor[x][y] = tile;
-	    });
+            });
     }
 }
 
@@ -406,34 +406,34 @@ function floor(x, y) {
  * the target, we change x or y by 1 and draw another tile. */
 
 function draw_to(evt) {
-    var target_x = Math.floor(evt.clientX / Map.tileWidth);
-    var target_y = Math.floor(evt.clientY / Map.tileWidth);
+    var target_x = Math.floor(evt.clientX / Map.tileWidth) - 1; // empty column to the left
+    var target_y = Math.floor(evt.clientY / Map.tileWidth) - 1; // empty row at the top
     // draw up to the current position (at least once if we just started)
     do {
-	var x = Pen.x;
-	var y = Pen.y;
+        var x = Pen.x;
+        var y = Pen.y;
         if (Map.floor[x][y] == null && Pen.type == "empty") {
             var tile = create_tile(x, y, "empty");
-	    Commands.push(
-		function(){
-		    Map.floorElement.removeChild(tile);
-		    Map.floor[x][y] = null;
-		},
-		function(){
-		    Map.floor[x][y] = tile;
-		    Map.floorElement.appendChild(tile);
-		});
+            Commands.push(
+                function(){
+                    Map.floorElement.removeChild(tile);
+                    Map.floor[x][y] = null;
+                },
+                function(){
+                    Map.floor[x][y] = tile;
+                    Map.floorElement.appendChild(tile);
+                });
         } else if (Map.floor[x][y] != null && Pen.type == "null") {
             var tile = Map.floor[x][y];
-	    Commands.push(
-		function(){
-		    Map.floorElement.appendChild(tile);
-		    Map.floor[x][y] = tile;
-		},
-		function(){
-		    Map.floorElement.removeChild(tile);
-		    Map.floor[x][y] = null;
-		});
+            Commands.push(
+                function(){
+                    Map.floorElement.appendChild(tile);
+                    Map.floor[x][y] = tile;
+                },
+                function(){
+                    Map.floorElement.removeChild(tile);
+                    Map.floor[x][y] = null;
+                });
         }
         // move pen
         if (x != target_x) {
@@ -463,8 +463,8 @@ function pen_track(evt) {
 
 function pen_down(evt) {
     // init pen
-    var x = Math.floor(evt.clientX / Map.tileWidth);
-    var y = Math.floor(evt.clientY / Map.tileWidth);
+    var x = Math.floor(evt.clientX / Map.tileWidth) - 1; // empty column to the left
+    var y = Math.floor(evt.clientY / Map.tileWidth) - 1; // empty row at the top
     if (Map.floor[x][y] != null) {
         Pen.type = "null";
     } else {
@@ -512,14 +512,14 @@ function key_pressed(evt) {
     } else if (key == "ArrowUp" || key == "Up")   { move_up();
     } else if (key == "ArrowLeft" || key == "Left") { move_left();
     } else if (key == "ArrowRight" || key == "Right") { move_right();
-    } else if (key===117) { // u
+    } else if (key==="u") {
         Commands.undo();
-    } else if (key===114) { // r
+    } else if (key==="r") {
         Commands.redo();
     } else if (Pen.evt) {
         // extract last known mouse position
-        var x = Math.floor(Pen.evt.clientX / Map.tileWidth);
-        var y = Math.floor(Pen.evt.clientY / Map.tileWidth);
+        var x = Math.floor(Pen.evt.clientX / Map.tileWidth) - 1; // empty column to the left
+        var y = Math.floor(Pen.evt.clientY / Map.tileWidth) - 1; // empty row at the top
         if (key==="d") {
             door(x, y);
         } else if (key==="s") {
@@ -565,7 +565,7 @@ function recreate_model() {
             if (!Map.walls[x][y]) {
                 Map.walls[x][y] = [];
             }
-	    Map.walls[x][y].push(Map.wallsElement.children[i]);
+            Map.walls[x][y].push(Map.wallsElement.children[i]);
         }
     }
 }
@@ -595,17 +595,18 @@ function initialize() {
          // an empty column at the top
          Map.tileWidth / scale - help.firstElementChild.getAttribute("y"),
          bounceEaseOut);
+    Map.ui = document.getElementById("ui");
+    Map.ui.setAttribute("x", Map.tileWidth);
+    Map.ui.setAttribute("y", Map.tileWidth);
+    Map.ui.setAttribute("width",  Map.width * Map.tileWidth);
+    Map.ui.setAttribute("height", Map.height * Map.tileWidth);
     Map.floorElement = document.getElementById("floor");
     Map.wallsElement = document.getElementById("walls");
     Map.stairsElement = document.getElementById("stairs");
-    Map.ui = document.getElementById("ui");
-    Map.ui.setAttribute("width",  Map.width * Map.tileWidth);
-    Map.ui.setAttribute("height", Map.height * Map.tileWidth);
     // http://javascript.info/tutorial/mouse-events#drag-n-drop
     Map.ui.ondragstart = function() { return false };
     Map.ui.onmousedown = pen_down;
     Map.ui.onmousemove = pen_track;
-    document.onkeypress = key_pressed;
     document.onkeydown = key_pressed; // capture arrow keys
     for (var x = 0; x < Map.width; x++) {
         Map.floor[x] = [];
@@ -707,10 +708,10 @@ text { font: 14px 'Courier New', Courier, monospace; }
       <tspan x="50" dy="20" class="key">r</tspan><tspan> : redo</tspan>
       <tspan x="50" dy="20" class="key">?</tspan><tspan> : toggle help</tspan>
       <a fill="blue" xlink:href="https://github.com/kensanata/gridmapper">
-	<tspan x="50" dy="40">Source available</tspan>
+        <tspan x="50" dy="40">Source available</tspan>
       </a>
       <a id="download" fill="blue" xlink:href="javascript:download()">
-	<tspan x="50" dy="20">Prepare Download</tspan>
+        <tspan x="50" dy="20">Prepare Download</tspan>
       </a>
     </text>
   </g>
