@@ -7,9 +7,19 @@
   <desc>Gridmapper, a simple tool to create dungeon maps</desc>
 
   <script type="application/javascript"><![CDATA[
-
-var svg_ns   = "http://www.w3.org/2000/svg";
-var xlink_ns = "http://www.w3.org/1999/xlink";
+/* The Map is where we store everything. The fooElement members point
+ * to the SVG elements where we'll be adding stuff and the foo member
+ * are arrays with references to those elements, indexed by x and y.
+ * We need multiple elements because that's how we make sure that they
+ * are painted in the correct order -- a sort of primitive z-axis. The
+ * ui Element is a transparent overlay where we'll register the mouse
+ * event handlers.
+ *
+ * If you want to change the size of the map, simply change width and
+ * height. The tileWidth is the size of one square, in pixels. You can
+ * change that as well. Everything shold be scaled accordingly
+ * (including the help screen).
+ */
 
 var Map = {
     width: 30, // how many columns
@@ -23,6 +33,23 @@ var Map = {
     wallsElement: null, // the SVG element for the walls
     walls: [], // the model for the walls
 };
+
+/* These two constants are used when creating new SVG elements and the
+ * href attribute linking them to each other.
+ */
+
+var svg_ns   = "http://www.w3.org/2000/svg";
+var xlink_ns = "http://www.w3.org/1999/xlink";
+
+/* We maintain an undo and a redo list. Whenever you do something that
+ * the user can undo, you need to call Commands.push with two
+ * functions, the how-to-undo-it step and the how-to-do-it step.
+ * how-to-do-it will be called once on order to do it. When the user
+ * undoes something, our index is decremented and we execute the
+ * appropriate undo step. When the user redoes something, our index is
+ * incremented and we execute the appropriate redo step. If the user
+ * has undone some steps and then pushes new commands, we discard the
+ * steps we have undone. */
 
 var Commands = {
     i: -1, // where are we in the undo/redo chain
@@ -40,9 +67,6 @@ var Commands = {
 	// finally, execute the last step
 	redoStep();
     },
-    exec: function() {
-	this.redoSteps[this.redoSteps.length-1]();
-    },
     undo: function() {
 	if (this.i >= 0) {
 	    this.undoSteps[this.i--]();
@@ -55,7 +79,9 @@ var Commands = {
     },
 };
 
-// http://javascript.info/tutorial/animation
+/* The animations at the beginning are taken from these examples:
+ * http://javascript.info/tutorial/animation */
+
 function animate(opts) {
     var start = new Date();
     var id = setInterval(function() {
@@ -105,12 +131,16 @@ function resize(element, to_width, to_height, delta, duration) {
 }
 
 function move(element, dx, dy, delta, duration) {
+    var old = element.getAttribute("transform")||"";
+    if (old != "") {
+        old += ",";
+    }
     animate({
         delay: 10,
         duration: duration || 1000, // 1 sec by default
         delta: delta,
         step: function(delta) {
-            element.setAttribute("transform", "translate(" + dx * delta + "," + dy * delta + ")");
+            element.setAttribute("transform", old + "translate(" + dx * delta + "," + dy * delta + ")");
         }
     })
 }
@@ -463,14 +493,29 @@ function recreate_model() {
 }
       
 function initialize() {
-    resize(document.getElementById("background"),
+    scale_tiles();
+    var scale = Map.tileWidth / 20;
+    var background = document.getElementById("background");
+    resize(background,
            Map.width * Map.tileWidth,
            Map.height * Map.tileWidth,
            linear);
+    move(background,
+         // an empty column to the left
+         Map.tileWidth - background.getAttribute("x"),
+         // an empty column at the top
+         Map.tileWidth - background.getAttribute("y"),
+         linear);
     var help = document.getElementById("help");
+    if (scale != 1) {
+        // from now on, we need to scale all coordinates!
+        help.setAttribute("transform", "scale("+scale+","+scale+")");
+    }
     move(help,
-         Map.width * Map.tileWidth + 40 - help.firstElementChild.getAttribute("x"),
-         20 - help.firstElementChild.getAttribute("y"),
+         // an empty column, the background, and another empty column to the left
+         (Map.width + 2) * Map.tileWidth / scale - help.firstElementChild.getAttribute("x"),
+         // an empty column at the top
+         Map.tileWidth / scale - help.firstElementChild.getAttribute("y"),
          bounceEaseOut);
     Map.floorElement = document.getElementById("floor");
     Map.wallsElement = document.getElementById("walls");
@@ -483,7 +528,6 @@ function initialize() {
     Map.ui.onmousedown = pen_down;
     Map.ui.onmousemove = pen_track;
     document.onkeypress = key_pressed;
-    scale_tiles();
     for (var x = 0; x < Map.width; x++) {
         Map.floor[x] = [];
         Map.walls[x] = [];
