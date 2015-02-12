@@ -35,7 +35,33 @@ var Map = {
 
 /* The Pen holds information about the mouse. */
 
-var Pen = new Object();
+var Pen = {
+    x: null,
+    y: null,
+    type: null,
+    position: function(evt) {
+        return {
+            x: Math.floor(Pen.evt.clientX / Map.tileWidth) - 1, // empty column to the left
+            y: Math.floor(Pen.evt.clientY / Map.tileWidth) - 1
+        }; // empty row at the top
+    },
+    update: function(evt) {
+        var pos = this.position(evt);
+        this.x = pos.x;
+        this.y = pos.y;
+    },
+    // return true if we moved
+    move_to: function(target) {
+        if (this.x != target.x) {
+            this.x += target.x > this.x ? 1 : -1;
+            return true;
+        } else if (this.y != target.y) {
+            this.y += target.y > this.y ? 1 : -1;
+            return true;
+        }
+        return false;
+    },
+};
 
 /* These two constants are used when creating new SVG elements and the
  * href attribute linking them to each other.
@@ -230,8 +256,8 @@ function rotate_tile(tile, type, x, y, angle) {
     if (angle===180 && type==="concealed") {
         tile.setAttributeNS(null,"transform", "translate("+Map.tileWidth+",0)");
     } else if (angle > 0) {
-        var cx = (x + 0.5) * Map.tileWidth;
-        var cy = (y + 0.5) * Map.tileWidth;
+        var cx = (x + 1.5) * Map.tileWidth; // empty column to the left
+        var cy = (y + 1.5) * Map.tileWidth; // empty row at the top
         tile.setAttributeNS(null,"transform", "rotate("+angle+","+cx+","+cy+")");
     } else {
         tile.removeAttributeNS(null,"transform");
@@ -403,45 +429,37 @@ function floor(x, y) {
  * (our target) and start drawing at our current position (the pen).
  * We do this at least once in order to support clicks without mouse
  * movement. Then we start a loop: as long as the pen hasn't reached
- * the target, we change x or y by 1 and draw another tile. */
+ * the target, we change x or y by 1 and draw another tile. As we're
+ * creating closures for Commands, we need to do this in a factory.
+ * https://developer.mozilla.org/en-US/docs/Web/JavaScript/Closures#Creating_closures_in_loops.3A_A_common_mistake
+ */
+
+function draw_to_command(x, y, tile, type) {
+    var remove = function(){
+            Map.floorElement.removeChild(tile);
+            Map.floor[x][y] = null;
+    };
+    var add = function(){
+            Map.floor[x][y] = tile;
+            Map.floorElement.appendChild(tile);
+    };
+    if (type == "add") {
+        Commands.push(remove, add); // add new tile
+    } else {
+        Commands.push(add, remove); // remove existing tile
+    }
+}
 
 function draw_to(evt) {
-    var target_x = Math.floor(evt.clientX / Map.tileWidth) - 1; // empty column to the left
-    var target_y = Math.floor(evt.clientY / Map.tileWidth) - 1; // empty row at the top
+    var target = Pen.position(evt);
     // draw up to the current position (at least once if we just started)
     do {
-        var x = Pen.x;
-        var y = Pen.y;
-        if (Map.floor[x][y] == null && Pen.type == "empty") {
-            var tile = create_tile(x, y, "empty");
-            Commands.push(
-                function(){
-                    Map.floorElement.removeChild(tile);
-                    Map.floor[x][y] = null;
-                },
-                function(){
-                    Map.floor[x][y] = tile;
-                    Map.floorElement.appendChild(tile);
-                });
-        } else if (Map.floor[x][y] != null && Pen.type == "null") {
-            var tile = Map.floor[x][y];
-            Commands.push(
-                function(){
-                    Map.floorElement.appendChild(tile);
-                    Map.floor[x][y] = tile;
-                },
-                function(){
-                    Map.floorElement.removeChild(tile);
-                    Map.floor[x][y] = null;
-                });
+        if (Map.floor[Pen.x][Pen.y] == null && Pen.type == "empty") {
+            draw_to_command(Pen.x, Pen.y, create_tile(Pen.x, Pen.y, "empty"), "add");
+        } else if (Map.floor[Pen.x][Pen.y] != null && Pen.type == "null") {
+            draw_to_command(Pen.x, Pen.y, Map.floor[Pen.x][Pen.y], Pen.type, "remove");
         }
-        // move pen
-        if (x != target_x) {
-            Pen.x += target_x > Pen.x ? 1 : -1;
-        } else if (y != target_y) {
-            Pen.y += target_y > Pen.y ? 1 : -1;
-        }
-    } while (Pen.x != target_x || Pen.y != target_y);
+    } while (Pen.move_to(target));
     pen_track(evt);
 }
 
@@ -462,16 +480,12 @@ function pen_track(evt) {
  * drawing (onmousemove, draw_to), we don't change it. */
 
 function pen_down(evt) {
-    // init pen
-    var x = Math.floor(evt.clientX / Map.tileWidth) - 1; // empty column to the left
-    var y = Math.floor(evt.clientY / Map.tileWidth) - 1; // empty row at the top
-    if (Map.floor[x][y] != null) {
+    Pen.update();
+    if (Map.floor[Pen.x][Pen.y] != null) {
         Pen.type = "null";
     } else {
         Pen.type = "empty";
     }
-    Pen.x = x;
-    Pen.y = y;
     // draw at least one tile
     draw_to(evt);
     // install new handler
@@ -517,25 +531,23 @@ function key_pressed(evt) {
     } else if (key==="r") {
         Commands.redo();
     } else if (Pen.evt) {
-        // extract last known mouse position
-        var x = Math.floor(Pen.evt.clientX / Map.tileWidth) - 1; // empty column to the left
-        var y = Math.floor(Pen.evt.clientY / Map.tileWidth) - 1; // empty row at the top
+        Pen.update();
         if (key==="d") {
-            door(x, y);
+            door(Pen.x, Pen.y);
         } else if (key==="s") {
-            secret(x, y);
+            secret(Pen.x, Pen.y);
         } else if (key==="c") {
-            concealed(x, y);
+            concealed(Pen.x, Pen.y);
         } else if (key==="g") {
-            gate(x, y);
+            gate(Pen.x, Pen.y);
         } else if (key==="w") {
-            remove_wall(x, y);
+            remove_wall(Pen.x, Pen.y);
         } else if (key==="t") {
-            trap(x, y);
+            trap(Pen.x, Pen.y);
         } else if (key==="l") {
-            stairs(x, y);
+            stairs(Pen.x, Pen.y);
         } else if (key==="f") {
-            floor(x, y);
+            floor(Pen.x, Pen.y);
         }
     }
 }
