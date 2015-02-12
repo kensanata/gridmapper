@@ -2,18 +2,17 @@
 <!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN" "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
 <svg version="1.1"
      xmlns="http://www.w3.org/2000/svg"
-     xmlns:xlink="http://www.w3.org/1999/xlink"
-     xmlns:html="http://www.w3.org/1999/xhtml">
+     xmlns:xlink="http://www.w3.org/1999/xlink">
   <desc>Gridmapper, a simple tool to create dungeon maps</desc>
 
   <script type="application/javascript"><![CDATA[
-/* The Map is where we store everything. The fooElement members point
- * to the SVG elements where we'll be adding stuff and the foo member
- * are arrays with references to those elements, indexed by x and y.
- * We need multiple elements because that's how we make sure that they
- * are painted in the correct order -- a sort of primitive z-axis. The
- * ui Element is a transparent overlay where we'll register the mouse
- * event handlers.
+/* The Map is where we store everything about the map. The fooElement
+ * members point to the SVG elements where we'll be adding stuff and
+ * the foo member are arrays with references to those elements,
+ * indexed by x and y. We need multiple elements because that's how we
+ * make sure that they are painted in the correct order -- a sort of
+ * primitive z-axis. The ui Element is a transparent overlay where
+ * we'll register the mouse event handlers.
  *
  * If you want to change the size of the map, simply change width and
  * height. The tileWidth is the size of one square, in pixels. You can
@@ -33,6 +32,10 @@ var Map = {
     wallsElement: null, // the SVG element for the walls
     walls: [], // the model for the walls
 };
+
+/* The Pen holds information about the mouse. */
+
+var Pen = new Object();
 
 /* These two constants are used when creating new SVG elements and the
  * href attribute linking them to each other.
@@ -145,6 +148,11 @@ function move(element, dx, dy, delta, duration) {
     })
 }
 
+/* We store the entire document in a data URI and offer it for downlod
+ * using the HTML5 download attribute. Chrome 40 will still load that
+ * file instead of downloading it. Perhaps a namespace issue? After
+ * all, there is no such download attribute for SVG or XHTML. */
+
 function download() {
     var source = btoa("<?xml version=\"1.0\" standalone=\"no\"?>\n"
                       + "<!DOCTYPE svg PUBLIC \"-//W3C//DTD SVG 1.1//EN\" \"http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd\">\n"
@@ -166,6 +174,13 @@ function download() {
         clearInterval(t);
     }, 10000);
 }
+
+/* You can add more tiles at whatever scale you want and this code
+ * will determine the scale by comparing your tile's width with the
+ * tile width in use by the map. The original tiles are all based on a
+ * 10x10 grid and are scaled up to 20x20, for example. The easiest way
+ * to do this is to use a <g> element and give it an appropriate width
+ * attribute. */
 
 function scale_tiles() {
     var tiles = document.getElementsByTagName("defs")[0].childNodes;
@@ -294,27 +309,35 @@ function gate(x, y) {
 
 function trap(x, y) {
     var old = Map.floor[x][y];
-    var tile;
-    if (Map.floor[x][y] != null && Map.floor[x][y].type==="trap") {
-        tile = create_tile(x, y, "empty");
+    if (old != null && old.type==="trap") {
+        floor(x, y);
     } else {
-        tile = create_tile(x, y, "trap");
+        var stair = Map.stairs[x][y];
+        var tile = create_tile(x, y, "trap");
+        Commands.push(
+	    function(){
+	        Map.floorElement.removeChild(tile);
+	        if (old != null) {
+		    Map.floorElement.appendChild(old);
+	        }
+	        Map.floor[x][y] = old;
+                if (stair != null) {
+                    Map.stairsElement.appendChild(stair);
+                    Map.stairs[x][y] = stair;
+                }
+	    },
+	    function(){
+	        if (stair != null) {
+		    Map.stairsElement.removeChild(stair);
+                    Map.stairs[x][y] = null;
+	        }
+	        if (old != null) {
+		    Map.floorElement.removeChild(old);
+	        }
+                Map.floor[x][y] = tile;
+                Map.floorElement.appendChild(tile);
+	    });
     }
-    Commands.push(
-	function(){
-	    Map.floorElement.removeChild(tile);
-	    if (old != null) {
-		Map.floorElement.appendChild(old);
-	    }
-	    Map.floor[x][y] = old;
-	},
-	function(){
-	    if (old != null) {
-		Map.floorElement.removeChild(old);
-	    }
-            Map.floor[x][y] = tile;
-            Map.floorElement.appendChild(tile);
-	});
 }
 
 function stairs(x, y) {
@@ -343,22 +366,44 @@ function stairs(x, y) {
     }
 }
 
-function remove_stairs(x, y) {
-    if (Map.stairs[x][y] != null) {
-        var tile = Map.stairs[x][y];
-	Commands.push(
+function floor(x, y) {
+    var stair = Map.stairs[x][y];
+    var old   = Map.floor[x][y];
+    var tile  = create_tile(x, y, "empty");
+    if (stair != null || old == null || old.type != "empty") {
+        Commands.push(
 	    function(){
-		Map.stairsElement.appendChild(tile);
-		Map.stairs[x][y] = tile;
+                if (stair != null) {
+                Map.stairsElement.appendChild(stair);
+                    Map.stairs[x][y] = stair;
+                }
+                Map.floorElement.removeChild(tile);
+                if (old != null) {
+                    Map.floorElement.appendChild(old);
+	        }
+	        Map.floor[x][y] = old;
 	    },
 	    function(){
-		Map.stairsElement.removeChild(tile);
-		Map.stairs[x][y] = null;
+                if (stair != null) {
+	            Map.stairsElement.removeChild(stair);
+	            Map.stairs[x][y] = null;
+                }
+                if (old != null) {
+                    Map.floorElement.removeChild(old);
+            }
+                Map.floorElement.appendChild(tile);
+                Map.floor[x][y] = tile;
 	    });
     }
 }
-      
-var Pen = new Object();
+
+/* This is where we draw (or erase) floor tiles. The key point to
+ * remember is that we might not get a mouse event for every
+ * coordinate. That's why we need to store where we want to draw to
+ * (our target) and start drawing at our current position (the pen).
+ * We do this at least once in order to support clicks without mouse
+ * movement. Then we start a loop: as long as the pen hasn't reached
+ * the target, we change x or y by 1 and draw another tile. */
 
 function draw_to(evt) {
     var target_x = Math.floor(evt.clientX / Map.tileWidth);
@@ -400,10 +445,21 @@ function draw_to(evt) {
     pen_track(evt);
 }
 
-// need to track the pen for keyboard events
+/* When we're drawing (draw_to), the position of the pen is always
+ * updated. When we're not drawing, we still need to store something
+ * because of possible keypress events (which don't come with a
+ * position). Simply storing the event seems to be the cheapest
+ * option. */
+
 function pen_track(evt) {
     Pen.evt = evt;
 } 
+
+/* When setting down the pen (onmousedown, pen_down), we look at the
+ * current tile. If it's the empty floor tile, we'll want to erase it.
+ * If there is no floor tile (null), we'll want to draw an empty floor
+ * tile. We store this information in the Pen type and as we keep on
+ * drawing (onmousemove, draw_to), we don't change it. */
 
 function pen_down(evt) {
     // init pen
@@ -425,6 +481,10 @@ function pen_down(evt) {
         Map.ui.onmousemove = pen_track;
     }
 }
+
+/* Many of the key commands need a "current" position. We determine it
+ * by looking at the Pen. It's position is always tracked (onmousemove,
+ * pen_track). */
 
 function key_pressed(evt) {
     if(evt.which===63) { // ?
@@ -456,8 +516,8 @@ function key_pressed(evt) {
             trap(x, y);
         } else if (evt.which===108) { // l
             stairs(x, y);
-        } else if (evt.which===76) { // L
-            remove_stairs(x, y);
+        } else if (evt.which===102) { // f
+            floor(x, y);
         }
     }
 }
@@ -540,25 +600,25 @@ onload = initialize;
 ]]></script>
   <defs>
     <rect id="empty" width="10" height="10" fill="white" stroke="black" stroke-width="1"/>
-    <g id="door" width="10" height="10">
+    <g id="door" width="10">
       <rect x="-1.5" y="2" width="3" height="6" fill="white" stroke="black" stroke-width="1"/>
     </g>
-    <g id="secret" width="10" height="10">
+    <g id="secret" width="10">
       <path fill="none" stroke="black" stroke-width="1" d="M 2,3 C -2,1 -3,5 0,5 S 2,9 -2,7" />
     </g>
-    <g id="concealed" width="10" height="10">
+    <g id="concealed" width="10">
       <path fill="none" stroke="black" stroke-width="1" d="M 2,3 C -3,1 -3,9 2,7" />
     </g>
-    <g id="gate" width="10" height="20">
+    <g id="gate" width="10">
       <rect x="-2" y="4" width="4" height="12" fill="white" stroke="black" stroke-width="1"/>
     </g>
-    <g id="trap" width="10" height="10">
+    <g id="trap" width="10">
       <rect width="10" height="10" fill="white" stroke="black" stroke-width="1"/>
       <rect x="2" y="2" width="6" height="6" fill="white" stroke="black" stroke-width="1"/>
       <line x1="2" y1="2" x2="8" y2="8" stroke="black" stroke-width="0.8"/>
       <line x1="2" y1="8" x2="8" y2="2" stroke="black" stroke-width="0.8"/>
     </g>
-    <g id="stair" width="10" height="10">
+    <g id="stair" width="10">
       <rect width="10" height="20" fill="white" stroke="black" stroke-width="1"/>
       <line x1="0" y1="3" x2="10" y2="3" stroke="black" stroke-width="0.8"/>
       <line x1="1" y1="6" x2="9" y2="6" stroke="black" stroke-width="0.8"/>
@@ -599,28 +659,30 @@ text { font: 14px 'Courier New', Courier, monospace; }
     <use x="20" y="260" xlink:href="#empty"/>
     <use x="20" y="240" xlink:href="#gate"/>
     <text x="50" y="255"><tspan class="key">g</tspan> : a gate, repeat to rotate</text>
-    <use x="350" y="260" xlink:href="#empty" opacity="0.3"/>
-    <use x="330" y="280" xlink:href="#empty" opacity="0.3"/>
-    <use x="370" y="280" xlink:href="#empty" opacity="0.3"/>
-    <use x="350" y="300" xlink:href="#empty" opacity="0.3"/>
-    <use x="350" y="280" xlink:href="#empty"/>
-    <rect x="346" y="288" width="8" height="24" fill="olive" stroke="black" stroke-width="2"/>
-    <use x="350" y="280" transform="rotate(90,360,290)" xlink:href="#gate"/>
-    <use x="350" y="280" transform="rotate(180,360,290)" xlink:href="#gate"/>
-    <use x="350" y="280" transform="rotate(270,360,290)" xlink:href="#gate"/>
-    <text x="315" y="295" style="fill: olive; font-weight: bold;">1</text>
-    <text x="355" y="255" class="key">2</text>
-    <text x="395" y="295" class="key">3</text>
-    <text x="355" y="335" class="key">4</text>
-    <use x="320" y="250" xlink:href="#curved-arrow"/>
-    <use x="320" y="250" xlink:href="#curved-arrow" transform="rotate(90,360,290)"/>
-    <use x="320" y="250" xlink:href="#curved-arrow" transform="rotate(180,360,290)"/>
-    <use x="320" y="250" xlink:href="#curved-arrow" transform="rotate(270,360,290)"/>
+    <g>
+      <use x="350" y="250" xlink:href="#empty" opacity="0.3"/>
+      <use x="330" y="270" xlink:href="#empty" opacity="0.3"/>
+      <use x="370" y="270" xlink:href="#empty" opacity="0.3"/>
+      <use x="350" y="290" xlink:href="#empty" opacity="0.3"/>
+      <use x="350" y="270" xlink:href="#empty"/>
+      <rect x="346" y="278" width="8" height="24" fill="olive" stroke="black" stroke-width="2"/>
+      <use x="350" y="270" transform="rotate(90,360,280)" xlink:href="#gate"/>
+      <use x="350" y="270" transform="rotate(180,360,280)" xlink:href="#gate"/>
+      <use x="350" y="270" transform="rotate(270,360,280)" xlink:href="#gate"/>
+      <text x="315" y="285" style="fill: olive; font-weight: bold;">1</text>
+      <text x="355" y="245" class="key">2</text>
+      <text x="395" y="285" class="key">3</text>
+      <text x="355" y="325" class="key">4</text>
+      <use x="320" y="240" xlink:href="#curved-arrow"/>
+      <use x="320" y="240" xlink:href="#curved-arrow" transform="rotate(90,360,280)"/>
+      <use x="320" y="240" xlink:href="#curved-arrow" transform="rotate(180,360,280)"/>
+      <use x="320" y="240" xlink:href="#curved-arrow" transform="rotate(270,360,280)"/>
+    </g>
     <use x="20" y="290" xlink:href="#stair"/>
     <text x="50" y="305"><tspan class="key">l</tspan> : stairs, repeat to rotate</text>
-    <text x="50" y="325"><tspan class="key">L</tspan> : remove stairs</text>
-    <text y="360">
-      <tspan x="50"><tspan class="key">w</tspan> : remove gates and kinds of doors</tspan>
+    <text y="350">
+      <tspan x="50"><tspan class="key">f</tspan> : floor, remove traps and stairs</tspan>
+      <tspan x="50" dy="20"><tspan class="key">w</tspan> : remove gates and all kinds of doors</tspan>
       <tspan x="50" dy="20" class="key">u</tspan><tspan> : undo</tspan>
       <tspan x="50" dy="20" class="key">r</tspan><tspan> : redo</tspan>
       <tspan x="50" dy="20" class="key">?</tspan><tspan> : toggle help</tspan>
