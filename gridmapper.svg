@@ -1136,7 +1136,7 @@ onload = initialize;
   .key { fill: forestgreen; font-weight: bold; }
   ]]></style>
   <g id="help">
-    <rect x="10" y="80" width="440" height="500" fill="ivory" stroke="black" stroke-width="1"/>
+    <rect x="10" y="80" width="440" height="510" fill="ivory" stroke="black" stroke-width="1"/>
     <text x="460" y="90" transform="rotate(90,460,90)" style="font-weight: bold">Gridmapper</text>
     <use x="30" y="90" xlink:href="#empty"/>
     <use x="30" y="120" xlink:href="#trap"/>
