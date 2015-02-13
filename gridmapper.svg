@@ -7,6 +7,23 @@
 
   <script type="application/javascript"><![CDATA[
 
+/* The original author (Alex Schroeder) has dedicated Gridmapper to
+ * the public domain by waiving all of his rights to the work
+ * worldwide under copyright law, including all related and
+ * neighboring rights, to the extent allowed by law.
+ *
+ * More information: http://creativecommons.org/publicdomain/zero/1.0/
+ *
+ * Code style:
+ * https://google-styleguide.googlecode.com/svn/trunk/javascriptguide.xml */
+
+/* These two constants are used when creating new SVG elements and the
+ * href attribute linking them to each other.
+ */
+
+var svgNs   = 'http://www.w3.org/2000/svg';
+var xlinkNs = 'http://www.w3.org/1999/xlink';
+
 /* The Map is where we store everything about the map. The fooElement
  * members point to the SVG elements where we'll be adding stuff and
  * the foo member are arrays with references to those elements,
@@ -23,39 +40,39 @@
  */
 
 var Map = {
-    width: 30, // how many columns
-    height: 30, // how many rows
-    tileWidth: 20, // tile size in pixels
-    ui: null, // the SVG element with the event handlers
-    pointer: null, // the SVG element for the current position
-    floorElement: null, // the SVG element for the floor
-    floor: [], // the model for the floor
-    stairsElement: null, // the SVG element for the stairs
-    stairs: [], // the model for the stairs
-    wallsElement: null, // the SVG element for the walls
-    walls: [], // the model for the walls
-    initialize: function() {
-        for (var i = 0; i <= Map.width; i++) {
-            Map.floor[i] = [];
-            Map.walls[i] = [];
-            Map.stairs[i] = [];
-        }
-        move_elements();
-    },
-    minimum_size: function(width) {
-        var growth = false;
-        // first call will create all the columns
-        while (width >= Map.width) {
-            Map.floor[Map.width] = [];
-            Map.walls[Map.width] = [];
-            Map.stairs[Map.width] = [];
-            Map.width++;
-            growth = true;
-        }
-        // show it
-        if (growth)
-            move_elements();
+  width: 30, // how many columns
+  height: 30, // how many rows
+  tileWidth: 20, // tile size in pixels
+  ui: null, // the SVG element with the event handlers
+  pointer: null, // the SVG element for the current position
+  floorElement: null, // the SVG element for the floor
+  floor: [], // the model for the floor
+  stairsElement: null, // the SVG element for the stairs
+  stairs: [], // the model for the stairs
+  wallsElement: null, // the SVG element for the walls
+  walls: [], // the model for the walls
+  initialize: function() {
+    for (var i = 0; i <= Map.width; i++) {
+      Map.floor[i] = [];
+      Map.walls[i] = [];
+      Map.stairs[i] = [];
     }
+    moveElements();
+  },
+  minimumSize: function(width) {
+    var growth = false;
+    // first call will create all the columns
+    while (width >= Map.width) {
+      Map.floor[Map.width] = [];
+      Map.walls[Map.width] = [];
+      Map.stairs[Map.width] = [];
+      Map.width++;
+      growth = true;
+    }
+    // show it
+    if (growth)
+      moveElements();
+  }
 };
 
 /* The Pen holds information about the mouse. We're trying to keep as
@@ -63,47 +80,56 @@ var Map = {
    is an empty column to the left and an empty row at the top. */
 
 var Pen = {
-    x: 0,
-    y: 0,
-    ts: null, // when was the pen last used to draw a door
-    type: null, // type of tile we last used
-    // to compute a target position
-    position: function(evt) {
-        return {
-            x: Math.floor(evt.clientX / Map.tileWidth) - 1,
-            y: Math.floor(evt.clientY / Map.tileWidth) - 1
-        }; // empty row at the top
-    },
-    // to update our current position
-    update: function(evt) {
-        this.ts = null;
-        if (evt) {
-            var pos = this.position(evt);
-            this.x = pos.x;
-            this.y = pos.y;
-        }
-        Map.pointer.setAttribute("x", (this.x + 1) * Map.tileWidth);
-        Map.pointer.setAttribute("y", (this.y + 1) * Map.tileWidth);
-    },
-    // return true if we moved
-    move_to: function(target) {
-        if (this.x != target.x) {
-            this.x += target.x > this.x ? 1 : -1;
-            return true;
-        } else if (this.y != target.y) {
-            this.y += target.y > this.y ? 1 : -1;
-            return true;
-        }
-        return false;
-    },
+  x: 0,
+  y: 0,
+  ts: null, // when was the pen last used to draw a door
+  type: null, // type of tile we last used
+  dir: null, // last movement
+
+  /**
+   * Determines the grid position based on a mouse event and returns
+   * it.
+   */
+  position: function(evt) {
+    return {
+      x: Math.floor(evt.clientX / Map.tileWidth) - 1,
+      y: Math.floor(evt.clientY / Map.tileWidth) - 1
+    }; // empty row at the top
+  },
+
+  /**
+   * Moves the pointer to the current Pen position. If passed a
+   * non-null mouse event, determine the new position, first. We call
+   * this onmousemove even if we're not drawing because of possible
+   * keypress events (which don't come with a position).
+   */
+  update: function(evt) {
+    Pen.ts = null;
+    if (evt) {
+      var pos = Pen.position(evt);
+      Pen.x = pos.x;
+      Pen.y = pos.y;
+    }
+    Map.pointer.setAttribute('x', (Pen.x + 1) * Map.tileWidth);
+    Map.pointer.setAttribute('y', (Pen.y + 1) * Map.tileWidth);
+  },
+
+  /**
+   * Moves the Pen one step closer to the target position. Returns
+   * true if the Pen moved, returns false if the Pen is already at
+   * the target.
+   */
+  moveTo: function(target) {
+    if (Pen.x != target.x) {
+      Pen.x += target.x > Pen.x ? 1 : -1;
+      return true;
+    } else if (Pen.y != target.y) {
+      Pen.y += target.y > Pen.y ? 1 : -1;
+      return true;
+    }
+    return false;
+  },
 };
-
-/* These two constants are used when creating new SVG elements and the
- * href attribute linking them to each other.
- */
-
-var svg_ns   = "http://www.w3.org/2000/svg";
-var xlink_ns = "http://www.w3.org/1999/xlink";
 
 /* We maintain an undo and a redo list. Whenever you do something that
  * the user can undo, you need to call Commands.push with two
@@ -116,146 +142,146 @@ var xlink_ns = "http://www.w3.org/1999/xlink";
  * steps we have undone. */
 
 var Commands = {
-    i: -1, // where are we in the undo/redo chain
-    undoSteps: [],
-    redoSteps: [],
-    push: function(undoStep, redoStep) {
-        // once we're pushing new steps, discard the undone steps
-        while (this.undoSteps.length - 1 > this.i) {
-            this.undoSteps.pop();
-            this.redoSteps.pop();
-        }
-        this.undoSteps.push(undoStep);
-        this.redoSteps.push(redoStep);
-        this.i++;
-        // finally, execute the last step
-        redoStep();
-    },
-    undo: function() {
-        if (this.i >= 0) {
-            this.undoSteps[this.i--]();
-        }
-    },
-    redo: function() {
-        if (this.i < this.redoSteps.length - 1) {
-            this.redoSteps[++this.i]();
-        }
-    },
+  i: -1, // where are we in the undo/redo chain
+  undoSteps: [],
+  redoSteps: [],
+  push: function(undoStep, redoStep) {
+    // once we're pushing new steps, discard the undone steps
+    while (this.undoSteps.length - 1 > this.i) {
+      this.undoSteps.pop();
+      this.redoSteps.pop();
+    }
+    this.undoSteps.push(undoStep);
+    this.redoSteps.push(redoStep);
+    this.i++;
+    // finally, execute the last step
+    redoStep();
+  },
+  undo: function() {
+    if (this.i >= 0) {
+      this.undoSteps[this.i--]();
+    }
+  },
+  redo: function() {
+    if (this.i < this.redoSteps.length - 1) {
+      this.redoSteps[++this.i]();
+    }
+  },
 };
 
 /* The animations at the beginning are taken from these examples:
  * http://javascript.info/tutorial/animation */
 
-function animate(opts) {
-    var start = new Date();
-    var id = setInterval(function() {
-        var timePassed = new Date() - start;
-        var progress = timePassed / opts.duration;
-        if (progress > 1) progress = 1;
-        var delta = opts.delta(progress);
-        opts.step(delta);
-        if (progress == 1) {
-            clearInterval(id);
-        }
-    }, opts.delay || 10);
-}
-
-function linear(progress) {
-    return progress;
-}
-
-function bounce(progress) {
-    for(var a = 0, b = 1; 1; a += b, b /= 2) {
-        if (progress >= (7 - 4 * a) / 11) {
-            return -Math.pow((11 - 6 * a - 11 * progress) / 4, 2) + Math.pow(b, 2)
-        }
+function animate (opts) {
+  var start = new Date();
+  var id = setInterval(function() {
+    var timePassed = new Date() - start;
+    var progress = timePassed / opts.duration;
+    if (progress > 1) progress = 1;
+    var delta = opts.delta(progress);
+    opts.step(delta);
+    if (progress === 1) {
+      clearInterval(id);
     }
+  }, opts.delay || 10);
 }
 
-function makeEaseOut(delta) {
-    return function(progress) {
-        return 1 - delta(1 - progress);
+function linear (progress) {
+  return progress;
+}
+
+function bounce (progress) {
+  for(var a = 0, b = 1; 1; a += b, b /= 2) {
+    if (progress >= (7 - 4 * a) / 11) {
+      return -Math.pow((11 - 6 * a - 11 * progress) / 4, 2) + Math.pow(b, 2)
     }
+  }
+}
+
+function makeEaseOut (delta) {
+  return function(progress) {
+    return 1 - delta(1 - progress);
+  }
 }
 
 var bounceEaseOut = makeEaseOut(bounce);
 
-function resize(element, to_width, to_height, delta, duration) {
-    var from_width  = element.getBBox().width;  // assuming px
-    var from_height = element.getBBox().height; // assuming px
+function resizeElement (element, toWidth, toHeight, delta, duration) {
+  var fromWidth  = element.getBBox().width;  // assuming px
+  var fromHeight = element.getBBox().height; // assuming px
+  animate({
+    delay: 10,
+    duration: duration || 1000, // 1 sec by default
+    delta: delta,
+    step: function(delta) {
+      element.setAttribute('width',  fromWidth  + (toWidth  - fromWidth)  * delta);
+      element.setAttribute('height', fromHeight + (toHeight - fromHeight) * delta);
+    }
+  })
+}
+
+function moveElement (element, x1, y1, x2, y2, delta, duration) {
+  var re = /translate\(.*?\)/;
+  var currentX = element.currentX || x1;
+  var currentY = element.currentY || y1;
+  var oldDx = currentX - x1;
+  var oldDy = currentY - y1;
+  var newDx = x2 - currentX;
+  var newDy = y2 - currentY;
+  element.currentX = x2;
+  element.currentY = y2;
+  if (newDx != 0 || newDy != 0)
     animate({
-        delay: 10,
-        duration: duration || 1000, // 1 sec by default
-        delta: delta,
-        step: function(delta) {
-            element.setAttribute("width",  from_width  + (to_width  - from_width)  * delta);
-            element.setAttribute("height", from_height + (to_height - from_height) * delta);
-        }
+      delay: 10,
+      duration: duration || 1000, // 1 sec by default
+      delta: delta,
+      step: function(delta) {
+        var transform = 'translate(' + (oldDx + newDx * delta) + ',' + (oldDy + newDy * delta) + ')';
+        if (!element.hasAttribute('transform'))
+          element.setAttribute('transform', transform);
+        else if (element.getAttribute('transform').match(re))
+          element.setAttribute('transform', element.getAttribute('transform').replace(re, transform));
+        else
+          element.setAttribute('transform', element.getAttribute('transform') + ',' + transform);
+      }
     })
 }
 
-function move(element, x1, y1, x2, y2, delta, duration) {
-    var re = /translate\(.*?\)/;
-    var current_x = element.current_x || x1;
-    var current_y = element.current_y || y1;
-    var old_dx = current_x - x1;
-    var old_dy = current_y - y1;
-    var new_dx = x2 - current_x;
-    var new_dy = y2 - current_y;
-    element.current_x = x2;
-    element.current_y = y2;
-    if (new_dx != 0 || new_dy != 0)
-        animate({
-            delay: 10,
-            duration: duration || 1000, // 1 sec by default
-            delta: delta,
-            step: function(delta) {
-                var transform = "translate(" + (old_dx + new_dx * delta) + "," + (old_dy + new_dy * delta) + ")";
-                if (!element.hasAttribute("transform"))
-                    element.setAttribute("transform", transform);
-                else if (element.getAttribute("transform").match(re))
-                    element.setAttribute("transform", element.getAttribute("transform").replace(re, transform));
-                else
-                    element.setAttribute("transform", element.getAttribute("transform") + "," + transform);
-            }
-        })
-}
-
-function move_elements() {
-    Map.ui.setAttribute("x", Map.tileWidth);
-    Map.ui.setAttribute("y", Map.tileWidth);
-    Map.ui.setAttribute("width",  Map.width * Map.tileWidth);
-    Map.ui.setAttribute("height", Map.height * Map.tileWidth);
-    var background = document.getElementById("background");
-    resize(background,
-           Map.width * Map.tileWidth,
-           Map.height * Map.tileWidth,
-           linear, 600);
-    move(background,
-         parseInt(background.getAttribute("x")),
-         parseInt(background.getAttribute("y")),
-         Map.tileWidth, // an empty column to the left
-         Map.tileWidth, // an empty column at the top
-         linear, 500);
-    var scale = Map.tileWidth / 20;
-    var help = document.getElementById("help");
-    if (scale != 1) {
-        // from now on, we need to scale all coordinates!
-        if (help.hasAttribute("transform")) {
-            help.setAttribute("transform", help.getAttribute("transform").replace(/scale\(.*?\)/, "scale("+scale+","+scale+")"));
-        } else {
-            help.setAttribute("transform", "scale("+scale+","+scale+")");
-        }
+function moveElements () {
+  Map.ui.setAttribute('x', Map.tileWidth);
+  Map.ui.setAttribute('y', Map.tileWidth);
+  Map.ui.setAttribute('width',  Map.width * Map.tileWidth);
+  Map.ui.setAttribute('height', Map.height * Map.tileWidth);
+  var background = document.getElementById('background');
+  resizeElement(background,
+                Map.width * Map.tileWidth,
+                Map.height * Map.tileWidth,
+                linear, 600);
+  moveElement(background,
+              parseInt(background.getAttribute('x')),
+              parseInt(background.getAttribute('y')),
+              Map.tileWidth, // an empty column to the left
+              Map.tileWidth, // an empty column at the top
+              linear, 500);
+  var scale = Map.tileWidth / 20;
+  var help = document.getElementById('help');
+  if (scale != 1) {
+    // from now on, we need to scale all coordinates!
+    if (help.hasAttribute('transform')) {
+      help.setAttribute('transform', help.getAttribute('transform').replace(/scale\(.*?\)/, 'scale('+scale+','+scale+')'));
+    } else {
+      help.setAttribute('transform', 'scale('+scale+','+scale+')');
     }
-    move(help,
-         help.getBBox().x,
-         help.getBBox().y,
-         // an empty column, the background, and another empty column to the left
-         (Map.width + 2) * Map.tileWidth / scale,
-         // an empty column at the top
-         Map.tileWidth / scale,
-         linear, 500);
-    var help = document.getElementById("help");
+  }
+  moveElement(help,
+              help.getBBox().x,
+              help.getBBox().y,
+              // an empty column, the background, and another empty column to the left
+              (Map.width + 2) * Map.tileWidth / scale,
+              // an empty column at the top
+              Map.tileWidth / scale,
+              linear, 500);
+  var help = document.getElementById('help');
 }
 
 /* We store the entire document in a data URI and offer it for downlod
@@ -263,361 +289,402 @@ function move_elements() {
  * file instead of downloading it. Perhaps a namespace issue? After
  * all, there is no such download attribute for SVG or XHTML. */
 
-function download() {
-    var source = btoa("<?xml version=\"1.0\" standalone=\"no\"?>\n"
-                      + "<!DOCTYPE svg PUBLIC \"-//W3C//DTD SVG 1.1//EN\" \"http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd\">\n"
-                      + "<svg version=\"1.1\"\n"
-                      + "     xmlns=\"http://www.w3.org/2000/svg\"\n"
-                      + "     xmlns:xlink=\"http://www.w3.org/1999/xlink\">"
-                      + document.documentElement.innerHTML
-                      + "</svg>");
-    var link = document.getElementById("download");
-    var text = link.firstElementChild.firstChild.nodeValue;
-    link.firstElementChild.firstChild.nodeValue = "Download";
-    var href = link.getAttributeNS(xlink_ns, "href");
-    link.setAttributeNS(null, "download", "gridmapper.svg");
-    link.setAttributeNS(xlink_ns, "href", "data:image/svg+xml;base64," + source);
-    // reset after 10s
-    var t = setInterval(function() {
-        link.setAttributeNS(xlink_ns, "href", href);
-        link.firstElementChild.firstChild.nodeValue = text;
-        clearInterval(t);
-    }, 10000);
+function download () {
+  var source = btoa('<?xml version="1.0" standalone="no"?>\n' +
+                    '<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN" "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">\n' +
+                    '<svg version="1.1"\n' +
+                    '     xmlns="http://www.w3.org/2000/svg"\n' +
+                    '     xmlns:xlink="http://www.w3.org/1999/xlink">' +
+                    document.documentElement.innerHTML +
+                    '</svg>');
+  var link = document.getElementById('download');
+  var text = link.firstElementChild.firstChild.nodeValue;
+  link.firstElementChild.firstChild.nodeValue = 'Download';
+  var href = link.getAttributeNS(xlinkNs, 'href');
+  link.setAttributeNS(null, 'download', 'gridmapper.svg');
+  link.setAttributeNS(xlinkNs, 'href', 'data:image/svg+xml;base64,' + source);
+  // reset after 10s
+  var t = setInterval(function() {
+    link.setAttributeNS(xlinkNs, 'href', href);
+    link.firstElementChild.firstChild.nodeValue = text;
+    clearInterval(t);
+  }, 10000);
 }
 
 /* We store the entire document in a sequence of keystrokes with which
  * to recreate it. */
 
-function text_export() {
-    var source = "";
-    for (var y = 0; y < Map.height; y++) {
-        for (var x = 0; x < Map.width; x++) {
-            if (Map.stairs[x][y]) {
-                source += "s".repeat(1 + Map.stairs[x][y].getAttribute("rotate") / 90);
-            }
-            if (Map.walls[x][y]) {
-                for (var i = 0; i < Map.walls[x][y].length; i++) {
-                    var tile = Map.walls[x][y][i];
-                    var type;
-                    if (tile.type == "door") {
-                        type = "d";
-                    } else if (tile.type == "secret") {
-                        type = "$";
-                    } else if (tile.type == "concealed") {
-                        type = "c";
-                    } else if (tile.type == "gate") {
-                        type = "g";
-                    }
-                    if (type) {
-                        source += type.repeat(1 + tile.getAttribute("rotate") / 90);
-                    }
-                }
-            }
-            if (Map.floor[x][y]) {
-                var tile = Map.floor[x][y];
-                if (tile.type == "trap") {
-                    source += "t";
-                } else if (tile.type == "empty") {
-                    source += "f";
-                }
-            } else {
-                source += " ";
-            }
+function textExport () {
+  var source = '';
+  for (var y = 0; y < Map.height; y++) {
+    for (var x = 0; x < Map.width; x++) {
+      if (Map.stairs[x][y]) {
+        source += 's'.repeat(1 + Map.stairs[x][y].getAttribute('rotate') / 90);
+      }
+      if (Map.walls[x][y]) {
+        for (var i = 0; i < Map.walls[x][y].length; i++) {
+          var tile = Map.walls[x][y][i];
+          var type;
+          if (tile.type === 'door') {
+            type = 'd';
+          } else if (tile.type === 'secret') {
+            type = '$';
+          } else if (tile.type === 'concealed') {
+            type = 'c';
+          } else if (tile.type === 'gate') {
+            type = 'g';
+          }
+          if (type) {
+            source += type.repeat(1 + tile.getAttribute('rotate') / 90);
+          }
         }
-        source += "\n";
-    }
-    source = source.replace(/ +$/gm,"");
-    source = source.replace(/\n+$/,"");
-    source = encodeURIComponent(source);
-    var link = document.getElementById("export");
-    var text = link.firstElementChild.firstChild.nodeValue;
-    link.firstElementChild.firstChild.nodeValue = "Link";
-    var href = link.getAttributeNS(xlink_ns, "href");
-    var location = window.location.href.substr(
-        0, window.location.href.length - window.location.search.length)
-    link.setAttributeNS(xlink_ns, "href", location + "?" + source);
-    // reset after 10s
-    var t = setInterval(function() {
-        link.setAttributeNS(xlink_ns, "href", href);
-        link.firstElementChild.firstChild.nodeValue = text;
-        clearInterval(t);
-    }, 10000);
-}
-
-/* You can add more tiles at whatever scale you want and this code
- * will determine the scale by comparing your tile's width with the
- * tile width in use by the map. The original tiles are all based on a
- * 10x10 grid and are scaled up to 20x20, for example. The easiest way
- * to do this is to use a <g> element and give it an appropriate width
- * attribute. */
-
-function scale_tiles() {
-    var tiles = document.getElementsByTagName("defs")[0].childNodes;
-    for (var i = 0; i < tiles.length; ++i) {
-        if (tiles[i].nodeType===Node.ELEMENT_NODE
-            && tiles[i].hasAttribute("width")) {
-            var scale = Map.tileWidth / tiles[i].getAttribute("width");
-            if (scale != 1) {
-                tiles[i].setAttribute("transform", "scale("+scale+","+scale+")");
-            }
+      }
+      if (Map.floor[x][y]) {
+        var tile = Map.floor[x][y];
+        if (tile.type === 'trap') {
+          source += 't';
+        } else if (tile.type === 'empty') {
+          source += 'f';
         }
+      } else {
+        source += ' ';
+      }
     }
+    source += '\n';
+  }
+  source = source.replace(/ +$/gm,'');
+  source = source.replace(/\n+$/,'');
+  source = encodeURIComponent(source);
+  var link = document.getElementById('export');
+  var text = link.firstElementChild.firstChild.nodeValue;
+  link.firstElementChild.firstChild.nodeValue = 'Link';
+  var href = link.getAttributeNS(xlinkNs, 'href');
+  var location = window.location.href.substr(
+    0, window.location.href.length - window.location.search.length)
+  link.setAttributeNS(xlinkNs, 'href', location + '?' + source);
+  // reset after 10s
+  var t = setInterval(function() {
+    link.setAttributeNS(xlinkNs, 'href', href);
+    link.firstElementChild.firstChild.nodeValue = text;
+    clearInterval(t);
+  }, 10000);
 }
 
-function create_tile(x, y, type) {
-    var tile = document.createElementNS(svg_ns, "use");
-    tile.setAttributeNS(null, "id", type + "_" + x + "_" + y);
-    tile.setAttributeNS(null, "x", (x + 1) * Map.tileWidth); // empty column to the left
-    tile.setAttributeNS(null, "y", (y + 1) * Map.tileWidth); // empty row at the top
-    tile.type = type;
-    tile.setAttributeNS(xlink_ns, "href", "#" + type);
-    return tile;
-}
-
-function wall_rotation(x, y, rotate) {
-    // find an unused rotation
-    var candidate = [rotate,
-                     (rotate + 90) % 360,
-                     (rotate + 180) % 360,
-                     (rotate + 270) % 360];
-    var existingWalls = [];
-    for (var i = 0; i < Map.walls[x][y].length; i++) {
-        existingWalls.push(Map.walls[x][y][i].getAttribute("rotate"));
+/**
+ * Scales all the tiles in the defs element of the SVG. You can add
+ * more tiles at whatever scale you want and this code will determine
+ * the scale by comparing your tile's width with the tile width in use
+ * by the map. The original tiles are all based on a 10x10 grid and
+ * are scaled up to 20x20, for example. The easiest way to do this is
+ * to use a <g> element and give it an appropriate width attribute.
+ */
+function scaleTiles () {
+  var tiles = document.getElementsByTagName('defs')[0].childNodes;
+  for (var i = 0; i < tiles.length; ++i) {
+    if (tiles[i].nodeType === Node.ELEMENT_NODE
+        && tiles[i].hasAttribute('width')) {
+      var scale = Map.tileWidth / tiles[i].getAttribute('width');
+      if (scale != 1) {
+        tiles[i].setAttribute('transform', 'scale('+scale+','+scale+')');
+      }
     }
-    search: for (var c = 0; c < 4; c++) {
-        for (var i = 0; i < existingWalls.length; i++) {
-            if (candidate[c]==existingWalls[i]) {
-                continue search;
-            }
-        }
-        return candidate[c];
+  }
+}
+
+/**
+ * Creates a new tile. These tiles are use elements in the SVG
+ * referring to an existing definition of the given type. An
+ * appropriate id attribute is also generated.
+ */
+function createTile (x, y, type) {
+  var tile = document.createElementNS(svgNs, 'use');
+  tile.setAttributeNS(null, 'id', type + '_' + x + '_' + y);
+  tile.setAttributeNS(null, 'x', (x + 1) * Map.tileWidth); // empty column to the left
+  tile.setAttributeNS(null, 'y', (y + 1) * Map.tileWidth); // empty row at the top
+  tile.type = type;
+  tile.setAttributeNS(xlinkNs, 'href', '#' + type);
+  return tile;
+}
+
+/**
+ * Returns an unused angle for wall tiles. Provide a preferred angle.
+ * Possible values are 0, 90, 180, 270.
+ */
+function getUnusedAngle (x, y, rotate) {
+  var candidate = [rotate,
+                   (rotate + 90) % 360,
+                   (rotate + 180) % 360,
+                   (rotate + 270) % 360];
+  var existingWalls = [];
+  for (var i = 0; i < Map.walls[x][y].length; i++) {
+    existingWalls.push(Map.walls[x][y][i].getAttribute('rotate'));
+  }
+  search: for (var c = 0; c < 4; c++) {
+    for (var i = 0; i < existingWalls.length; i++) {
+      if (candidate[c]==existingWalls[i]) {
+        continue search;
+      }
     }
+    return candidate[c];
+  }
 }
 
-function rotate_tile(tile, type, x, y, angle) {
-    tile.setAttribute("rotate", angle);
-    if (angle===180 && type==="concealed") {
-        tile.setAttributeNS(null,"transform", "translate("+Map.tileWidth+",0)");
-    } else if (angle > 0) {
-        var cx = (x + 1.5) * Map.tileWidth; // empty column to the left
-        var cy = (y + 1.5) * Map.tileWidth; // empty row at the top
-        tile.setAttributeNS(null,"transform", "rotate("+angle+","+cx+","+cy+")");
-    } else {
-        tile.removeAttributeNS(null,"transform");
+/* Drawing on the walls */
+
+function rotateTile (tile, type, x, y, angle) {
+  tile.setAttribute('rotate', angle);
+  if (angle === 180 && type === 'concealed') {
+    tile.setAttributeNS(null,'transform', 'translate('+Map.tileWidth+',0)');
+  } else if (angle > 0) {
+    var cx = (x + 1.5) * Map.tileWidth; // empty column to the left
+    var cy = (y + 1.5) * Map.tileWidth; // empty row at the top
+    tile.setAttributeNS(null,'transform', 'rotate('+angle+','+cx+','+cy+')');
+  } else {
+    tile.removeAttributeNS(null,'transform');
+  }
+}
+
+function wall (x, y, type) {
+  var now = new Date();
+  if (Pen.type === type && Map.walls[x][y] && Pen.ts && now - Pen.ts <= 2000) {
+    // we just placed a door: take the last one and rotate it
+    var tile = Map.walls[x][y][Map.walls[x][y].length - 1];
+    var old = tile.getAttributeNS(null,'transform');
+    var angle = parseInt(tile.getAttribute('rotate'));
+    var rotate = getUnusedAngle(x, y, (angle + 90) % 360);
+    if (rotate != null) {
+      Commands.push(
+        function(){
+          rotateTile(tile, type, x, y, angle);
+        },
+        function(){
+          rotateTile(tile, type, x, y, rotate);
+        });
     }
-}
-
-function wall(x, y, type) {
-    var now = new Date();
-    if (Pen.type===type && Map.walls[x][y] != null && Pen.ts && now - Pen.ts <= 2000) {
-        // we just placed a door: take the last one and rotate it
-        var tile = Map.walls[x][y][Map.walls[x][y].length - 1];
-        var old = tile.getAttributeNS(null,"transform");
-        var angle = parseInt(tile.getAttribute("rotate"));
-        var rotate = wall_rotation(x, y, (angle + 90) % 360);
-        if (rotate != null) {
-            Commands.push(
-                function(){
-                    rotate_tile(tile, type, x, y, angle);
-                },
-                function(){
-                    rotate_tile(tile, type, x, y, rotate);
-                });
-        }
-    } else {
-        // make sure the data structure exists
-        if (!Map.walls[x][y]) {
-            Map.walls[x][y] = [];
-        }
-        var rotate = wall_rotation(x, y, 0);
-        if (rotate != null) {
-            var tile = create_tile(x, y, type);
-            rotate_tile(tile, type, x, y, rotate);
-            Commands.push(
-                function(){
-                    Map.walls[x][y].pop();
-                    Map.wallsElement.removeChild(tile);
-                },
-                function(){
-                    Map.walls[x][y].push(tile);
-                    Map.wallsElement.appendChild(tile);
-                });
-        }
-    }
-    Pen.ts = now;
-}
-
-function remove_wall (x, y) {
-    if (Map.walls[x][y] != null) {
-        // take the last one and remove it
-        var tile = Map.walls[x][y][Map.walls[x][y].length - 1];
-        Commands.push(
-            function(){
-                Map.walls[x][y].push(tile);
-                Map.wallsElement.appendChild(tile);
-            },
-            function(){
-                Map.walls[x][y].pop();
-                Map.wallsElement.removeChild(tile);
-            });
-    }
-}
-
-function door(x, y) {
-    wall(x, y, "door");
-    Pen.type = "door";
-}
-
-function secret(x, y) {
-    wall(x, y, "secret");
-    Pen.type = "secret";
-}
-
-function concealed(x, y) {
-    wall(x, y, "concealed");
-    Pen.type = "concealed";
-}
-
-function gate(x, y) {
-    wall(x, y, "gate");
-    Pen.type = "gate";
-}
-
-function just_wall(x, y) {
-    wall(x, y, "wall");
-    Pen.type = "wall";
-}
-
-function trap(x, y) {
-    var old = Map.floor[x][y];
-    if (old != null && old.type==="trap") {
-        floor(x, y);
-    } else {
-        var stair = Map.stairs[x][y];
-        var tile = create_tile(x, y, "trap");
-        Commands.push(
-            function(){
-                Map.floorElement.removeChild(tile);
-                if (old != null) {
-                    Map.floorElement.appendChild(old);
-                }
-                Map.floor[x][y] = old;
-                if (stair != null) {
-                    Map.stairsElement.appendChild(stair);
-                    Map.stairs[x][y] = stair;
-                }
-            },
-            function(){
-                if (stair != null) {
-                    Map.stairsElement.removeChild(stair);
-                    Map.stairs[x][y] = null;
-                }
-                if (old != null) {
-                    Map.floorElement.removeChild(old);
-                }
-                Map.floor[x][y] = tile;
-                Map.floorElement.appendChild(tile);
-            });
-    }
-}
-
-function stairs(x, y) {
-    if (Map.stairs[x][y] != null) {
-        var tile = Map.stairs[x][y];
-        var angle = parseInt(tile.getAttribute("rotate"));
-        Commands.push(
-            function(){
-                rotate_tile(tile, "stairs", x, y, angle);
-            },
-            function() {
-                rotate_tile(tile, "stairs", x, y, (angle + 90) % 360);
-            });
-    } else {
-        var tile = create_tile(x, y, "stair");
-        tile.setAttribute("rotate", 0);
-        Commands.push(
-            function(){
-                Map.stairsElement.removeChild(tile);
-                Map.stairs[x][y] = null;
-            },
-            function(){
-                Map.stairs[x][y] = tile;
-                Map.stairsElement.appendChild(tile);
-            });
-    }
-}
-
-function floor(x, y) {
-    var stair = Map.stairs[x][y];
-    var old   = Map.floor[x][y];
-    var tile  = create_tile(x, y, "empty");
-    if (stair != null || old == null || old.type != "empty") {
-        Commands.push(
-            function(){
-                if (stair != null) {
-                    Map.stairsElement.appendChild(stair);
-                    Map.stairs[x][y] = stair;
-                }
-                Map.floorElement.removeChild(tile);
-                if (old != null) {
-                    Map.floorElement.appendChild(old);
-                }
-                Map.floor[x][y] = old;
-            },
-            function(){
-                if (stair != null) {
-                    Map.stairsElement.removeChild(stair);
-                    Map.stairs[x][y] = null;
-                }
-                if (old != null) {
-                    Map.floorElement.removeChild(old);
-            }
-                Map.floorElement.appendChild(tile);
-                Map.floor[x][y] = tile;
-            });
-    } else {
-        Commands.push(
-            function(){
-                Map.floorElement.appendChild(tile);
-                Map.floor[x][y] = tile;
-            },
-            function(){
-                Map.floorElement.removeChild(old);
-                Map.floor[x][y] = null;
-            });
-    }
-}
-
-function draw_line_to_command(x, y, angle, tile, type) {
+  } else {
     // make sure the data structure exists
     if (!Map.walls[x][y]) {
-        Map.walls[x][y] = [];
+      Map.walls[x][y] = [];
     }
-    var found = false;
-    for (var i = 0; i < Map.walls[x][y].length; i++) {
-        if (Map.walls[x][y][i].getAttribute("rotate") == angle) {
-            found = true;
-            break;
-        }
+    var rotate = getUnusedAngle(x, y, 0);
+    if (rotate != null) {
+      var tile = createTile(x, y, type);
+      rotateTile(tile, type, x, y, rotate);
+      Commands.push(
+        function(){
+          Map.walls[x][y].pop();
+          Map.wallsElement.removeChild(tile);
+        },
+        function(){
+          Map.walls[x][y].push(tile);
+          Map.wallsElement.appendChild(tile);
+        });
     }
-    if (!found) {
-        rotate_tile(tile, type, x, y, angle);
-        var remove = function(){
-            Map.walls[x][y].pop();
-            Map.wallsElement.removeChild(tile);
-        };
-        var add = function(){
-            Map.walls[x][y].push(tile);
-            Map.wallsElement.appendChild(tile);
-        };
-        if (type == "add") {
-            Commands.push(remove, add); // add new tile
-        } else {
-            Commands.push(add, remove); // remove existing tile
-        }
-    }
+  }
+  Pen.ts = now;
 }
-    
+
+function removeWall  (x, y) {
+  if (Map.walls[x][y] != null) {
+    // take the last one and remove it
+    var tile = Map.walls[x][y][Map.walls[x][y].length - 1];
+    Commands.push(
+      function(){
+        Map.walls[x][y].push(tile);
+        Map.wallsElement.appendChild(tile);
+      },
+      function(){
+        Map.walls[x][y].pop();
+        Map.wallsElement.removeChild(tile);
+      });
+  }
+}
+
+function door (x, y) {
+  wall(x, y, 'door');
+  Pen.type = 'door';
+}
+
+function secret (x, y) {
+  wall(x, y, 'secret');
+  Pen.type = 'secret';
+}
+
+function concealed (x, y) {
+  wall(x, y, 'concealed');
+  Pen.type = 'concealed';
+}
+
+function gate (x, y) {
+  wall(x, y, 'gate');
+  Pen.type = 'gate';
+}
+
+/**
+ * Draws a wall tile of the given type in wall mode.
+ * In wall mode, one of the two coordinates is +0.5.
+ * We determine the angle (0 or 90) and put a tile there.
+ */
+
+function wallDraw (x, y, type) {
+  var angle = 0;
+  if (y % 1 === 0) {
+    x = Math.ceil(x);
+  } else {
+    angle = 90;
+    y = Math.ceil(y);
+  }
+  // make sure the data structure exists
+  if (!Map.walls[x][y]) {
+    Map.walls[x][y] = [];
+  }
+  var i;
+  var old = null;
+  var tile = createTile(x, y, "wall");
+  rotateTile(tile, "wall", x, y, angle)
+  for (i = 0; i < Map.walls[x][y].length; i++) {
+    if (parseInt(Map.walls[x][y][i].getAttribute('rotate')) == angle) {
+      old = Map.walls[x][y][i];
+      break;
+    }
+  }
+  Commands.push(
+    function(){
+      Map.wallsElement.removeChild(tile);
+      if (old) {
+        Map.wallsElement.appendChild(old);
+        Map.walls[x][y][i] = old;
+      } else {
+        Map.walls[x][y].pop();
+      }
+    },
+    function(){
+      if (old) {
+        Map.wallsElement.removeChild(old);
+        Map.walls[x][y][i] = tile;
+      } else {
+        Map.walls[x][y].push(tile);
+      }
+      Map.wallsElement.appendChild(tile);
+    });
+}
+
+function wallMode (x, y) {
+  if (Pen.type === 'wall') {
+    wallModeOff();
+  } else {
+    Pen.type = 'wall';
+    if (Pen.x > 0) {
+      Pen.x -= 0.5;
+    } else {
+      Pen.x += 0.5;
+    }
+  }
+  Pen.update(null);
+}
+
+/* Drawing on the floor */
+
+function trap (x, y) {
+  var old = Map.floor[x][y];
+  if (old != null && old.type === 'trap') {
+    floor(x, y);
+  } else {
+    var stair = Map.stairs[x][y];
+    var tile = createTile(x, y, 'trap');
+    Commands.push(
+      function(){
+        Map.floorElement.removeChild(tile);
+        if (old != null) {
+          Map.floorElement.appendChild(old);
+        }
+        Map.floor[x][y] = old;
+        if (stair != null) {
+          Map.stairsElement.appendChild(stair);
+          Map.stairs[x][y] = stair;
+        }
+      },
+      function(){
+        if (stair != null) {
+          Map.stairsElement.removeChild(stair);
+          Map.stairs[x][y] = null;
+        }
+        if (old != null) {
+          Map.floorElement.removeChild(old);
+        }
+        Map.floor[x][y] = tile;
+        Map.floorElement.appendChild(tile);
+      });
+  }
+}
+
+function stairs (x, y) {
+  if (Map.stairs[x][y] != null) {
+    var tile = Map.stairs[x][y];
+    var angle = parseInt(tile.getAttribute('rotate'));
+    Commands.push(
+      function(){
+        rotateTile(tile, 'stairs', x, y, angle);
+      },
+      function() {
+        rotateTile(tile, 'stairs', x, y, (angle + 90) % 360);
+      });
+  } else {
+    var tile = createTile(x, y, 'stair');
+    tile.setAttribute('rotate', 0);
+    Commands.push(
+      function(){
+        Map.stairsElement.removeChild(tile);
+        Map.stairs[x][y] = null;
+      },
+      function(){
+        Map.stairs[x][y] = tile;
+        Map.stairsElement.appendChild(tile);
+      });
+  }
+}
+
+function floor (x, y) {
+  var stair = Map.stairs[x][y];
+  var old   = Map.floor[x][y];
+  var tile  = createTile(x, y, 'empty');
+  if (stair || !old || old.type != 'empty') {
+    Commands.push(
+      function(){
+        if (stair != null) {
+          Map.stairsElement.appendChild(stair);
+          Map.stairs[x][y] = stair;
+        }
+        Map.floorElement.removeChild(tile);
+        if (old != null) {
+          Map.floorElement.appendChild(old);
+        }
+        Map.floor[x][y] = old;
+      },
+      function(){
+        if (stair != null) {
+          Map.stairsElement.removeChild(stair);
+          Map.stairs[x][y] = null;
+        }
+        if (old != null) {
+          Map.floorElement.removeChild(old);
+        }
+        Map.floorElement.appendChild(tile);
+        Map.floor[x][y] = tile;
+      });
+  } else {
+    Commands.push(
+      function(){
+        Map.floorElement.appendChild(tile);
+        Map.floor[x][y] = tile;
+      },
+      function(){
+        Map.floorElement.removeChild(old);
+        Map.floor[x][y] = null;
+      });
+  }
+}
+
 /* This is where we draw (or erase) floor tiles. The key point to
  * remember is that we might not get a mouse event for every
  * coordinate. That's why we need to store where we want to draw to
@@ -629,174 +696,258 @@ function draw_line_to_command(x, y, angle, tile, type) {
  * https://developer.mozilla.org/en-US/docs/Web/JavaScript/Closures#Creating_closures_in_loops.3A_A_common_mistake
  */
 
-function draw_to_command(x, y, tile, type) {
-    var remove = function(){
-            Map.floorElement.removeChild(tile);
-            Map.floor[x][y] = null;
-    };
-    var add = function(){
-            Map.floor[x][y] = tile;
-            Map.floorElement.appendChild(tile);
-    };
-    if (type == "add") {
-        Commands.push(remove, add); // add new tile
-    } else {
-        Commands.push(add, remove); // remove existing tile
+function drawToCommand (x, y, tile, type) {
+  var remove = function(){
+    Map.floorElement.removeChild(tile);
+    Map.floor[x][y] = null;
+  };
+  var add = function(){
+    Map.floor[x][y] = tile;
+    Map.floorElement.appendChild(tile);
+  };
+  if (type === 'add') {
+    Commands.push(remove, add); // add new tile
+  } else {
+    Commands.push(add, remove); // remove existing tile
+  }
+}
+
+function drawTo (evt) {
+  var target = Pen.position(evt);
+  // draw up to the current position (at least once if we just started)
+  do {
+    if (!Map.floor[Pen.x][Pen.y] && Pen.type === 'empty') {
+      drawToCommand(Pen.x, Pen.y, createTile(Pen.x, Pen.y, 'empty'), 'add');
+    } else if (Map.floor[Pen.x][Pen.y] && Pen.type === 'null') {
+      drawToCommand(Pen.x, Pen.y, Map.floor[Pen.x][Pen.y], 'remove');
     }
+  } while (Pen.moveTo(target));
+  Pen.update(evt);
 }
 
-function draw_to(evt) {
-    var target = Pen.position(evt);
-    // draw up to the current position (at least once if we just started)
-    do {
-        if (Map.floor[Pen.x][Pen.y] == null && Pen.type == "empty") {
-            draw_to_command(Pen.x, Pen.y, create_tile(Pen.x, Pen.y, "empty"), "add");
-        } else if (Map.floor[Pen.x][Pen.y] != null && Pen.type == "null") {
-            draw_to_command(Pen.x, Pen.y, Map.floor[Pen.x][Pen.y], "remove");
-        }
-    } while (Pen.move_to(target));
-    pen_track(evt);
-}
-
-/* When we're drawing (draw_to), the position of the pen is always
- * updated. When we're not drawing, we still need to store something
- * because of possible keypress events (which don't come with a
- * position). */
-
-function pen_track(evt) {
-    Pen.update(evt)
-}
-
-/* When setting down the pen (onmousedown, pen_down), we look at the
+/* When setting down the pen (onmousedown, penDown), we look at the
  * current tile. If it's the empty floor tile, we'll want to erase it.
  * If there is no floor tile (null), we'll want to draw an empty floor
  * tile. We store this information in the Pen type and as we keep on
- * drawing (onmousemove, draw_to), we don't change it. */
+ * drawing (onmousemove, drawTo), we don't change it. */
 
-function pen_down(evt) {
-    Pen.update(evt);
-    if (Map.floor[Pen.x][Pen.y] != null) {
-        Pen.type = "null";
-    } else {
-        Pen.type = "empty";
-    }
-    // draw at least one tile
-    draw_to(evt);
-    // install new handler
-    Map.ui.onmousemove = draw_to;
-    // revert to pen tracking on mouse up *anywhere*
-    document.onmouseup = function() {
-        Map.ui.onmousemove = pen_track;
-    }
+function penDown (evt) {
+  Pen.update(evt);
+  if (Map.floor[Pen.x][Pen.y]) {
+    Pen.type = 'null';
+  } else {
+    Pen.type = 'empty';
+  }
+  // draw at least one tile
+  drawTo(evt);
+  // install new handler
+  Map.ui.onmousemove = drawTo;
+  // revert to pen tracking on mouse up *anywhere*
+  document.onmouseup = function() {
+    Map.ui.onmousemove = Pen.update;
+  }
 }
 
-function move_left(){
-    if (Pen.x > 0)
-        Pen.x--;
-    Pen.update(null);
+/**
+ * Puts the pointer back into a square and ends Wall Mode.
+ * Call this whenever you're acting on squares.
+ */
+function wallModeOff () {
+  if (Pen.type === 'wall') {
+    Pen.x = Math.ceil(Pen.x);
+    Pen.y = Math.ceil(Pen.y);
+    Pen.type = null;
+  }
 }
 
-function move_right(){
-    Map.minimum_size(Pen.x + 1);
+/**
+ * Moves the pointer around. It handles both moving from square to
+ * sqare as well as moving from wall to wall (where one of the
+ * coordinates is off by 0.5).
+ */
+function move (dir) {
+  switch (dir) {
+  case 'left':
+    if (Pen.x > 0.5)
+      Pen.x--;
+    break;
+  case 'right':
+    Map.minimumSize(Pen.x + 1.5);
     Pen.x++;
-    Pen.update(null);
-}
-
-function move_up(){
-    if (Pen.y > 0)
-        Pen.y--;
-    Pen.update(null);
-}
-
-function move_down(){
-    if (Pen.y + 1 >= Map.height) {
-        Map.height++;
-        move_elements();
+    break;
+  case 'up':
+    if (Pen.y > 0.5)
+      Pen.y--;
+    break;
+  case 'down':
+    if (Pen.y + 1.5 >= Map.height) {
+      Map.height++;
+      moveElements();
     }
     Pen.y++;
-    Pen.update(null);
+    break;
+  }
+  // Example: when moving down from 1 to 2 and right to 3, we want to
+  // switch position on the grid and end up on 4. So we need to adjust
+  // the position by (-0.5,-0.5):
+  //
+  //  x→ 
+  // y  |   |
+  // ↓--+---+---
+  //    1   |
+  //  --+-4-+---
+  //    2   3
+  //  --+---+---
+  //    |   |
+  //
+  // If we moved first right and then down, we would end up in the same
+  // position.
+  if (Pen.type === 'wall') {
+    var now = new Date();
+    if (Pen.dir && Pen.ts && now - Pen.ts <= 500) {
+      if (Pen.dir=='left' && dir=='down'
+          || Pen.dir=='down' && dir=='left') {
+        Pen.x += 0.5;
+        Pen.y -= 0.5;
+      } else if (Pen.dir=='left' && dir=='up'
+                 || Pen.dir=='up' && dir=='left') {
+        Pen.x += 0.5;
+        Pen.y += 0.5;
+      } else if (Pen.dir=='right' && dir=='down'
+                 || Pen.dir=='down' && dir=='right') {
+        Pen.x -= 0.5;
+        Pen.y -= 0.5;
+      } else if (Pen.dir=='right' && dir=='up'
+                 || Pen.dir=='up' && dir=='right') {
+        Pen.x -= 0.5;
+        Pen.y += 0.5;
+      }
+
+    }
+  }
+  Pen.update(null);
+  Pen.dir = dir;
+  Pen.ts = now; // must come after Pen.update
 }
 
-/* Many of the key commands need a "current" position. We determine it
+/* Many of the key commands need a 'current' position. We determine it
  * by looking at the Pen. It's position is always tracked (onmousemove,
- * pen_track). */
+ * Pen.update). */
 
-function key_pressed(evt) {
-    var key = evt.key;
+function keyPressed (evt) {
+  var key = evt.key;
 
-    //Google Chrome
-    if(!key && evt.keyIdentifier) {
-        if (evt.keyIdentifier.substring(0,2) == "U+") { // U+0044 = D
-            key = String.fromCharCode(parseInt(event.keyIdentifier.substr(2), 16));
-            if (!evt.shiftKey) {
-                key = key.toLowerCase(); // "D" to "d"
-            }
-        } else {
-            key = evt.keyIdentifier; // "Left"
-        }
-    }
-
-    if(key==="?") {
-        var help = document.getElementById("help");
-        if (help.getAttributeNS(null, "visibility") == "hidden") {
-            help.setAttributeNS(null, "visibility", "visible");
-        } else {
-            help.setAttributeNS(null, "visibility", "hidden");
-        }
-    } else if (key == "ArrowDown" || key == "Down") {
-        if (evt.shiftKey) floor(Pen.x, Pen.y);
-        move_down();
-    } else if (key == "ArrowUp" || key == "Up") {
-        if (evt.shiftKey) floor(Pen.x, Pen.y);
-        move_up();
-    } else if (key == "ArrowLeft" || key == "Left") {
-        if (evt.shiftKey) floor(Pen.x, Pen.y);
-        move_left();
-    } else if (key == "ArrowRight" || key == "Right") {
-        if (evt.shiftKey) floor(Pen.x, Pen.y);
-        move_right();
-    } else if (key==="u") {
-        Commands.undo();
-    } else if (key==="r") {
-        Commands.redo();
+  //Google Chrome
+  if(!key && evt.keyIdentifier) {
+    if (evt.keyIdentifier.substring(0,2) === 'U+') { // U+0044 = D
+      key = String.fromCharCode(parseInt(event.keyIdentifier.substr(2), 16));
+      if (!evt.shiftKey) {
+        key = key.toLowerCase(); // 'D' to 'd'
+      }
     } else {
-        if (key===" ") {
-            move_right();
-        } else if (key==="Enter") {
-            Pen.x = 0;
-            move_down();
-        } else if (key==="d") {
-            door(Pen.x, Pen.y);
-        } else if (key==="$") {
-            secret(Pen.x, Pen.y);
-        } else if (key==="c") {
-            concealed(Pen.x, Pen.y);
-        } else if (key==="g") {
-            gate(Pen.x, Pen.y);
-        } else if (key==="w") {
-            just_wall(Pen.x, Pen.y);
-        } else if (key==="W") {
-            remove_wall(Pen.x, Pen.y);
-        } else if (key==="t") {
-            trap(Pen.x, Pen.y);
-        } else if (key==="s") {
-            stairs(Pen.x, Pen.y);
-        } else if (key==="f") {
-            floor(Pen.x, Pen.y);
-        }
+      key = evt.keyIdentifier; // 'Left'
     }
+  }
+
+  switch (key) {
+  case '?':
+    var help = document.getElementById('help');
+    if (help.getAttributeNS(null, 'visibility') === 'hidden') {
+      help.setAttributeNS(null, 'visibility', 'visible');
+    } else {
+      help.setAttributeNS(null, 'visibility', 'hidden');
+    }
+    break;
+  case 'u':
+    Commands.undo();
+    break;
+  case 'r':
+    Commands.redo();
+    break;
+  case 'ArrowDown':
+  case 'Down':
+    if (evt.shiftKey)
+      floor(Pen.x, Pen.y);
+    move('down');
+    break;
+  case 'ArrowUp':
+  case 'Up':
+    if (evt.shiftKey)
+      floor(Pen.x, Pen.y);
+    move('up');
+    break;
+  case 'ArrowLeft':
+  case 'Left':
+    if (evt.shiftKey)
+      floor(Pen.x, Pen.y);
+    move('left');
+    break;
+  case 'ArrowRight':
+  case 'Right':
+  case ' ':
+    if (evt.shiftKey)
+      floor(Pen.x, Pen.y);
+    move('right');
+    break;
+  case 'Enter':
+    wallModeOff();
+    Pen.x = 0;
+    move('down');
+    break;
+  case 'd':
+    wallModeOff();
+    door(Pen.x, Pen.y);
+    break;
+  case '$':
+    wallModeOff();
+    secret(Pen.x, Pen.y);
+    break;
+  case 'c':
+    wallModeOff();
+    concealed(Pen.x, Pen.y);
+    break;
+  case 'g':
+    wallModeOff();
+    gate(Pen.x, Pen.y);
+    break;
+  case 'w':
+    if (Pen.type === 'wall') {
+      wallDraw(Pen.x, Pen.y, 'wall');
+    } else {
+      wallModeOff();
+      removeWall(Pen.x,Pen.y);
+    }
+    break;
+  case 'W':
+    wallMode(Pen.x, Pen.y);
+    break;
+  case 'w':
+    removeWall(Pen.x, Pen.y);
+    break;
+  case 't':
+    wallModeOff();
+    trap(Pen.x, Pen.y);
+    break;
+  case 's':
+    wallModeOff();
+    stairs(Pen.x, Pen.y);
+    break;
+  case 'f':
+    wallModeOff();
+    floor(Pen.x, Pen.y);
+  }
 }
 
-function recreate_model_for(re, model, element) {
-    for (var i = 0; i < element.children.length; i++) {
-        var result = element.children[i].getAttribute("id").match(re);
-        if (result) {
-            var x = result[1];
-            var y = result[2];
-            Map.minimum_size(x);
-            model[x][y] = element.children[i];
-        }
+function recreateModelFor (re, model, element) {
+  for (var i = 0; i < element.children.length; i++) {
+    var result = element.children[i].getAttribute('id').match(re);
+    if (result) {
+      var x = result[1];
+      var y = result[2];
+      Map.minimumSize(x);
+      model[x][y] = element.children[i];
     }
+  }
 }
 
 /* When loading a file, the first section is used: We go through the elements
@@ -805,101 +956,101 @@ function recreate_model_for(re, model, element) {
    one might conceivably type. The only difference is the / character which is
    used to simulate a little pause (to prevent doors from rotating). */
 
-function recreate_model() {
-    var re = /^\w+_(\d+)_(\d+)$/;
-    recreate_model_for(re, Map.floor, Map.floorElement);
-    recreate_model_for(re, Map.stairs, Map.stairsElement);
-    // doors are a special case because of the array
-    for (var i = 0; i < Map.wallsElement.children.length; i++) {
-        var result = Map.wallsElement.children[i].getAttribute("id").match(re);
-        if (result) {
-            var x = result[1];
-            var y = result[2];
-            // make sure the data structure exists
-            if (!Map.walls[x][y]) {
-                Map.walls[x][y] = [];
-            }
-            Map.walls[x][y].push(Map.wallsElement.children[i]);
-        }
+function recreateModel () {
+  var re = /^\w+_(\d+)_(\d+)$/;
+  recreateModelFor(re, Map.floor, Map.floorElement);
+  recreateModelFor(re, Map.stairs, Map.stairsElement);
+  // doors are a special case because of the array
+  for (var i = 0; i < Map.wallsElement.children.length; i++) {
+    var result = Map.wallsElement.children[i].getAttribute('id').match(re);
+    if (result) {
+      var x = result[1];
+      var y = result[2];
+      // make sure the data structure exists
+      if (!Map.walls[x][y]) {
+        Map.walls[x][y] = [];
+      }
+      Map.walls[x][y].push(Map.wallsElement.children[i]);
     }
-    var code = decodeURIComponent(window.location.search);
-    if (code) {
-        var rows = code.substring(1).split("\n");
-        for (var y = 0; y < rows.length; y++) {
-            for (var x = 0, i = 0; i < rows[y].length; i++) {
-                Map.minimum_size(x);
-                switch(rows[y][i]) {
-                case "f": floor(x++,y); break
-                case "t": trap(x++,y); break;
-                case "+":
-                case " ": x++; break;
-                case "d": door(x,y,"door"); break;
-                case "$": door(x,y,"secret"); break;
-                case "c": door(x,y,"concealed"); break;
-                case "g": gate(x,y); break;
-                case "/": Pen.ts = null; break;
-                case "s": stairs(x,y); break;
-                }
-            }
+  }
+  var code = decodeURIComponent(window.location.search);
+  if (code) {
+    var rows = code.substring(1).split('\n');
+    for (var y = 0; y < rows.length; y++) {
+      for (var x = 0, i = 0; i < rows[y].length; i++) {
+        Map.minimumSize(x);
+        switch(rows[y][i]) { // needs charAt?
+        case 'f': floor(x++,y); break
+        case 't': trap(x++,y); break;
+        case '+':
+        case ' ': x++; break;
+        case 'd': door(x,y,'door'); break;
+        case '$': door(x,y,'secret'); break;
+        case 'c': door(x,y,'concealed'); break;
+        case 'g': gate(x,y); break;
+        case '/': Pen.ts = null; break;
+        case 's': stairs(x,y); break;
         }
+      }
     }
+  }
 }
 
-function initialize() {
-    scale_tiles();
-    Map.pointer = document.getElementById("pointer");
-    Pen.update(null); // show it
-    Map.floorElement = document.getElementById("floor");
-    Map.wallsElement = document.getElementById("walls");
-    Map.stairsElement = document.getElementById("stairs");
-    // http://javascript.info/tutorial/mouse-events#drag-n-drop
-    Map.ui = document.getElementById("ui"); // will be moved, too
-    Map.ui.ondragstart = function() { return false };
-    Map.ui.onmousedown = pen_down;
-    Map.ui.onmousemove = pen_track;
-    document.onkeydown = key_pressed; // capture arrow keys
-    Map.initialize(); // quickly create the first columns
-    recreate_model(); // create model
+function initialize () {
+  scaleTiles();
+  Map.pointer = document.getElementById('pointer');
+  Pen.update(null); // show it
+  Map.floorElement = document.getElementById('floor');
+  Map.wallsElement = document.getElementById('walls');
+  Map.stairsElement = document.getElementById('stairs');
+  // http://javascript.info/tutorial/mouse-events#drag-n-drop
+  Map.ui = document.getElementById('ui'); // will be moved, too
+  Map.ui.ondragstart = function() { return false };
+  Map.ui.onmousedown = penDown;
+  Map.ui.onmousemove = Pen.update;
+  document.onkeydown = keyPressed; // capture arrow keys
+  Map.initialize(); // quickly create the first columns
+  recreateModel(); // create model
 }
 
 onload = initialize;
 ]]></script>
   <defs>
-    <rect id="cursor" width="10" height="10" fill="forestgreen" opacity="0.2"/>
-    <rect id="empty" width="10" height="10" fill="white" stroke="black" stroke-width="1"/>
-    <g id="wall" width="10">
-      <line x1="0" y1="0" x2="0" y2="10" stroke="black" stroke-width="3"/>
-    </g>
-    <g id="door" width="10">
-      <rect x="-1.5" y="2" width="3" height="6" fill="white" stroke="black" stroke-width="1"/>
-    </g>
-    <g id="secret" width="10">
-      <path fill="none" stroke="black" stroke-width="1" d="M 2,3 C -2,1 -3,5 0,5 S 2,9 -2,7" />
-    </g>
-    <g id="concealed" width="10">
-      <path fill="none" stroke="black" stroke-width="1" d="M 2,3 C -3,1 -3,9 2,7" />
-    </g>
-    <g id="gate" width="10">
-      <rect x="-2" y="4" width="4" height="12" fill="white" stroke="black" stroke-width="1"/>
-    </g>
-    <g id="trap" width="10">
-      <rect width="10" height="10" fill="white" stroke="black" stroke-width="1"/>
-      <rect x="2" y="2" width="6" height="6" fill="white" stroke="black" stroke-width="1"/>
-      <line x1="2" y1="2" x2="8" y2="8" stroke="black" stroke-width="0.8"/>
-      <line x1="2" y1="8" x2="8" y2="2" stroke="black" stroke-width="0.8"/>
-    </g>
-    <g id="stair" width="10">
-      <rect width="10" height="20" fill="white" stroke="black" stroke-width="1"/>
-      <line x1="0" y1="3" x2="10" y2="3" stroke="black" stroke-width="0.8"/>
-      <line x1="1" y1="6" x2="9" y2="6" stroke="black" stroke-width="0.8"/>
-      <line x1="2" y1="9" x2="8" y2="9" stroke="black" stroke-width="0.8"/>
-      <line x1="3" y1="12" x2="7" y2="12" stroke="black" stroke-width="0.8"/>
-      <line x1="4" y1="15" x2="6" y2="15" stroke="black" stroke-width="0.8"/>
-    </g>
-    <g id="curved-arrow">
-      <path fill="none" stroke="forestgreen" stroke-width="1" d="M 0,30 C 0,9 9,0 30,0" />
-      <path fill="forestgreen" d="M 23,5 L 30,0 23,-5 Z" />
-    </g>
+  <rect id="cursor" width="10" height="10" fill="forestgreen" opacity="0.2"/>
+  <rect id="empty" width="10" height="10" fill="white" stroke="black" stroke-width="1"/>
+  <g id="wall" width="10">
+  <line x1="0" y1="0" x2="0" y2="10" stroke="black" stroke-width="3" stroke-linecap="square"/>
+  </g>
+  <g id="door" width="10">
+  <rect x="-1.5" y="2" width="3" height="6" fill="white" stroke="black" stroke-width="1"/>
+  </g>
+  <g id="secret" width="10">
+  <path fill="none" stroke="black" stroke-width="1" d="M 2,3 C -2,1 -3,5 0,5 S 2,9 -2,7" />
+  </g>
+  <g id="concealed" width="10">
+  <path fill="none" stroke="black" stroke-width="1" d="M 2,3 C -3,1 -3,9 2,7" />
+  </g>
+  <g id="gate" width="10">
+  <rect x="-2" y="4" width="4" height="12" fill="white" stroke="black" stroke-width="1"/>
+  </g>
+  <g id="trap" width="10">
+  <rect width="10" height="10" fill="white" stroke="black" stroke-width="1"/>
+  <rect x="2" y="2" width="6" height="6" fill="white" stroke="black" stroke-width="1"/>
+  <line x1="2" y1="2" x2="8" y2="8" stroke="black" stroke-width="0.8"/>
+  <line x1="2" y1="8" x2="8" y2="2" stroke="black" stroke-width="0.8"/>
+  </g>
+  <g id="stair" width="10">
+  <rect width="10" height="20" fill="white" stroke="black" stroke-width="1"/>
+  <line x1="0" y1="3" x2="10" y2="3" stroke="black" stroke-width="0.8"/>
+  <line x1="1" y1="6" x2="9" y2="6" stroke="black" stroke-width="0.8"/>
+  <line x1="2" y1="9" x2="8" y2="9" stroke="black" stroke-width="0.8"/>
+  <line x1="3" y1="12" x2="7" y2="12" stroke="black" stroke-width="0.8"/>
+  <line x1="4" y1="15" x2="6" y2="15" stroke="black" stroke-width="0.8"/>
+  </g>
+  <g id="curved-arrow">
+  <path fill="none" stroke="forestgreen" stroke-width="1" d="M 0,30 C 0,9 9,0 30,0" />
+  <path fill="forestgreen" d="M 23,5 L 30,0 23,-5 Z" />
+  </g>
   </defs>
   <rect id="background" x="20" y="20" width="0" height="0" fill="lightgray" stroke="black" stroke-width="1"/>
   <g id="floor"/>
@@ -908,70 +1059,70 @@ onload = initialize;
   <g id="walls"/>
   <rect id="ui" opacity="0"/>
   <style><![CDATA[
-text { font: 14px 'Courier New', Courier, monospace; }
-.key { fill: forestgreen; font-weight: bold; }
-]]></style>
+    text { font: 14px 'Courier New', Courier, monospace; }
+      .key { fill: forestgreen; font-weight: bold; }
+  ]]></style>
   <g id="help">
-    <rect x="10" y="80" width="440" height="440" fill="ivory" stroke="black" stroke-width="1"/>
-    <use x="20" y="90" xlink:href="#empty"/>
-    <text x="50" y="105">Use the mouse to draw and erase the floor</text>
-    <use x="20" y="120" xlink:href="#trap"/>
-    <text x="50" y="135"><tspan class="key">t</tspan> : a trap, repeat to remove</text>
-    <use x="20" y="150" xlink:href="#empty"/>
-    <use x="20" y="150" xlink:href="#door"/>
-    <text x="50" y="165"><tspan class="key">d</tspan> : a door, repeat to rotate</text>
-    <use x="20" y="180" xlink:href="#empty"/>
-    <use x="20" y="180" xlink:href="#secret"/>
-    <text x="50" y="195"><tspan class="key">$</tspan> : a secret door, repeat to rotate</text>
-    <use x="20" y="210" xlink:href="#empty"/>
-    <use x="20" y="210" xlink:href="#concealed"/>
-    <text x="50" y="225"><tspan class="key">c</tspan> : a concealed door, repeat to rotate</text>
-    <use x="20" y="240" xlink:href="#empty"/>
-    <use x="20" y="260" xlink:href="#empty"/>
-    <use x="20" y="240" xlink:href="#gate"/>
-    <text x="50" y="255"><tspan class="key">g</tspan> : a gate, repeat to rotate</text>
-    <g>
-      <use x="360" y="260" xlink:href="#empty" opacity="0.3"/>
-      <use x="340" y="280" xlink:href="#empty" opacity="0.3"/>
-      <use x="360" y="280" xlink:href="#empty"/>
-      <use x="360" y="280" xlink:href="#cursor"/>
-      <use x="380" y="280" xlink:href="#empty" opacity="0.3"/>
-      <use x="360" y="300" xlink:href="#empty" opacity="0.3"/>
-      <rect x="356" y="288" width="8" height="24" fill="olive" stroke="black" stroke-width="2"/>
-      <use x="360" y="280" transform="rotate(90,370,290)" xlink:href="#gate"/>
-      <use x="360" y="280" transform="rotate(180,370,290)" xlink:href="#gate"/>
-      <use x="360" y="280" transform="rotate(270,370,290)" xlink:href="#gate"/>
-      <text x="325" y="295" style="fill: olive; font-weight: bold;">1</text>
-      <text x="365" y="255" class="key">2</text>
-      <text x="405" y="295" class="key">3</text>
-      <text x="365" y="335" class="key">4</text>
-      <use x="330" y="250" xlink:href="#curved-arrow"/>
-      <use x="330" y="250" xlink:href="#curved-arrow" transform="rotate(90,370,290)"/>
-      <use x="330" y="250" xlink:href="#curved-arrow" transform="rotate(180,370,290)"/>
-      <use x="330" y="250" xlink:href="#curved-arrow" transform="rotate(270,370,290)"/>
-    </g>
-    <use x="20" y="290" xlink:href="#stair"/>
-    <text x="50" y="305"><tspan class="key">s</tspan> : stairs, repeat to rotate</text>
-    <use x="20" y="340" xlink:href="#empty"/>
-    <text y="355">
-      <tspan x="50"><tspan class="key">f</tspan> : floor, remove traps and stairs</tspan>
-      <tspan x="50" dy="20"><tspan class="key">w</tspan> : remove gates and all kinds of doors</tspan>
-      <tspan x="50" dy="20" class="key">u</tspan><tspan> : undo</tspan>
-      <tspan x="200" class="key">Space</tspan><tspan> : move right</tspan>
-      <tspan x="50" dy="20" class="key">r</tspan><tspan> : redo</tspan>
-      <tspan x="200" class="key">Enter</tspan><tspan> : begin new line</tspan>
-      <tspan x="50" dy="20" class="key">?</tspan><tspan> : toggle help</tspan>
-      <tspan x="200" class="key">Arrows</tspan><tspan> : move around</tspan>
-      <tspan x="200" dy="20" class="key">Shift Arrows</tspan><tspan> : draw / erase</tspan>
-      <a fill="blue" xlink:href="https://github.com/kensanata/gridmapper">
-        <tspan x="50" dy="30">Source available</tspan>
-      </a>
-      <a id="download" fill="blue" xlink:href="javascript:download()">
-        <tspan x="50" dy="20">Prepare Download</tspan>
-      </a><tspan> / </tspan>
-      <a id="export" fill="blue" xlink:href="javascript:text_export()">
-        <tspan>Prepare Link</tspan>
-      </a>
-    </text>
+  <rect x="10" y="80" width="440" height="440" fill="ivory" stroke="black" stroke-width="1"/>
+  <use x="20" y="90" xlink:href="#empty"/>
+  <text x="50" y="105">Use the mouse to draw and erase the floor</text>
+  <use x="20" y="120" xlink:href="#trap"/>
+  <text x="50" y="135"><tspan class="key">t</tspan> : a trap, repeat to remove</text>
+  <use x="20" y="150" xlink:href="#empty"/>
+  <use x="20" y="150" xlink:href="#door"/>
+  <text x="50" y="165"><tspan class="key">d</tspan> : a door, repeat to rotate</text>
+  <use x="20" y="180" xlink:href="#empty"/>
+  <use x="20" y="180" xlink:href="#secret"/>
+  <text x="50" y="195"><tspan class="key">$</tspan> : a secret door, repeat to rotate</text>
+  <use x="20" y="210" xlink:href="#empty"/>
+  <use x="20" y="210" xlink:href="#concealed"/>
+  <text x="50" y="225"><tspan class="key">c</tspan> : a concealed door, repeat to rotate</text>
+  <use x="20" y="240" xlink:href="#empty"/>
+  <use x="20" y="260" xlink:href="#empty"/>
+  <use x="20" y="240" xlink:href="#gate"/>
+  <text x="50" y="255"><tspan class="key">g</tspan> : a gate, repeat to rotate</text>
+  <g>
+  <use x="360" y="260" xlink:href="#empty" opacity="0.3"/>
+  <use x="340" y="280" xlink:href="#empty" opacity="0.3"/>
+  <use x="360" y="280" xlink:href="#empty"/>
+  <use x="360" y="280" xlink:href="#cursor"/>
+  <use x="380" y="280" xlink:href="#empty" opacity="0.3"/>
+  <use x="360" y="300" xlink:href="#empty" opacity="0.3"/>
+  <rect x="356" y="288" width="8" height="24" fill="olive" stroke="black" stroke-width="2"/>
+  <use x="360" y="280" transform="rotate(90,370,290)" xlink:href="#gate"/>
+  <use x="360" y="280" transform="rotate(180,370,290)" xlink:href="#gate"/>
+  <use x="360" y="280" transform="rotate(270,370,290)" xlink:href="#gate"/>
+  <text x="325" y="295" style="fill: olive; font-weight: bold;">1</text>
+  <text x="365" y="255" class="key">2</text>
+  <text x="405" y="295" class="key">3</text>
+  <text x="365" y="335" class="key">4</text>
+  <use x="330" y="250" xlink:href="#curved-arrow"/>
+  <use x="330" y="250" xlink:href="#curved-arrow" transform="rotate(90,370,290)"/>
+  <use x="330" y="250" xlink:href="#curved-arrow" transform="rotate(180,370,290)"/>
+  <use x="330" y="250" xlink:href="#curved-arrow" transform="rotate(270,370,290)"/>
   </g>
-</svg>
+  <use x="20" y="290" xlink:href="#stair"/>
+  <text x="50" y="305"><tspan class="key">s</tspan> : stairs, repeat to rotate</text>
+  <use x="20" y="340" xlink:href="#empty"/>
+  <text y="355">
+  <tspan x="50"><tspan class="key">f</tspan> : floor, remove traps and stairs</tspan>
+  <tspan x="50" dy="20"><tspan class="key">w</tspan> : remove gates and all kinds of doors</tspan>
+  <tspan x="50" dy="20" class="key">u</tspan><tspan> : undo</tspan>
+  <tspan x="200" class="key">Space</tspan><tspan> : move right</tspan>
+  <tspan x="50" dy="20" class="key">r</tspan><tspan> : redo</tspan>
+  <tspan x="200" class="key">Enter</tspan><tspan> : begin new line</tspan>
+  <tspan x="50" dy="20" class="key">?</tspan><tspan> : toggle help</tspan>
+  <tspan x="200" class="key">Arrows</tspan><tspan> : move around</tspan>
+  <tspan x="200" dy="20" class="key">Shift Arrows</tspan><tspan> : draw / erase</tspan>
+  <a fill="blue" xlink:href="https://github.com/kensanata/gridmapper">
+  <tspan x="50" dy="30">Source available</tspan>
+  </a>
+  <a id="download" fill="blue" xlink:href="javascript:download()">
+  <tspan x="50" dy="20">Prepare Download</tspan>
+  </a><tspan> / </tspan>
+  <a id="export" fill="blue" xlink:href="javascript:textExport()">
+  <tspan>Prepare Link</tspan>
+  </a>
+  </text>
+  </g>
+  </svg>
