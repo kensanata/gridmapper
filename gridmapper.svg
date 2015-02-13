@@ -287,18 +287,21 @@ function moveElements () {
   var help = document.getElementById('help');
 }
 
-/* We store the entire document in a data URI and offer it for downlod
- * using the HTML5 download attribute. Chrome 40 will still load that
- * file instead of downloading it. Perhaps a namespace issue? After
- * all, there is no such download attribute for SVG or XHTML. */
-
+/**
+ * Offer the current document for download. We store the entire
+ * document in a data URI and offer it for downlod using the HTML5
+ * download attribute. Chrome 40 will still load that file instead of
+ * downloading it. Perhaps a namespace issue? After all, there is no
+ * such download attribute for SVG or XHTML.
+ */
 function download () {
   var source = btoa('<?xml version="1.0" standalone="no"?>\n' +
                     '<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN" "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">\n' +
                     '<svg version="1.1"\n' +
                     '     xmlns="http://www.w3.org/2000/svg"\n' +
                     '     xmlns:xlink="http://www.w3.org/1999/xlink">' +
-                    document.documentElement.innerHTML +
+                    // handle Unicode characters
+                    unescape(encodeURIComponent(document.documentElement.innerHTML)) +
                     '</svg>');
   var link = document.getElementById('download');
   var text = link.firstElementChild.firstChild.nodeValue;
@@ -321,12 +324,10 @@ function download () {
 function textExport () {
   var source = '';
   var mapping = {door: 'd', secret: '$', concealed: 'c', gate: 'g', wall: 'w',
-                 trap: 't', empty: 'f', pillar: 'p' };
+                 trap: 't', empty: 'f', pillar: 'p', stair: 's', statue: 'b',
+                 diagonal: 'n', };
   for (var y = 0; y < Map.height; y++) {
     for (var x = 0; x < Map.width; x++) {
-      if (Map.stairs[x][y]) {
-        source += 's'.repeat(1 + Map.stairs[x][y].getAttribute('rotate') / 90);
-      }
       if (Map.walls[x][y]) {
         Map.walls[x][y] = Map.walls[x][y].sort(function(a,b){
           return parseInt(a.getAttribute('rotate')) - parseInt(b.getAttribute('rotate'));
@@ -341,7 +342,10 @@ function textExport () {
             source += '.';
         }
       }
-      if (Map.floor[x][y]) {
+      // stairs cover the floor beneath
+      if (Map.stairs[x][y]) {
+        source += mapping[Map.stairs[x][y].type].repeat(1 + Map.stairs[x][y].getAttribute('rotate') / 90) + ' ';
+      } else if (Map.floor[x][y]) {
         source += mapping[Map.floor[x][y].type];
       } else {
         source += ' ';
@@ -653,21 +657,21 @@ function draw (x, y, type) {
 }
 
 /**
- * Draws stairs on the floor.
+ * Draws stairs and diagonals on the floor.
  */
-function stairs (x, y) {
+function floorRotate (x, y, type) {
   if (Map.stairs[x][y] != null) {
     var tile = Map.stairs[x][y];
     var angle = parseInt(tile.getAttribute('rotate'));
     Commands.push(
       function(){
-        rotateTile(tile, 'stairs', x, y, angle);
+        rotateTile(tile, type, x, y, angle);
       },
       function() {
-        rotateTile(tile, 'stairs', x, y, (angle + 90) % 360);
+        rotateTile(tile, type, x, y, (angle + 90) % 360);
       });
   } else {
-    var tile = createTile(x, y, 'stair');
+    var tile = createTile(x, y, type);
     tile.setAttribute('rotate', 0);
     Commands.push(
       function(){
@@ -978,7 +982,11 @@ function keyPressed (evt) {
     break;
   case 's':
     wallModeOff();
-    stairs(Pen.x, Pen.y);
+    floorRotate(Pen.x, Pen.y, 'stair');
+    break;
+  case 'n':
+    wallModeOff();
+    floorRotate(Pen.x, Pen.y, 'diagonal');
     break;
   case 'f':
     wallModeOff();
@@ -1028,19 +1036,20 @@ function recreateModel () {
       for (var x = 0, i = 0; i < rows[y].length; i++) {
         Map.minimumSize(x);
         switch(rows[y][i]) { // needs charAt?
-        case 'f': floor(x++,y); break
-        case 't': draw(x++,y, 'trap'); break;
-        case 'p': draw(x++,y, 'pillar'); break;
-        case 'b': draw(x++,y, 'statue'); break;
+        case 'f': floor(x++, y); break
+        case 't': draw(x++, y, 'trap'); break;
+        case 'p': draw(x++, y, 'pillar'); break;
+        case 'b': draw(x++, y, 'statue'); break;
+        case 's': floorRotate(x, y, 'stair'); break;
+        case 'n': floorRotate(x, y, 'diagonal'); break;
         case '+':
         case ' ': x++; break;
-        case 'd': wall(x,y,'door'); break;
-        case '$': wall(x,y,'secret'); break;
-        case 'c': wall(x,y,'concealed'); break;
-        case 'g': wall(x,y,'gate'); break;
-        case 'w': wall(x,y,'wall'); break;
+        case 'd': wall(x, y, 'door'); break;
+        case '$': wall(x, y, 'secret'); break;
+        case 'c': wall(x, y, 'concealed'); break;
+        case 'g': wall(x, y, 'gate'); break;
+        case 'w': wall(x, y, 'wall'); break;
         case '.': Pen.ts = null; break;
-        case 's': stairs(x,y); break;
         }
       }
     }
@@ -1099,6 +1108,10 @@ onload = initialize;
       <line x1="2" y1="2" x2="8" y2="8" stroke="black" stroke-width="0.8"/>
       <line x1="2" y1="8" x2="8" y2="2" stroke="black" stroke-width="0.8"/>
     </g>
+    <g id="diagonal" width="10">
+      <rect width="10" height="10" fill="white" stroke="black" stroke-width="1"/>
+      <path fill="black" d="M 0,0 H 10 L 0,10 Z"/>
+    </g>
     <g id="stair" width="10">
       <rect width="10" height="20" fill="white" stroke="black" stroke-width="1"/>
       <line x1="0" y1="3" x2="10" y2="3" stroke="black" stroke-width="0.8"/>
@@ -1141,9 +1154,10 @@ onload = initialize;
     <use x="30" y="290" xlink:href="#empty"/>
     <use x="30" y="270" xlink:href="#gate"/>
     <use x="30" y="320" xlink:href="#stair"/>
-    <use x="30" y="370" xlink:href="#empty"/>
+    <use x="30" y="370" xlink:href="#diagonal"/>
     <use x="30" y="400" xlink:href="#empty"/>
-    <use x="20" y="400" xlink:href="#cursor"/>
+    <use x="30" y="430" xlink:href="#empty"/>
+    <use x="20" y="430" xlink:href="#cursor"/>
     <g>
       <use x="370" y="260" xlink:href="#empty" opacity="0.3"/>
       <use x="350" y="280" xlink:href="#empty" opacity="0.3"/>
@@ -1175,7 +1189,8 @@ onload = initialize;
       <tspan x="60" dy="30"><tspan class="key">w</tspan> : wall, repeat to rotate</tspan>
       <tspan x="60" dy="30"><tspan class="key">g</tspan> : a gate, repeat to rotate</tspan>
       <tspan x="60" dy="50"><tspan class="key">s</tspan> : stairs, repeat to rotate</tspan>
-      <tspan x="60" dy="50"><tspan class="key">f</tspan> : floor / erase</tspan>
+      <tspan x="60" dy="50"><tspan class="key">n</tspan> : diagonal, repeat to rotate</tspan>
+      <tspan x="60" dy="30"><tspan class="key">f</tspan> : floor / erase</tspan>
       <tspan x="60" dy="30" class="key">m</tspan><tspan> : enter / leave Wall Mode</tspan>
       <tspan x="60" dy="20" class="key">x</tspan><tspan> : clear wall</tspan>
       <tspan x="210" dy="0" class="key">Space</tspan><tspan> : move right</tspan>
