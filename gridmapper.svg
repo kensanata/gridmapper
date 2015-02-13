@@ -444,7 +444,7 @@ function rotateTile (tile, type, x, y, angle) {
   }
 }
 
-function wall (x, y, type) {
+function wallPlacement (x, y, type) {
   var now = new Date();
   if (Pen.type === type && Map.walls[x][y] && Pen.ts && now - Pen.ts <= 2000) {
     // we just placed a door: take the last one and rotate it
@@ -501,22 +501,26 @@ function removeWall  (x, y) {
 }
 
 function door (x, y) {
-  wall(x, y, 'door');
-  Pen.type = 'door';
+  if (Pen.type === 'wall') {
+    wallDraw(x, y, 'door');
+  } else {
+    wallPlacement(x, y, 'door');
+    Pen.type = 'door';
+  }
 }
 
 function secret (x, y) {
-  wall(x, y, 'secret');
+  wallPlacement(x, y, 'secret');
   Pen.type = 'secret';
 }
 
 function concealed (x, y) {
-  wall(x, y, 'concealed');
+  wallPlacement(x, y, 'concealed');
   Pen.type = 'concealed';
 }
 
 function gate (x, y) {
-  wall(x, y, 'gate');
+  wallPlacement(x, y, 'gate');
   Pen.type = 'gate';
 }
 
@@ -540,8 +544,8 @@ function wallDraw (x, y, type) {
   }
   var i;
   var old = null;
-  var tile = createTile(x, y, "wall");
-  rotateTile(tile, "wall", x, y, angle)
+  var tile = createTile(x, y, type);
+  rotateTile(tile, type, x, y, angle)
   for (i = 0; i < Map.walls[x][y].length; i++) {
     if (parseInt(Map.walls[x][y][i].getAttribute('rotate')) == angle) {
       old = Map.walls[x][y][i];
@@ -895,7 +899,6 @@ function keyPressed (evt) {
     move('down');
     break;
   case 'd':
-    wallModeOff();
     door(Pen.x, Pen.y);
     break;
   case '$':
