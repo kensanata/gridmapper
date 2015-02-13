@@ -314,32 +314,30 @@ function download () {
   }, 10000);
 }
 
-/* We store the entire document in a sequence of keystrokes with which
- * to recreate it. */
-
+/**
+ * Stores the entire document in a sequence of keystrokes with which
+ * to recreate it.
+ */
 function textExport () {
   var source = '';
+  var mapping = {door: "d", secret: "$", concealed: "c", gate: "g", wall: "w" };
   for (var y = 0; y < Map.height; y++) {
     for (var x = 0; x < Map.width; x++) {
       if (Map.stairs[x][y]) {
         source += 's'.repeat(1 + Map.stairs[x][y].getAttribute('rotate') / 90);
       }
       if (Map.walls[x][y]) {
+        Map.walls[x][y] = Map.walls[x][y].sort(function(a,b){
+          return parseInt(a.getAttribute('rotate')) - parseInt(b.getAttribute('rotate'));
+        });
         for (var i = 0; i < Map.walls[x][y].length; i++) {
           var tile = Map.walls[x][y][i];
-          var type;
-          if (tile.type === 'door') {
-            type = 'd';
-          } else if (tile.type === 'secret') {
-            type = '$';
-          } else if (tile.type === 'concealed') {
-            type = 'c';
-          } else if (tile.type === 'gate') {
-            type = 'g';
-          }
+          var type = mapping[tile.type];
           if (type) {
-            source += type.repeat(1 + tile.getAttribute('rotate') / 90);
+            source += type.repeat(1 + tile.getAttribute('rotate') / 90 - i);
           }
+          if (i < Map.walls[x][y].length - 1)
+            source += ".";
         }
       }
       if (Map.floor[x][y]) {
@@ -813,19 +811,19 @@ function wallModeOff () {
 function move (dir) {
   switch (dir) {
   case 'left':
-    if (Pen.x > 0.5)
+    if (Pen.x > 0)
       Pen.x--;
     break;
   case 'right':
-    Map.minimumSize(Pen.x + 1.5);
+    Map.minimumSize(Pen.x + 1);
     Pen.x++;
     break;
   case 'up':
-    if (Pen.y > 0.5)
+    if (Pen.y > 0)
       Pen.y--;
     break;
   case 'down':
-    if (Pen.y + 1.5 >= Map.height) {
+    if (Pen.y + 1 >= Map.height) {
       Map.height++;
       moveElements();
     }
@@ -1028,11 +1026,12 @@ function recreateModel () {
         case 't': trap(x++,y); break;
         case '+':
         case ' ': x++; break;
-        case 'd': door(x,y,'door'); break;
-        case '$': door(x,y,'secret'); break;
-        case 'c': door(x,y,'concealed'); break;
-        case 'g': gate(x,y); break;
-        case '/': Pen.ts = null; break;
+        case 'd': wall(x,y,'door'); break;
+        case '$': wall(x,y,'secret'); break;
+        case 'c': wall(x,y,'concealed'); break;
+        case 'g': wall(x,y,'gate'); break;
+        case 'w': wall(x,y,'wall'); break;
+        case '.': Pen.ts = null; break;
         case 's': stairs(x,y); break;
         }
       }
