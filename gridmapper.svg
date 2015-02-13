@@ -1157,13 +1157,13 @@ onload = initialize;
       <tspan x="60" dy="50"><tspan class="key">f</tspan> : floor / erase</tspan>
       <tspan x="60" dy="30" class="key">m</tspan><tspan> : enter / leave Wall Mode</tspan>
       <tspan x="60" dy="20" class="key">x</tspan><tspan> : clear wall</tspan>
+      <tspan x="210" dy="0" class="key">Space</tspan><tspan> : move right</tspan>
       <tspan x="60" dy="20" class="key">u</tspan><tspan> : undo</tspan>
-      <tspan x="210" class="key">Space</tspan><tspan> : move right</tspan>
-      <tspan x="60" dy="20" class="key">r</tspan><tspan> : redo</tspan>
       <tspan x="210" class="key">Enter</tspan><tspan> : begin new line</tspan>
-      <tspan x="60" dy="20" class="key">?</tspan><tspan> : toggle help</tspan>
+      <tspan x="60" dy="20" class="key">r</tspan><tspan> : redo</tspan>
       <tspan x="210" class="key">Arrows</tspan><tspan> : move around</tspan>
-      <tspan x="210" dy="20" class="key">Shift Arr.</tspan><tspan> : floor / erase</tspan>
+      <tspan x="60" dy="20" class="key">?</tspan><tspan> : toggle help</tspan>
+      <tspan x="210" class="key">Shift Arr.</tspan><tspan> : floor / erase</tspan>
       <a id="download" fill="blue" xlink:href="javascript:download()">
 	<tspan x="30" dy="30">Prepare Download</tspan>
       </a>
