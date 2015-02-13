@@ -92,20 +92,23 @@ var Pen = {
    */
   position: function(evt) {
     return {
-      x: Math.floor(evt.clientX / Map.tileWidth) - 1,
-      y: Math.floor(evt.clientY / Map.tileWidth) - 1
-    }; // empty row at the top
+      x: Math.floor(evt.clientX / Map.tileWidth) - 1, // empty column on the left
+      y: Math.floor(evt.clientY / Map.tileWidth) - 1 // empty row at the top
+    };
   },
 
   /**
    * Moves the pointer to the current Pen position. If passed a
    * non-null mouse event, determine the new position, first. We call
    * this onmousemove even if we're not drawing because of possible
-   * keypress events (which don't come with a position).
+   * keypress events (which don't come with a position). Moving the
+   * mouse ends Wall Mode because Wall Mode has one coordinate + 0.5.
    */
   update: function(evt) {
     Pen.ts = null;
     if (evt) {
+      if (Pen.type === 'wall')
+        Pen.type = null;
       var pos = Pen.position(evt);
       Pen.x = pos.x;
       Pen.y = pos.y;
@@ -431,6 +434,10 @@ function getUnusedAngle (x, y, rotate) {
 
 /* Drawing on the walls */
 
+/**
+ * Transforms the given tile such that it is rotated by the given
+ * angle.
+ */
 function rotateTile (tile, type, x, y, angle) {
   tile.setAttribute('rotate', angle);
   if (angle === 180 && type === 'concealed') {
@@ -444,6 +451,10 @@ function rotateTile (tile, type, x, y, angle) {
   }
 }
 
+/**
+ * Places a tile of the given type on a free section of the wall
+ * around the given square.
+ */
 function wallPlacement (x, y, type) {
   var now = new Date();
   if (Pen.type === type && Map.walls[x][y] && Pen.ts && now - Pen.ts <= 2000) {
@@ -484,52 +495,12 @@ function wallPlacement (x, y, type) {
   Pen.ts = now;
 }
 
-function removeWall  (x, y) {
-  if (Map.walls[x][y] != null) {
-    // take the last one and remove it
-    var tile = Map.walls[x][y][Map.walls[x][y].length - 1];
-    Commands.push(
-      function(){
-        Map.walls[x][y].push(tile);
-        Map.wallsElement.appendChild(tile);
-      },
-      function(){
-        Map.walls[x][y].pop();
-        Map.wallsElement.removeChild(tile);
-      });
-  }
-}
-
-function door (x, y) {
-  if (Pen.type === 'wall') {
-    wallDraw(x, y, 'door');
-  } else {
-    wallPlacement(x, y, 'door');
-    Pen.type = 'door';
-  }
-}
-
-function secret (x, y) {
-  wallPlacement(x, y, 'secret');
-  Pen.type = 'secret';
-}
-
-function concealed (x, y) {
-  wallPlacement(x, y, 'concealed');
-  Pen.type = 'concealed';
-}
-
-function gate (x, y) {
-  wallPlacement(x, y, 'gate');
-  Pen.type = 'gate';
-}
-
 /**
- * Draws a wall tile of the given type in wall mode.
- * In wall mode, one of the two coordinates is +0.5.
- * We determine the angle (0 or 90) and put a tile there.
+ * Draws a wall tile of the given type on the current wall. The
+ * current wall only makes sense in Wall Mode. In Wall Mode, one of
+ * the two coordinates is +0.5. We determine the angle (0 or 90) and
+ * put a tile there.
  */
-
 function wallDraw (x, y, type) {
   var angle = 0;
   if (y % 1 === 0) {
@@ -542,9 +513,7 @@ function wallDraw (x, y, type) {
   if (!Map.walls[x][y]) {
     Map.walls[x][y] = [];
   }
-  var i;
-  var old = null;
-  var tile = createTile(x, y, type);
+  var i, old, tile = createTile(x, y, type);
   rotateTile(tile, type, x, y, angle)
   for (i = 0; i < Map.walls[x][y].length; i++) {
     if (parseInt(Map.walls[x][y][i].getAttribute('rotate')) == angle) {
@@ -573,11 +542,14 @@ function wallDraw (x, y, type) {
     });
 }
 
+/**
+  * Toggles Wall Mode.
+  */
 function wallMode (x, y) {
-  if (Pen.type === 'wall') {
+  if (Pen.type === 'wallMode') {
     wallModeOff();
   } else {
-    Pen.type = 'wall';
+    Pen.type = 'wallMode';
     if (Pen.x > 0) {
       Pen.x -= 0.5;
     } else {
@@ -587,8 +559,70 @@ function wallMode (x, y) {
   Pen.update(null);
 }
 
-/* Drawing on the floor */
+/**
+ * Places a tile of the given type in the given square. If in Wall
+ * Mode, use the given wall. Otherwise, find a free section around the
+ * given square.
+ */
+function wall (x, y, type) {
+  if (Pen.type === 'wallMode') {
+    wallDraw(x, y, type);
+  } else {
+    wallPlacement(x, y, type);
+    Pen.type = type;
+  }
+}
 
+/**
+ * Removes a tile from the surrounding walls of the give tile.
+ */
+function removeWall  (x, y) {
+  if (Pen.type === 'wallMode') {
+    var angle = 0;
+    if (y % 1 === 0) {
+      x = Math.ceil(x);
+    } else {
+      angle = 90;
+      y = Math.ceil(y);
+    }
+    if (Map.walls[x][y] && Map.walls[x][y].length > 0) {
+      var i, old;
+      for (i = 0; i < Map.walls[x][y].length; i++) {
+        if (parseInt(Map.walls[x][y][i].getAttribute('rotate')) == angle) {
+          old = Map.walls[x][y][i];
+          break;
+        }
+      }
+      if (old) {
+        Commands.push(
+          function(){
+            Map.wallsElement.appendChild(old);
+            Map.walls[x][y].push(old);
+          },
+          function(){
+            Map.wallsElement.removeChild(old);
+            Map.walls[x][y].splice(i,1);
+          });
+      }
+    }
+  } else if (Map.walls[x][y] && Map.walls[x][y].length > 0) {
+    // take the last one and remove it
+    var tile = Map.walls[x][y][Map.walls[x][y].length - 1];
+    Commands.push(
+      function(){
+        Map.walls[x][y].push(tile);
+        Map.wallsElement.appendChild(tile);
+      },
+      function(){
+        Map.walls[x][y].pop();
+        Map.wallsElement.removeChild(tile);
+      });
+  }
+}
+
+/**
+ * Draws a trap on the floor.
+ */
 function trap (x, y) {
   var old = Map.floor[x][y];
   if (old != null && old.type === 'trap') {
@@ -622,6 +656,9 @@ function trap (x, y) {
   }
 }
 
+/**
+ * Draws stairs on the floor.
+ */
 function stairs (x, y) {
   if (Map.stairs[x][y] != null) {
     var tile = Map.stairs[x][y];
@@ -648,6 +685,9 @@ function stairs (x, y) {
   }
 }
 
+/**
+ * Draws or erases a floor tile.
+ */
 function floor (x, y) {
   var stair = Map.stairs[x][y];
   var old   = Map.floor[x][y];
@@ -757,9 +797,10 @@ function penDown (evt) {
  * Call this whenever you're acting on squares.
  */
 function wallModeOff () {
-  if (Pen.type === 'wall') {
+  if (Pen.type === 'wallMode') {
     Pen.x = Math.ceil(Pen.x);
     Pen.y = Math.ceil(Pen.y);
+    Pen.update(null);
     Pen.type = null;
   }
 }
@@ -806,7 +847,7 @@ function move (dir) {
   //
   // If we moved first right and then down, we would end up in the same
   // position.
-  if (Pen.type === 'wall') {
+  if (Pen.type === 'wallMode') {
     var now = new Date();
     if (Pen.dir && Pen.ts && now - Pen.ts <= 500) {
       if (Pen.dir=='left' && dir=='down'
@@ -870,27 +911,35 @@ function keyPressed (evt) {
     break;
   case 'ArrowDown':
   case 'Down':
-    if (evt.shiftKey)
+    if (evt.shiftKey) {
+      wallModeOff();
       floor(Pen.x, Pen.y);
+    }
     move('down');
     break;
   case 'ArrowUp':
   case 'Up':
-    if (evt.shiftKey)
+    if (evt.shiftKey) {
+      wallModeOff();
       floor(Pen.x, Pen.y);
+    }
     move('up');
     break;
   case 'ArrowLeft':
   case 'Left':
-    if (evt.shiftKey)
+    if (evt.shiftKey) {
+      wallModeOff();
       floor(Pen.x, Pen.y);
+    }
     move('left');
     break;
   case 'ArrowRight':
   case 'Right':
   case ' ':
-    if (evt.shiftKey)
+    if (evt.shiftKey) {
+      wallModeOff();
       floor(Pen.x, Pen.y);
+    }
     move('right');
     break;
   case 'Enter':
@@ -899,32 +948,24 @@ function keyPressed (evt) {
     move('down');
     break;
   case 'd':
-    door(Pen.x, Pen.y);
+    wall(Pen.x, Pen.y, 'door');
     break;
   case '$':
-    wallModeOff();
-    secret(Pen.x, Pen.y);
+    wall(Pen.x, Pen.y, 'secret');
     break;
   case 'c':
-    wallModeOff();
-    concealed(Pen.x, Pen.y);
+    wall(Pen.x, Pen.y, 'concealed');
     break;
   case 'g':
-    wallModeOff();
-    gate(Pen.x, Pen.y);
+    wall(Pen.x, Pen.y, 'gate');
     break;
   case 'w':
-    if (Pen.type === 'wall') {
-      wallDraw(Pen.x, Pen.y, 'wall');
-    } else {
-      wallModeOff();
-      removeWall(Pen.x,Pen.y);
-    }
+    wall(Pen.x, Pen.y, 'wall');
     break;
-  case 'W':
+  case 'm':
     wallMode(Pen.x, Pen.y);
     break;
-  case 'w':
+  case 'x':
     removeWall(Pen.x, Pen.y);
     break;
   case 't':
@@ -1019,41 +1060,41 @@ function initialize () {
 onload = initialize;
 ]]></script>
   <defs>
-  <rect id="cursor" width="10" height="10" fill="forestgreen" opacity="0.2"/>
-  <rect id="empty" width="10" height="10" fill="white" stroke="black" stroke-width="1"/>
-  <g id="wall" width="10">
-  <line x1="0" y1="0" x2="0" y2="10" stroke="black" stroke-width="3" stroke-linecap="square"/>
-  </g>
-  <g id="door" width="10">
-  <rect x="-1.5" y="2" width="3" height="6" fill="white" stroke="black" stroke-width="1"/>
-  </g>
-  <g id="secret" width="10">
-  <path fill="none" stroke="black" stroke-width="1" d="M 2,3 C -2,1 -3,5 0,5 S 2,9 -2,7" />
-  </g>
-  <g id="concealed" width="10">
-  <path fill="none" stroke="black" stroke-width="1" d="M 2,3 C -3,1 -3,9 2,7" />
-  </g>
-  <g id="gate" width="10">
-  <rect x="-2" y="4" width="4" height="12" fill="white" stroke="black" stroke-width="1"/>
-  </g>
-  <g id="trap" width="10">
-  <rect width="10" height="10" fill="white" stroke="black" stroke-width="1"/>
-  <rect x="2" y="2" width="6" height="6" fill="white" stroke="black" stroke-width="1"/>
-  <line x1="2" y1="2" x2="8" y2="8" stroke="black" stroke-width="0.8"/>
-  <line x1="2" y1="8" x2="8" y2="2" stroke="black" stroke-width="0.8"/>
-  </g>
-  <g id="stair" width="10">
-  <rect width="10" height="20" fill="white" stroke="black" stroke-width="1"/>
-  <line x1="0" y1="3" x2="10" y2="3" stroke="black" stroke-width="0.8"/>
-  <line x1="1" y1="6" x2="9" y2="6" stroke="black" stroke-width="0.8"/>
-  <line x1="2" y1="9" x2="8" y2="9" stroke="black" stroke-width="0.8"/>
-  <line x1="3" y1="12" x2="7" y2="12" stroke="black" stroke-width="0.8"/>
-  <line x1="4" y1="15" x2="6" y2="15" stroke="black" stroke-width="0.8"/>
-  </g>
-  <g id="curved-arrow">
-  <path fill="none" stroke="forestgreen" stroke-width="1" d="M 0,30 C 0,9 9,0 30,0" />
-  <path fill="forestgreen" d="M 23,5 L 30,0 23,-5 Z" />
-  </g>
+    <rect id="cursor" width="10" height="10" fill="forestgreen" opacity="0.2"/>
+    <rect id="empty" width="10" height="10" fill="white" stroke="black" stroke-width="1"/>
+    <g id="wall" width="10">
+      <line x1="0" y1="0" x2="0" y2="10" stroke="black" stroke-width="3" stroke-linecap="round"/>
+    </g>
+    <g id="door" width="10">
+      <rect x="-1.5" y="2" width="3" height="6" fill="white" stroke="black" stroke-width="1"/>
+    </g>
+    <g id="secret" width="10">
+      <path fill="none" stroke="black" stroke-width="1" d="M 2,3 C -2,1 -3,5 0,5 S 2,9 -2,7" />
+    </g>
+    <g id="concealed" width="10">
+      <path fill="none" stroke="black" stroke-width="1" d="M 2,3 C -3,1 -3,9 2,7" />
+    </g>
+    <g id="gate" width="10">
+      <rect x="-2" y="4" width="4" height="12" fill="white" stroke="black" stroke-width="1"/>
+    </g>
+    <g id="trap" width="10">
+      <rect width="10" height="10" fill="white" stroke="black" stroke-width="1"/>
+      <rect x="2" y="2" width="6" height="6" fill="white" stroke="black" stroke-width="1"/>
+      <line x1="2" y1="2" x2="8" y2="8" stroke="black" stroke-width="0.8"/>
+      <line x1="2" y1="8" x2="8" y2="2" stroke="black" stroke-width="0.8"/>
+    </g>
+    <g id="stair" width="10">
+      <rect width="10" height="20" fill="white" stroke="black" stroke-width="1"/>
+      <line x1="0" y1="3" x2="10" y2="3" stroke="black" stroke-width="0.8"/>
+      <line x1="1" y1="6" x2="9" y2="6" stroke="black" stroke-width="0.8"/>
+      <line x1="2" y1="9" x2="8" y2="9" stroke="black" stroke-width="0.8"/>
+      <line x1="3" y1="12" x2="7" y2="12" stroke="black" stroke-width="0.8"/>
+      <line x1="4" y1="15" x2="6" y2="15" stroke="black" stroke-width="0.8"/>
+    </g>
+    <g id="curved-arrow">
+      <path fill="none" stroke="forestgreen" stroke-width="1" d="M 0,30 C 0,9 9,0 30,0" />
+      <path fill="forestgreen" d="M 23,5 L 30,0 23,-5 Z" />
+    </g>
   </defs>
   <rect id="background" x="20" y="20" width="0" height="0" fill="lightgray" stroke="black" stroke-width="1"/>
   <g id="floor"/>
@@ -1062,70 +1103,82 @@ onload = initialize;
   <g id="walls"/>
   <rect id="ui" opacity="0"/>
   <style><![CDATA[
-    text { font: 14px 'Courier New', Courier, monospace; }
-      .key { fill: forestgreen; font-weight: bold; }
+  text { font: 14px 'Courier New', Courier, monospace; }
+  .key { fill: forestgreen; font-weight: bold; }
   ]]></style>
   <g id="help">
-  <rect x="10" y="80" width="440" height="440" fill="ivory" stroke="black" stroke-width="1"/>
-  <use x="20" y="90" xlink:href="#empty"/>
-  <text x="50" y="105">Use the mouse to draw and erase the floor</text>
-  <use x="20" y="120" xlink:href="#trap"/>
-  <text x="50" y="135"><tspan class="key">t</tspan> : a trap, repeat to remove</text>
-  <use x="20" y="150" xlink:href="#empty"/>
-  <use x="20" y="150" xlink:href="#door"/>
-  <text x="50" y="165"><tspan class="key">d</tspan> : a door, repeat to rotate</text>
-  <use x="20" y="180" xlink:href="#empty"/>
-  <use x="20" y="180" xlink:href="#secret"/>
-  <text x="50" y="195"><tspan class="key">$</tspan> : a secret door, repeat to rotate</text>
-  <use x="20" y="210" xlink:href="#empty"/>
-  <use x="20" y="210" xlink:href="#concealed"/>
-  <text x="50" y="225"><tspan class="key">c</tspan> : a concealed door, repeat to rotate</text>
-  <use x="20" y="240" xlink:href="#empty"/>
-  <use x="20" y="260" xlink:href="#empty"/>
-  <use x="20" y="240" xlink:href="#gate"/>
-  <text x="50" y="255"><tspan class="key">g</tspan> : a gate, repeat to rotate</text>
-  <g>
-  <use x="360" y="260" xlink:href="#empty" opacity="0.3"/>
-  <use x="340" y="280" xlink:href="#empty" opacity="0.3"/>
-  <use x="360" y="280" xlink:href="#empty"/>
-  <use x="360" y="280" xlink:href="#cursor"/>
-  <use x="380" y="280" xlink:href="#empty" opacity="0.3"/>
-  <use x="360" y="300" xlink:href="#empty" opacity="0.3"/>
-  <rect x="356" y="288" width="8" height="24" fill="olive" stroke="black" stroke-width="2"/>
-  <use x="360" y="280" transform="rotate(90,370,290)" xlink:href="#gate"/>
-  <use x="360" y="280" transform="rotate(180,370,290)" xlink:href="#gate"/>
-  <use x="360" y="280" transform="rotate(270,370,290)" xlink:href="#gate"/>
-  <text x="325" y="295" style="fill: olive; font-weight: bold;">1</text>
-  <text x="365" y="255" class="key">2</text>
-  <text x="405" y="295" class="key">3</text>
-  <text x="365" y="335" class="key">4</text>
-  <use x="330" y="250" xlink:href="#curved-arrow"/>
-  <use x="330" y="250" xlink:href="#curved-arrow" transform="rotate(90,370,290)"/>
-  <use x="330" y="250" xlink:href="#curved-arrow" transform="rotate(180,370,290)"/>
-  <use x="330" y="250" xlink:href="#curved-arrow" transform="rotate(270,370,290)"/>
+    <rect x="10" y="80" width="440" height="500" fill="ivory" stroke="black" stroke-width="1"/>
+    <text x="460" y="90" transform="rotate(90,460,90)" style="font-weight: bold">Gridmapper</text>
+    <use x="30" y="90" xlink:href="#empty"/>
+    <use x="30" y="120" xlink:href="#trap"/>
+    <use x="30" y="150" xlink:href="#empty"/>
+    <use x="30" y="150" xlink:href="#door"/>
+    <use x="30" y="180" xlink:href="#empty"/>
+    <use x="30" y="180" xlink:href="#secret"/>
+    <use x="30" y="210" xlink:href="#empty"/>
+    <use x="30" y="210" xlink:href="#concealed"/>
+    <use x="30" y="240" xlink:href="#empty"/>
+    <use x="30" y="240" xlink:href="#wall"/>
+    <use x="30" y="270" xlink:href="#empty"/>
+    <use x="30" y="290" xlink:href="#empty"/>
+    <use x="30" y="270" xlink:href="#gate"/>
+    <use x="30" y="320" xlink:href="#stair"/>
+    <use x="30" y="370" xlink:href="#empty"/>
+    <use x="30" y="400" xlink:href="#empty"/>
+    <use x="20" y="400" xlink:href="#cursor"/>
+    <g>
+      <use x="370" y="260" xlink:href="#empty" opacity="0.3"/>
+      <use x="350" y="280" xlink:href="#empty" opacity="0.3"/>
+      <use x="370" y="280" xlink:href="#empty"/>
+      <use x="370" y="280" xlink:href="#cursor"/>
+      <use x="390" y="280" xlink:href="#empty" opacity="0.3"/>
+      <use x="370" y="300" xlink:href="#empty" opacity="0.3"/>
+      <rect x="366" y="288" width="8" height="24" fill="olive" stroke="black" stroke-width="2"/>
+      <use x="370" y="280" transform="rotate(90,380,290)" xlink:href="#gate"/>
+      <use x="370" y="280" transform="rotate(180,380,290)" xlink:href="#gate"/>
+      <use x="370" y="280" transform="rotate(270,380,290)" xlink:href="#gate"/>
+      <text x="335" y="295" style="fill: olive; font-weight: bold;">1</text>
+      <text x="375" y="255" class="key">2</text>
+      <text x="415" y="295" class="key">3</text>
+      <text x="375" y="335" class="key">4</text>
+      <use x="340" y="250" xlink:href="#curved-arrow"/>
+      <use x="340" y="250" xlink:href="#curved-arrow" transform="rotate(90,380,290)"/>
+      <use x="340" y="250" xlink:href="#curved-arrow" transform="rotate(180,380,290)"/>
+      <use x="340" y="250" xlink:href="#curved-arrow" transform="rotate(270,380,290)"/>
+    </g>
+    <text y="105">
+      <tspan x="60">Use the mouse to draw and erase the floor</tspan>
+      <tspan x="60" dy="30"><tspan class="key">t</tspan> : trap / floor</tspan>
+      <tspan x="60" dy="30"><tspan class="key">d</tspan> : a door, repeat to rotate</tspan>
+      <tspan x="60" dy="30"><tspan class="key">$</tspan> : a secret door, repeat to rotate</tspan>
+      <tspan x="60" dy="30"><tspan class="key">c</tspan> : a concealed door, repeat to rotate</tspan>
+      <tspan x="60" dy="30"><tspan class="key">w</tspan> : wall, repeat to rotate</tspan>
+      <tspan x="60" dy="30"><tspan class="key">g</tspan> : a gate, repeat to rotate</tspan>
+      <tspan x="60" dy="50"><tspan class="key">s</tspan> : stairs, repeat to rotate</tspan>
+      <tspan x="60" dy="50"><tspan class="key">f</tspan> : floor / erase</tspan>
+      <tspan x="60" dy="30" class="key">m</tspan><tspan> : enter / leave Wall Mode</tspan>
+      <tspan x="60" dy="20" class="key">x</tspan><tspan> : clear wall</tspan>
+      <tspan x="60" dy="20" class="key">u</tspan><tspan> : undo</tspan>
+      <tspan x="210" class="key">Space</tspan><tspan> : move right</tspan>
+      <tspan x="60" dy="20" class="key">r</tspan><tspan> : redo</tspan>
+      <tspan x="210" class="key">Enter</tspan><tspan> : begin new line</tspan>
+      <tspan x="60" dy="20" class="key">?</tspan><tspan> : toggle help</tspan>
+      <tspan x="210" class="key">Arrows</tspan><tspan> : move around</tspan>
+      <tspan x="210" dy="20" class="key">Shift Arr.</tspan><tspan> : floor / erase</tspan>
+      <a id="download" fill="blue" xlink:href="javascript:download()">
+	<tspan x="30" dy="30">Prepare Download</tspan>
+      </a>
+      <tspan> / </tspan>
+      <a id="export" fill="blue" xlink:href="javascript:textExport()">
+	<tspan>Prepare Link</tspan>
+      </a>
+      <a fill="blue" xlink:href="https://alexschroeder.ch/">
+	<tspan x="30" dy="20">Alex Schroeder</tspan>
+      </a>
+      <tspan> / </tspan>
+      <a fill="blue" xlink:href="https://github.com/kensanata/gridmapper">
+	<tspan>Source</tspan>
+      </a>
+    </text>
   </g>
-  <use x="20" y="290" xlink:href="#stair"/>
-  <text x="50" y="305"><tspan class="key">s</tspan> : stairs, repeat to rotate</text>
-  <use x="20" y="340" xlink:href="#empty"/>
-  <text y="355">
-  <tspan x="50"><tspan class="key">f</tspan> : floor, remove traps and stairs</tspan>
-  <tspan x="50" dy="20"><tspan class="key">w</tspan> : remove gates and all kinds of doors</tspan>
-  <tspan x="50" dy="20" class="key">u</tspan><tspan> : undo</tspan>
-  <tspan x="200" class="key">Space</tspan><tspan> : move right</tspan>
-  <tspan x="50" dy="20" class="key">r</tspan><tspan> : redo</tspan>
-  <tspan x="200" class="key">Enter</tspan><tspan> : begin new line</tspan>
-  <tspan x="50" dy="20" class="key">?</tspan><tspan> : toggle help</tspan>
-  <tspan x="200" class="key">Arrows</tspan><tspan> : move around</tspan>
-  <tspan x="200" dy="20" class="key">Shift Arrows</tspan><tspan> : draw / erase</tspan>
-  <a fill="blue" xlink:href="https://github.com/kensanata/gridmapper">
-  <tspan x="50" dy="30">Source available</tspan>
-  </a>
-  <a id="download" fill="blue" xlink:href="javascript:download()">
-  <tspan x="50" dy="20">Prepare Download</tspan>
-  </a><tspan> / </tspan>
-  <a id="export" fill="blue" xlink:href="javascript:textExport()">
-  <tspan>Prepare Link</tspan>
-  </a>
-  </text>
-  </g>
-  </svg>
+</svg>
