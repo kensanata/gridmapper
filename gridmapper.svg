@@ -320,7 +320,8 @@ function download () {
  */
 function textExport () {
   var source = '';
-  var mapping = {door: "d", secret: "$", concealed: "c", gate: "g", wall: "w" };
+  var mapping = {door: 'd', secret: '$', concealed: 'c', gate: 'g', wall: 'w',
+                 trap: 't', empty: 'f', pillar: 'p' };
   for (var y = 0; y < Map.height; y++) {
     for (var x = 0; x < Map.width; x++) {
       if (Map.stairs[x][y]) {
@@ -337,16 +338,11 @@ function textExport () {
             source += type.repeat(1 + tile.getAttribute('rotate') / 90 - i);
           }
           if (i < Map.walls[x][y].length - 1)
-            source += ".";
+            source += '.';
         }
       }
       if (Map.floor[x][y]) {
-        var tile = Map.floor[x][y];
-        if (tile.type === 'trap') {
-          source += 't';
-        } else if (tile.type === 'empty') {
-          source += 'f';
-        }
+        source += mapping[Map.floor[x][y].type];
       } else {
         source += ' ';
       }
@@ -619,15 +615,17 @@ function removeWall  (x, y) {
 }
 
 /**
- * Draws a trap on the floor.
+ * Draws a tile on the floor. If the tile it already there, draws
+ * floor instead. Stairs are taken care of---they are on a different
+ * layer!
  */
-function trap (x, y) {
+function draw (x, y, type) {
   var old = Map.floor[x][y];
-  if (old != null && old.type === 'trap') {
+  if (old != null && old.type === type) {
     floor(x, y);
   } else {
     var stair = Map.stairs[x][y];
-    var tile = createTile(x, y, 'trap');
+    var tile = createTile(x, y, type);
     Commands.push(
       function(){
         Map.floorElement.removeChild(tile);
@@ -966,9 +964,17 @@ function keyPressed (evt) {
   case 'x':
     removeWall(Pen.x, Pen.y);
     break;
+  case 'p':
+    wallModeOff();
+    draw(Pen.x, Pen.y, 'pillar');
+    break;
   case 't':
     wallModeOff();
-    trap(Pen.x, Pen.y);
+    draw(Pen.x, Pen.y, 'trap');
+    break;
+  case 'b':
+    wallModeOff();
+    draw(Pen.x, Pen.y, 'statue');
     break;
   case 's':
     wallModeOff();
@@ -1023,7 +1029,9 @@ function recreateModel () {
         Map.minimumSize(x);
         switch(rows[y][i]) { // needs charAt?
         case 'f': floor(x++,y); break
-        case 't': trap(x++,y); break;
+        case 't': draw(x++,y, 'trap'); break;
+        case 'p': draw(x++,y, 'pillar'); break;
+        case 'b': draw(x++,y, 'statue'); break;
         case '+':
         case ' ': x++; break;
         case 'd': wall(x,y,'door'); break;
@@ -1076,6 +1084,15 @@ onload = initialize;
     <g id="gate" width="10">
       <rect x="-2" y="4" width="4" height="12" fill="white" stroke="black" stroke-width="1"/>
     </g>
+    <g id="pillar" width="10">
+      <rect width="10" height="10" fill="white" stroke="black" stroke-width="1"/>
+      <circle cx="5" cy="5" r="2" fill="black"/>
+    </g>
+    <g id="statue" width="10">
+      <rect width="10" height="10" fill="white" stroke="black" stroke-width="1"/>
+      <circle cx="5" cy="5" r="3.5" fill="none" stroke="black" stroke-width="0.5"/>
+      <path fill="black" d="M 2,4 H 8 L 3,7.5 5,2 7,7.5 Z"/>
+    </g>
     <g id="trap" width="10">
       <rect width="10" height="10" fill="white" stroke="black" stroke-width="1"/>
       <rect x="2" y="2" width="6" height="6" fill="white" stroke="black" stroke-width="1"/>
@@ -1110,6 +1127,8 @@ onload = initialize;
     <text x="460" y="90" transform="rotate(90,460,90)" style="font-weight: bold">Gridmapper</text>
     <use x="30" y="90" xlink:href="#empty"/>
     <use x="30" y="120" xlink:href="#trap"/>
+    <use x="150" y="120" xlink:href="#pillar"/>
+    <use x="290" y="120" xlink:href="#statue"/>
     <use x="30" y="150" xlink:href="#empty"/>
     <use x="30" y="150" xlink:href="#door"/>
     <use x="30" y="180" xlink:href="#empty"/>
@@ -1147,7 +1166,9 @@ onload = initialize;
     </g>
     <text y="105">
       <tspan x="60">Use the mouse to draw and erase the floor</tspan>
-      <tspan x="60" dy="30"><tspan class="key">t</tspan> : trap / floor</tspan>
+      <tspan x="60" dy="30"><tspan class="key">t</tspan> : trap</tspan>
+      <tspan x="180"><tspan class="key">p</tspan> : pillar</tspan>
+      <tspan x="320"><tspan class="key">b</tspan> : statue</tspan>
       <tspan x="60" dy="30"><tspan class="key">d</tspan> : a door, repeat to rotate</tspan>
       <tspan x="60" dy="30"><tspan class="key">$</tspan> : a secret door, repeat to rotate</tspan>
       <tspan x="60" dy="30"><tspan class="key">c</tspan> : a concealed door, repeat to rotate</tspan>
