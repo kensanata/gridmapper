@@ -926,7 +926,6 @@ function drawToCommand (x, y, tile, type) {
 }
 
 function drawTo (evt) {
-  wallModeOff();
   var target = Pen.position(evt);
   // draw up to the current position (at least once if we just started)
   do {
