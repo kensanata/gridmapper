@@ -1336,7 +1336,9 @@ onload = initialize;
 
   <g id="help">
     <rect x="10" y="80" width="440" height="510" fill="ivory" stroke="black" stroke-width="1"/>
-    <text x="460" y="90" transform="rotate(90,460,90)" style="font-weight: bold">Gridmapper</text>
+    <a xlink:href="https://alexschroeder.ch/wiki/Gridmapper">
+      <text x="460" y="90" transform="rotate(90,460,90)" style="font-weight: bold">Gridmapper</text>
+    </a>
     <use x="30" y="90" xlink:href="#empty"/>
     <use x="30" y="120" xlink:href="#trap"/>
     <use x="150" y="120" xlink:href="#pillar"/>
