@@ -262,6 +262,8 @@ var Demo = {
    */
   run: function () {
     Map.initialize();
+    Pen.x = 0;
+    Pen.y = 0;
     Demo.link('Click to stop demo', 'Demo.stop()', false);
     Map.ui.onmousemove = null;
     Map.ui.onmousedown = null;
