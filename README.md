@@ -6,7 +6,13 @@ file using your browser and you have a very simple dungeon mapping
 tool.
 
 The user interface comes with a help screen explaining all the
-details.
+details, and a link to a demo.
+
+Also note that it's totally free and gratis. It costs nothing to use,
+and you can do with it what you want. Using the appropriate download
+link you can save your work to a local file – and the local file comes
+with all the code to keep working on it, off line! A bit like
+[Tiddly Wiki](http://tiddlywiki.com/), I guess.﻿
 
 See Also
 --------
