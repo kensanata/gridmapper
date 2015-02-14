@@ -223,7 +223,7 @@ var Demo = {
     link.firstElementChild.firstChild.nodeValue = text;
     var href = link.getAttributeNS(xlinkNs, 'href');
     link.setAttributeNS(xlinkNs, 'href', 'javascript:' + js);
-    // reset after 10s
+    // reset after 2s
     if (revert)
       var t = setInterval(function() {
         if (!Demo.isRunning) {
@@ -235,7 +235,7 @@ var Demo = {
   },
 
   /**
-   *
+   * Let the demo know that we want to abort.
    */
   stop: function () {
     Demo.isRunning = false;
@@ -936,12 +936,10 @@ function penDown (evt) {
  * Call this whenever you're acting on squares.
  */
 function wallModeOff () {
-  if (Pen.type === 'wallMode') {
-    Pen.x = Math.ceil(Pen.x);
-    Pen.y = Math.ceil(Pen.y);
-    Pen.update(null);
-    Pen.type = null;
-  }
+  Pen.x = Math.ceil(Pen.x);
+  Pen.y = Math.ceil(Pen.y);
+  Pen.update(null);
+  Pen.type = null;
 }
 
 /**
@@ -1484,36 +1482,40 @@ onload = initialize;
     <tspan class="step10">to set and rotate them into place.</tspan>
     <code class="step10">(15,16)zgzg</code>
 
-    <tspan class="step11" x="0" y="0">You can draw walls the same way using</tspan>
-    <tspan class="step11 key">w</tspan><tspan class="step11">.</tspan>
-    <tspan class="step11" x="0" dy="20"></tspan>
-    <code class="step11">(16,18)z$(16,19)zw(16,20)zw</code>
+    <tspan class="step11" x="0" y="0">Press </tspan><tspan class="step11 key">n</tspan>
+    <tspan class="step11">to place and rotate diagonals.</tspan>
+    <code class="step11">(17,15)znznznzn(18,14)znzn</code>
 
-    <tspan class="step12" x="0" y="0">This gets tedious very fast.</tspan>
-    <tspan class="step12" x="0" dy="20">Use</tspan>
-    <tspan class="step12 key">m</tspan>
-    <tspan class="step12">to enter</tspan>
-    <tspan class="step12" style="font-weight: bold">Wall Mode</tspan><tspan class="step12">.</tspan>
-    <tspan class="step12" x="0" dy="20">Note the shift by half a square!</tspan>
-    <code class="step12">(21,11)zm</code>
+    <tspan class="step12" x="0" y="0">You can draw walls using</tspan>
+    <tspan class="step12 key">w</tspan><tspan class="step12">.</tspan>
+    <tspan class="step12" x="0" dy="20">Thus, walls work just like doors.</tspan>
+    <code class="step12">(16,18)z$(16,19)zw(16,20)zw</code>
 
-    <tspan class="step13" x="0" y="0" style="font-weight: bold">Wall Mode</tspan>
-    <tspan class="step13">keeps the cursor on the walls.</tspan>
-    <tspan class="step13" x="0" dy="20">Doors and walls no longer rotate.</tspan>
-    <code class="step13"> wz wz(21.5,13)wz wz</code>
+    <tspan class="step13" x="0" y="0">This gets tedious very fast.</tspan>
+    <tspan class="step13" x="0" dy="20">Use</tspan>
+    <tspan class="step13 key">m</tspan>
+    <tspan class="step13">to enter</tspan>
+    <tspan class="step13" style="font-weight: bold">Wall Mode</tspan><tspan class="step13">.</tspan>
+    <tspan class="step13" x="0" dy="20">Note the shift by half a square!</tspan>
+    <code class="step13">(21,11)zm</code>
 
-    <tspan class="step14" x="0" y="0">Move from wall to wall and use</tspan>
-    <tspan class="step14 key">d</tspan><tspan class="step14">,</tspan>
-    <tspan class="step14 key">$</tspan><tspan class="step14">,</tspan>
-    <tspan class="step14 key">c</tspan><tspan class="step14">,</tspan>
-    <tspan class="step14 key">g</tspan><tspan class="step14">,</tspan>
-    <tspan class="step14 key">w</tspan><tspan class="step14"> or</tspan>
-    <tspan class="step14 key">x</tspan><tspan class="step14">.</tspan>
-    <tspan class="step14" x="0" dy="20">Wall Mode does not work with the mouse.</tspan>
-    <code class="step14">(21,11.5)dz dz dz(21,12.5)dz dz dz(23.5,12)$</code>
+    <tspan class="step14" x="0" y="0" style="font-weight: bold">Wall Mode</tspan>
+    <tspan class="step14">keeps the cursor on the walls.</tspan>
+    <tspan class="step14" x="0" dy="20">Doors and walls no longer rotate.</tspan>
+    <code class="step14"> wz wz(21.5,13)wz wz</code>
 
-    <tspan class="step15" x="0" y="0">Well, that's it.</tspan>
-    <tspan class="step15" x="0" dy="20">The rest is up to you.</tspan>
+    <tspan class="step15" x="0" y="0">Move from wall to wall and use</tspan>
+    <tspan class="step15 key">d</tspan><tspan class="step15">,</tspan>
+    <tspan class="step15 key">$</tspan><tspan class="step15">,</tspan>
+    <tspan class="step15 key">c</tspan><tspan class="step15">,</tspan>
+    <tspan class="step15 key">g</tspan><tspan class="step15">,</tspan>
+    <tspan class="step15 key">w</tspan><tspan class="step15"> or</tspan>
+    <tspan class="step15 key">x</tspan><tspan class="step15">.</tspan>
+    <tspan class="step15" x="0" dy="20">Wall Mode does not work with the mouse.</tspan>
+    <code class="step15">(21,11.5)dz dz dz(21,12.5)dz dz dz(23.5,12)$</code>
+
+    <tspan class="step16" x="0" y="0">Well, that's it.</tspan>
+    <tspan class="step16" x="0" dy="20">The rest is up to you.</tspan>
 
   </text>
 </svg>
