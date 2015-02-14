@@ -938,13 +938,16 @@ function drawTo (evt) {
   Pen.update(evt);
 }
 
-/* When setting down the pen (onmousedown, penDown), we look at the
- * current tile. If it's the empty floor tile, we'll want to erase it.
- * If there is no floor tile (null), we'll want to draw an empty floor
- * tile. We store this information in the Pen type and as we keep on
- * drawing (onmousemove, drawTo), we don't change it. */
-
+/**
+ * Sets the Pen down, ready for drawing. When setting down the pen
+ * (onmousedown, penDown), we look at the current tile. If it's the
+ * empty floor tile, we'll want to erase it. If there is no floor tile
+ * (null), we'll want to draw an empty floor tile. We store this
+ * information in the Pen type and as we keep on drawing (onmousemove,
+ * drawTo), we don't change it.
+ */
 function penDown (evt) {
+  wallModeOff();
   Pen.update(evt);
   if (Map.floor[Pen.x][Pen.y]) {
     Pen.type = 'null';
