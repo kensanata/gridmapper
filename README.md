@@ -14,6 +14,13 @@ link you can save your work to a local file – and the local file comes
 with all the code to keep working on it, off line! A bit like
 [Tiddly Wiki](http://tiddlywiki.com/), I guess.﻿
 
+Examples
+--------
+
+* [Gridmapper Logo](https://campaignwiki.org/gridmapper.svg?%0A%20f%20ss%20f%0A%20s%0A%20%20%20%20sss%0A%20fssss%20%20f)
+* [OSR Logo](https://campaignwiki.org/gridmapper.svg?%0A%20w.dfwwfwwfw%0A%20wftfw.wfwwfww.dddfw%0A%20wfffwnnnn%20nn%20wfwwfwwfw%0A%20ww%20ww%20w.dfffwfn%20nnn%20w%0A%20%20%20ww%20ww%20ww%20wfnnnn%20fd%0A%20%20%20%20%20%20ww%20ww%20ww)
+* [Demo Dungeon](https://campaignwiki.org/gridmapper.svg?%0A%0A%0A%0A%0A%0A%0A%0A%0A%0A%0A%20%20%20%20%20%20%20%20%20%20%20%20%20ffff%20%20%20%20fwfwf%0A%20%20%20%20%20%20%20%20%20%20%20ssss%20%20ffffdfssss%20%20fddfddfddf%24%0A%20%20%20%20%20%20%20%20%20%20%20%20%20ffff%20%20%20%20ddfw.dfw.df%0A%20%20%20%20%20%20%20%20%20%20%20%20%20ffffdfnn%0A%20%20%20%20%20%20%20%20%20%20%20%20%20ffffnnnn%20fff%0A%20%20%20%20%20%20%20%20%20%20%20%20%20%20fggf%20%20fffcfff%0A%20%20%20%20%20%20%20%20%20%20%20%20%20%20ff%20%20%20%20%20ff%24%24%24f%0A%20%20%20%20%20%20%20%20%20%20%20pppff%24f%20%20%20%20fff%0A%20%20%20%20%20%20%20%20%20%20%20btfffwf%0A%20%20%20%20%20%20%20%20%20%20%20pppffwf)
+
 See Also
 --------
 
