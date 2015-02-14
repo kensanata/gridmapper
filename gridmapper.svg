@@ -1547,8 +1547,7 @@ onload = initialize;
     <code class="step15">(21,11.5)dz dz dz(21,12.5)dz dz dz(23.5,12)$</code>
 
     <tspan class="step16" x="0" y="0">Well, that's it. The rest is up to you.</tspan>
-    <tspan class="step16" x="0" dy="20">What lies beyond the secret doors</tspan>
-    <tspan class="step16" x="0" dy="20">to the east?</tspan>
+    <tspan class="step16" x="0" dy="20">What lies beyond the secret doors to the east?</tspan>
 
   </text>
 </svg>
