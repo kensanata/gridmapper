@@ -1031,7 +1031,7 @@ function keyPressed (evt) {
     }
 
     //Google Chrome
-    if(!key && evt.keyIdentifier) {
+    if(!evt.key && evt.keyIdentifier) {
       if (evt.keyIdentifier.substring(0,2) === 'U+') { // U+0044 = D
         key = String.fromCharCode(parseInt(event.keyIdentifier.substr(2), 16));
         if (!evt.shiftKey) {
