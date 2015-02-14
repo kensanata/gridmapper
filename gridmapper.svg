@@ -219,11 +219,16 @@ var Commands = {
  * interpreted as a script.
  */
 var Demo = {
+
   /**
-   * The Demo will abort when it is running and this member is set
-   * back to false.
+   * Stores the code to be run on a timer.
    */
-  isRunning: false,
+  running: null,
+
+  /**
+   * Stores the element containing all the steps.
+   */
+  element: null,
 
   /**
    * Allows the user to run the demo.
@@ -244,7 +249,7 @@ var Demo = {
     // reset after 2s
     if (revert)
       var t = setInterval(function() {
-        if (!Demo.isRunning) {
+        if (!Demo.running) {
           link.setAttributeNS(xlinkNs, 'href', href);
           link.firstElementChild.firstChild.nodeValue = oldText;
           clearInterval(t);
@@ -253,80 +258,83 @@ var Demo = {
   },
 
   /**
-   * Let the demo know that we want to abort.
-   */
-  stop: function () {
-    Demo.isRunning = false;
-    Demo.link('Abort! Abort!', 'void', false);
-  },
-
-  /**
    * Demo the application.
    */
   run: function () {
     Map.initialize();
-    Demo.isRunning = true;
     Demo.link('Click to stop demo', 'Demo.stop()', false);
-    var demo = document.getElementById('messages');
+    Map.ui.onmousemove = null;
+    Map.ui.onmousedown = null;
+    Demo.element = document.getElementById('messages');
     var help = document.getElementById('help').firstElementChild;
-    moveElement(demo,
-                demo.getBBox().x,
-                demo.getBBox().y,
+    moveElement(Demo.element,
+                Demo.element.getBBox().x,
+                Demo.element.getBBox().y,
                 (Map.width + 2) * Map.tileWidth,
                 parseInt(help.getAttribute('height')) + 2 * Map.tileWidth,
                 bounceEaseOut);
-    Demo.step(demo, 1);
+    Demo.step(1);
   },
 
   /**
-   * Demo one step and timeout.
+   * Let the demo know that we want to abort.
    */
-  step: function (demo, step) {
-    // hide previous step
-    var elements = demo.getElementsByClassName('step' + (step - 1));
+  stop: function () {
+    clearInterval(Demo.running);
+    Demo.running = null;
+    Demo.clean(null);
+    wallModeOff();
+    Map.ui.onmousemove = Pen.update;
+    Map.ui.onmousedown = penDown;
+    Demo.link('Abort! Abort!', 'void', false);
+  },
+
+  /**
+   * Hides elements from a particular step. Usually called for the previous step.
+   */
+  clean: function(step) {
+    var elements = step
+        ? Demo.element.getElementsByClassName('step' + step)
+        : Demo.element.children;
     for (var i = 0; i < elements.length; i++) {
       elements[i].setAttribute('visibility', 'collapse');
     }
-    if (Demo.isRunning) {
-      var wait = 5000;
-      // show next step
-      elements = demo.getElementsByClassName('step' + step);
-      for (var i = 0; i < elements.length; i++) {
-        if (elements[i].nodeName === 'tspan') {
-          elements[i].setAttribute('visibility', 'visible');
-        } else if (elements[i].nodeName === 'code') {
-          // Note that using any 'z' in an element will result in
-          // confusion as later code elements start executing.
-          var code = elements[i].textContent;
-          if (code) {
-            // Add a delay for every 'z' in the code.
-            var z = code.match(/z/g);
-            if (z)
-              wait += 500 * z.length;
-            interpret(code);
-          }
+  },
+  
+  /**
+   * Demo one step and timeout. Note that it's confusing to have more
+   * than one code element per step. These are started in order, but
+   * if one of them starts delaying using 'z', later code will
+   * continue executing.
+   */
+  step: function (step) {
+    Demo.clean(step - 1);
+    var wait = 5000;
+    // show elements for this step and run its code
+    elements = Demo.element.getElementsByClassName('step' + step);
+    for (var i = 0; i < elements.length; i++) {
+      if (elements[i].nodeName === 'tspan') {
+        elements[i].setAttribute('visibility', 'visible');
+      } else if (elements[i].nodeName === 'code') {
+        var code = elements[i].textContent;
+        if (code) {
+          // Add a delay for every 'z' in the code.
+          var z = code.match(/z/g);
+          if (z)
+            wait += 500 * z.length;
+          interpret(code);
         }
       }
-      // if there was a step, schedule it; else quit
-      if (elements.length > 0) {
-        setTimeout(function() {
-          Demo.step(demo, step + 1);
-        }, wait);
-      } else {
-        wallModeOff(); // just in case
-        Demo.isRunning = false;
-      }
+    }
+    // if there was a step, schedule the next step; else quit
+    if (elements.length > 0) {
+      Demo.running = setTimeout(function() {
+        Demo.step(step + 1);
+      }, wait);
+    } else {
+      Demo.stop();
     }
   },
-
-  /**
-   * Skips demo steps. Good for testing.
-   */
-  resume: function(step) {
-    Demo.isRunning = true;
-    Dem.step(document.getElementById('messages'), step);
-  },
-
 }
 
 /* The animations at the beginning are taken from these examples:
@@ -1042,7 +1050,7 @@ function keyPressed (evt) {
   var key = evt;
 
   // When running the demo, ignore key events from the browser.
-  if (!Demo.isRunning) {
+  if (!Demo.running) {
 
     // Firefox
     if (evt.key) {
@@ -1483,7 +1491,7 @@ onload = initialize;
     <tspan class="step7" x="0" y="0">To remove a door you added</tspan>
     <tspan class="step7" x="0" dy="20">press</tspan>
     <tspan class="step7 key">x</tspan><tspan class="step7">.</tspan>
-    <code class="step7">(17,13)zdzzxz</code>
+    <code class="step7">(17,13)zdzxzdzxzdzx</code>
 
     <tspan class="step8" x="0" y="0">Secret doors and conceiled doors work just the same.</tspan>
     <tspan class="step8" x="0" dy="20">Press</tspan>
@@ -1532,11 +1540,11 @@ onload = initialize;
     <tspan class="step15 key">g</tspan><tspan class="step15">,</tspan>
     <tspan class="step15 key">w</tspan><tspan class="step15"> or</tspan>
     <tspan class="step15 key">x</tspan><tspan class="step15">.</tspan>
-    <tspan class="step15" x="0" dy="20">Wall Mode does not work with the mouse.</tspan>
     <code class="step15">(21,11.5)dz dz dz(21,12.5)dz dz dz(23.5,12)$</code>
 
-    <tspan class="step16" x="0" y="0">Well, that's it.</tspan>
-    <tspan class="step16" x="0" dy="20">The rest is up to you.</tspan>
+    <tspan class="step16" x="0" y="0">Well, that's it. The rest is up to you.</tspan>
+    <tspan class="step16" x="0" dy="20">What lies beyond the secret doors</tspan>
+    <tspan class="step16" x="0" dy="20">to the east?</tspan>
 
   </text>
 </svg>
