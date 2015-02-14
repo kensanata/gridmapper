@@ -249,13 +249,13 @@ var Demo = {
               (Map.width + 2) * Map.tileWidth,
               parseInt(help.getAttribute('height')) + 2 * Map.tileWidth,
               bounceEaseOut);
-  Demo.runStep(demo, 1);
+  Demo.step(demo, 1);
   },
 
   /**
    * Demo one step and timeout.
    */
-  runStep: function (demo, step) {
+  step: function (demo, step) {
     // hide previous step
     var elements = demo.getElementsByClassName("step" + (step - 1));
     for (var i = 0; i < elements.length; i++) {
@@ -272,9 +272,9 @@ var Demo = {
         }
       }
       // if there was a step, schedule it; else quit
-      if (elements) {
+      if (elements.length > 0) {
         setTimeout(function() {
-          Demo.runStep(demo, step + 1);
+          Demo.step(demo, step + 1);
         }, 5000);
       } else {
         Demo.isRunning = false;
@@ -1141,7 +1141,7 @@ function interpretCont (code, i) {
       }, 500);
       return; // end!
     case '(':
-      var match = code.substr(i).match(/(\d+),(\d+)/);
+      var match = code.substr(i).match(/(\d+(?:\.\d+)?),(\d+(?:\.\d+)?)/);
       if (match) {
         x = parseInt(match[1]);
         y = parseInt(match[2]);
@@ -1400,8 +1400,7 @@ onload = initialize;
     <tspan class="step3" x="0" dy="20">Or you can use </tspan>
     <tspan class="step3 key">Shift</tspan>
     <tspan class="step3"> and the </tspan>
-    <tspan class="step3 key">Arrow keys</tspan>
-    <tspan class="step3">.</tspan>
+    <tspan class="step3 key">Arrow keys</tspan><tspan class="step3">.</tspan>
     <code class="step3">(13,11)ffff(13,12)ffff(13,13)ffff(13,14)ffff(13,15)ffff</code>
 
     <tspan class="step4" x="0" y="0">In general I recomend using the </tspan>
@@ -1424,8 +1423,7 @@ onload = initialize;
 
     <tspan class="step7" x="0" y="0">To remove a door you added</tspan>
     <tspan class="step7" x="0" dy="20">press </tspan>
-    <tspan class="step7 key">x</tspan>
-    <tspan class="step7">.</tspan>
+    <tspan class="step7 key">x</tspan><tspan class="step7">.</tspan>
     <code class="step7">(17,13)zdzzxz(17,14)d</code>
 
     <tspan class="step8" x="0" y="0">Secret doors and conceiled doors work just the same.</tspan>
@@ -1449,11 +1447,12 @@ onload = initialize;
     <code class="step11">(16,18)zd(16,19)zw(16,20)zw</code>
 
     <tspan class="step12" x="0" y="0">This gets tedious very fast.</tspan>
-    <tspan class="step12" x="0" dy="20">Use </tspan><tspan class="step12 key">m</tspan>
+    <tspan class="step12" x="0" dy="20">Use </tspan>
+    <tspan class="step12 key">m</tspan>
     <tspan class="step12"> to enter </tspan>
-    <tspan class="step12" style="font-weight: bold">Wall Mode</tspan>
-    <tspan class="step12">.</tspan>
-    <tspan class="step12 key">w</tspan><tspan class="step11">.</tspan>
+    <tspan class="step12" style="font-weight: bold">Wall Mode</tspan><tspan class="step12">.</tspan>
+    <tspan class="step12" x="0" dy="20">Note the shift by half a square!</tspan>
+    <code class="step12">(21,11)zmz wz wz</code>
 
   </text>
 </svg>
