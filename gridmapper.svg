@@ -51,12 +51,23 @@ var Map = {
   stairs: [], // the model for the stairs
   wallsElement: null, // the SVG element for the walls
   walls: [], // the model for the walls
+
+  /**
+   * Initializes the datastructures and resets the map.
+   * There is no undo.
+   */
   initialize: function() {
     for (var i = 0; i <= Map.width; i++) {
       Map.floor[i] = [];
       Map.walls[i] = [];
       Map.stairs[i] = [];
     }
+    var elem = [Map.floorElement, Map.stairsElement, Map.wallsElement];
+    for (i = 0; i < elem.length; i++) {
+      while (elem[i].lastChild) {
+        elem[i].removeChild(elem[i].lastChild);
+      }
+    };
     moveElements();
   },
   minimumSize: function(width) {
@@ -875,12 +886,19 @@ function move (dir) {
   Pen.ts = now; // must come after Pen.update
 }
 
-/* Many of the key commands need a 'current' position. We determine it
- * by looking at the Pen. It's position is always tracked (onmousemove,
- * Pen.update). */
-
+/**
+ * Processes key press events and single character strings (in case
+ * the interpreter is feeding us some). Many of the key commands need
+ * a 'current' position. We determine it by looking at the Pen. It's
+ * position is always tracked (onmousemove, Pen.update).
+ */
 function keyPressed (evt) {
-  var key = evt.key;
+  var key = evt; // could be a string
+
+  // Firefox
+  if (evt.key) {
+    key = evt.key;
+  }
 
   //Google Chrome
   if(!key && evt.keyIdentifier) {
@@ -942,6 +960,7 @@ function keyPressed (evt) {
     }
     move('right');
     break;
+  case '\n':
   case 'Enter':
     wallModeOff();
     Pen.x = 0;
@@ -994,6 +1013,64 @@ function keyPressed (evt) {
   }
 }
 
+/**
+ * Interprets a sequence of characters as a script. A '.' will reset
+ * the Pen's timestamp, simulating a pause (to prevent rotating the
+ * last tile). A 'z' will cause a timeout. This is used for the demo.
+ * Since we don't want to freeze the computer, all the heavy lifting
+ * is done by another function which knows how to finish the job.
+ */
+function interpret (code) {
+  interpretCont(code, 0);
+}
+
+/**
+ * Continues the interpretation where we left oft. The variables are
+ * not initialized so taht we can simply pick up where we left off.
+ * This is because we want to interrupt the computation using
+ * timeouts.
+ */
+function interpretCont (code, i) {
+  for (; i < code.length; i++) {
+    var advance = false;
+    switch(code[i]) { // needs charAt?
+    case '.': Pen.ts = null; break;
+    case 'z':
+      setTimeout(function() {
+        interpretCont(code, i + 1);
+      }, 500);
+      return; // end!
+    case '(':
+      var match = code.substr(i).match(/(\d+),(\d+)/);
+      if (match) {
+        x = parseInt(match[1]);
+        y = parseInt(match[2]);
+        if (Pen.moveTo({x: x, y: y})) {
+          Pen.update(null);
+          setTimeout(function() {
+            interpretCont(code, i);
+          }, 100);
+          return; // end!
+        }
+        i += match[0].length;
+      }
+    case 'f':
+    case 't':
+    case 'p':
+    case 'b':
+      advance = true;
+    default:
+      keyPressed(code[i]);
+    }
+    if (advance)
+      move("right");
+  }
+}
+
+/**
+ * Recreates one particular model based on a matching SVG element.
+ * This looks only at id attributes.
+ */
 function recreateModelFor (re, model, element) {
   for (var i = 0; i < element.children.length; i++) {
     var result = element.children[i].getAttribute('id').match(re);
@@ -1006,12 +1083,15 @@ function recreateModelFor (re, model, element) {
   }
 }
 
-/* When loading a file, the first section is used: We go through the elements
-   and add the appropriate data to the various data models. When loading from
-   a URL, we look at the keyword parameter and interpret it as a key sequence
-   one might conceivably type. The only difference is the / character which is
-   used to simulate a little pause (to prevent doors from rotating). */
-
+/**
+ * Recreates the models based on existing SVG elements (if loading a
+ * saved file) and the URL (if loading a page). When loading a file,
+ * We go through the elements and add the appropriate data to the
+ * various data models. When loading from a URL, we look at the
+ * keyword parameter and interpret it as a key sequence one might
+ * conceivably type. The only difference is the . character which is
+ * used to simulate a little pause (to prevent doors from rotating).
+ */
 function recreateModel () {
   var re = /^\w+_(\d+)_(\d+)$/;
   recreateModelFor(re, Map.floor, Map.floorElement);
@@ -1029,33 +1109,94 @@ function recreateModel () {
       Map.walls[x][y].push(Map.wallsElement.children[i]);
     }
   }
-  var code = decodeURIComponent(window.location.search);
-  if (code) {
-    var rows = code.substring(1).split('\n');
-    for (var y = 0; y < rows.length; y++) {
-      for (var x = 0, i = 0; i < rows[y].length; i++) {
-        Map.minimumSize(x);
-        switch(rows[y][i]) { // needs charAt?
-        case 'f': floor(x++, y); break
-        case 't': draw(x++, y, 'trap'); break;
-        case 'p': draw(x++, y, 'pillar'); break;
-        case 'b': draw(x++, y, 'statue'); break;
-        case 's': floorRotate(x, y, 'stair'); break;
-        case 'n': floorRotate(x, y, 'diagonal'); break;
-        case '+':
-        case ' ': x++; break;
-        case 'd': wall(x, y, 'door'); break;
-        case '$': wall(x, y, 'secret'); break;
-        case 'c': wall(x, y, 'concealed'); break;
-        case 'g': wall(x, y, 'gate'); break;
-        case 'w': wall(x, y, 'wall'); break;
-        case '.': Pen.ts = null; break;
-        }
+  // skip initial '?'
+  interpret(decodeURIComponent(window.location.search).substring(1));
+}
+
+var demoIsRunning = false;
+
+/**
+ * Allows the user to run the demo.
+ */
+function demo () {
+  demoLink('Reset map and run demo', 'runDemo()', true);
+}
+
+/**
+ * Changes the demo link to something else.
+ */
+function demoLink (text, js, revert) {
+  var link = document.getElementById('demo');
+  var oldText = link.firstElementChild.firstChild.nodeValue;
+  link.firstElementChild.firstChild.nodeValue = text;
+  var href = link.getAttributeNS(xlinkNs, 'href');
+  link.setAttributeNS(xlinkNs, 'href', 'javascript:' + js);
+  // reset after 10s
+  var t = setInterval(function() {
+    if (!demoIsRunning) {
+      link.setAttributeNS(xlinkNs, 'href', href);
+      link.firstElementChild.firstChild.nodeValue = oldText;
+      clearInterval(t);
+    }
+  }, 10000);
+}
+
+/**
+ *
+ */
+function demoStop () {
+  demoIsRunning = false;
+  demoLink("Demo stopped", "demo()", false);
+}
+
+/**
+ * Demo the application.
+ */
+function runDemo () {
+  Map.initialize();
+  demoLink("Click to stop demo", "demoStop()", false);
+  var demo = document.getElementById('messages');
+  var help = document.getElementById('help').firstElementChild;
+  moveElement(demo,
+              demo.getBBox().x,
+              demo.getBBox().y,
+              (Map.width + 2) * Map.tileWidth,
+              parseInt(help.getAttribute('height')) + 2 * Map.tileWidth,
+              bounceEaseOut);
+  runDemoStep(demo, 1);
+}
+
+/**
+ * Demo one step and timeout.
+ */
+function runDemoStep(demo, step) {
+  // hide previous step
+  var elements = demo.getElementsByClassName("step" + (step - 1));
+  for (var i = 0; i < elements.length; i++) {
+    elements[i].setAttribute('visibility', 'collapse');
+  }
+  if (demoIsRunning) {
+    // show next step
+    elements = demo.getElementsByClassName("step" + step);
+    for (var i = 0; i < elements.length; i++) {
+      if (elements[i].nodeName === "tspan") {
+        elements[i].setAttribute('visibility', 'visible');
+      } else if (elements[i].nodeName === "code") {
+        interpret(elements[i].textContent);
       }
+    }
+    // if there was a step, schedule it; else quit
+    if (elements) {
+      setTimeout(function() {
+        runDemoStep(demo, step + 1);
+      }, 5000);
     }
   }
 }
 
+/**
+ * Initialize the user interface.
+ */
 function initialize () {
   scaleTiles();
   Map.pointer = document.getElementById('pointer');
@@ -1214,6 +1355,55 @@ onload = initialize;
       <a fill="blue" xlink:href="https://github.com/kensanata/gridmapper">
 	<tspan>Source</tspan>
       </a>
+      <tspan> / </tspan>
+      <a id="demo" fill="blue" xlink:href="javascript:demo()">
+	<tspan>Demo</tspan>
+      </a>
     </text>
   </g>
+  <text id="messages" visibility="hidden">
+    <tspan class="step1" x="0" y="0">Hello! This is the demo!</tspan>
+    <tspan class="step1" x="0" dy="20">We're going to show you how to use this thing.</tspan>
+    <code class="step1">(10,10)</code>
+    <tspan class="step2" x="0" y="0">You can move around the map using your mouse.</tspan>
+    <tspan class="step2" x="0" dy="20">Or you can use the </tspan><tspan class="step2 key">Arrow keys</tspan>
+    <tspan class="step2"> to move around.</tspan>
+    <code class="step2">(20,10)(20,20)(10,20)(10,10)</code>
+    <tspan class="step3" x="0" y="0">You can draw the floor using your mouse.</tspan>
+    <tspan class="step3" x="0" dy="20">Or you can use </tspan>
+    <tspan class="step3 key">Shift</tspan><tspan class="step3"> and the </tspan><tspan class="step3 key">Arrow keys</tspan><tspan class="step3">.</tspan>
+    <code class="step3">(13,11)ffff(13,12)ffff(13,13)ffff(13,14)ffff(13,15)ffff</code>
+    <tspan class="step4" x="0" y="0">In general I recomend using the </tspan><tspan class="step4 key">Arrow keys</tspan>
+    <tspan class="step4" x="0" dy="20">to move around on the map.</tspan>
+    <code class="step4">(14,16)ff(14,17)ff(11,18)fffff(11,19)fffff(11,20)fffff</code>
+    <tspan class="step5" x="0" y="0">Things like traps, statues and pillars are easy.</tspan>
+    <tspan class="step5" x="0" dy="20">Just press the appropriate key:</tspan>
+    <tspan class="step5 key">t</tspan><tspan class="step5">, </tspan>
+    <tspan class="step5 key">p</tspan><tspan class="step5">, </tspan>
+    <tspan class="step5 key">b</tspan><tspan class="step5">.</tspan>
+    <code class="step5">(20,26)zztzpzb</code>
+    <tspan class="step6" x="0" y="0">Doors are trickier. Press </tspan>
+    <tspan class="step6 key">d</tspan><tspan class="step6"> to rotate the door.</tspan>
+    <tspan class="step6" x="0" dy="20">Watch: left, top, right, bottom, and back to left.</tspan>
+    <code class="step6">(24,27)f(24,27)zdzdzdzdzd</code>
+    <tspan class="step7" x="0" y="0">To remove a door you added</tspan>
+    <tspan class="step7" x="0" dy="20">press </tspan><tspan class="step7 key">x</tspan><tspan class="step7">.</tspan>
+    <code class="step7">(24,27)zzx</code>
+    <tspan class="step8" x="0" y="0">Secret doors and conceiled doors work just the same.</tspan>
+    <tspan class="step8" x="0" dy="20">Press </tspan><tspan class="step8 key">$</tspan><tspan class="step8"> and </tspan>
+    <tspan class="step8 key">c</tspan><tspan class="step8"> to set and rotate them into place.</tspan>
+    <code class="step8">(24,27)zz$zczc</code>
+    <tspan class="step9" x="0" y="0">Stairs work just the same.</tspan>
+    <tspan class="step9" x="0" dy="20">Press </tspan><tspan class="step9 key">s</tspan>
+    <tspan class="step9"> to set and rotate them into place.</tspan>
+    <code class="step9">(20,22)zfzfz(21,23)sz(23,25)szszszs</code>
+    <tspan class="step10" x="0" y="0">Gates can be also be confusing, but see diagram!</tspan>
+    <tspan class="step10" x="0" dy="20">Press </tspan><tspan class="step10 key">g</tspan>
+    <tspan class="step10"> to set and rotate them into place.</tspan>
+    <code class="step10">(17,24)zfzfz(18,24)gzg</code>
+    <tspan class="step11" x="0" y="0">You can draw walls the same way using </tspan>
+    <tspan class="step11 key">w</tspan><tspan class="step11">.</tspan>
+    <tspan class="step11" x="0" dy="20">This gets tedious very fast.</tspan>
+    <code class="step11">(17,22)zfffz(18,22)fffz</code>
+  </text>
 </svg>
