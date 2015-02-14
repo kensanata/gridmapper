@@ -622,7 +622,9 @@ function rotateTile (tile, type, x, y, angle) {
  */
 function wallPlacement (x, y, type) {
   var now = new Date();
-  if (Pen.type === type && Map.walls[x][y] && Pen.ts && now - Pen.ts <= 2000) {
+  if (Pen.type === type
+      && Map.walls[x][y]  && Map.walls[x][y].length > 0
+      && Pen.ts && now - Pen.ts <= 2000) {
     // we just placed a door: take the last one and rotate it
     var tile = Map.walls[x][y][Map.walls[x][y].length - 1];
     var old = tile.getAttributeNS(null,'transform');
