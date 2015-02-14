@@ -1462,7 +1462,7 @@ onload = initialize;
     <tspan class="step7" x="0" y="0">To remove a door you added</tspan>
     <tspan class="step7" x="0" dy="20">press</tspan>
     <tspan class="step7 key">x</tspan><tspan class="step7">.</tspan>
-    <code class="step7">(17,13)zdzzxz(17,14)d</code>
+    <code class="step7">(17,13)zdzzxz</code>
 
     <tspan class="step8" x="0" y="0">Secret doors and conceiled doors work just the same.</tspan>
     <tspan class="step8" x="0" dy="20">Press</tspan>
@@ -1470,7 +1470,7 @@ onload = initialize;
     <tspan class="step8">and</tspan>
     <tspan class="step8 key">c</tspan>
     <tspan class="step8">to set and rotate them into place.</tspan>
-    <code class="step8">ff(18,15)fff(18,16)fffzczfff(21,17)fff(23,17)z$z$z$z(21,18)fff</code>
+    <code class="step8">(17,14)dff(18,15)fff(18,16)fffzczfff(21,17)fff(23,17)z$z$z$z(21,18)fff</code>
 
     <tspan class="step9" x="0" y="0">Stairs work just the same.</tspan>
     <tspan class="step9" x="0" dy="20">Press </tspan><tspan class="step9 key">s</tspan>
