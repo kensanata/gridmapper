@@ -100,27 +100,45 @@ var Pen = {
 
   /**
    * Determines the grid position based on a mouse event and returns
-   * it.
+   * it. Remember that Wall Mode has one coordinate + 0.5. Also
+   * consider that in Wall mode, we need to find a point where the
+   * axis changes, "jump a corner".
    */
   position: function(evt) {
-    return {
-      x: Math.floor(evt.clientX / Map.tileWidth) - 1, // empty column on the left
-      y: Math.floor(evt.clientY / Map.tileWidth) - 1 // empty row at the top
-    };
+    var x = evt.clientX / Map.tileWidth - 1; // empty column on the left
+    var y = evt.clientY / Map.tileWidth - 1; // empty row at the top
+    if (Pen.type === 'wallMode') {
+      var dx = x % 1;
+      var dy = y % 1;
+      if (Pen.x % 1 !== 0) {
+        // on a vertical wall
+        if (dx > 0.3 && dx < 0.7 && (dy > 0.8 || dy < 0.2)) {
+          return { x: Math.floor(x + 0.5), y: Math.floor(y) + 0.5 };
+        }
+        // no jumping
+        return { x: Math.floor(x + 0.5) - 0.5, y: Math.floor(y) };
+      }
+      // on a horizontal wall
+      if ((dx > 0.8 || dx < 0.2) && dy > 0.3 && dy < 0.7) {
+        // jump to a vertical wall
+        return { x: Math.floor(x) + 0.5, y: Math.floor(y + 0.5) };
+      }
+      // no jumping
+      return { x: Math.floor(x), y: Math.floor(y + 0.5) - 0.5 };
+    }
+    // in a square
+    return { x: Math.floor(x), y: Math.floor(y) };
   },
 
   /**
    * Moves the pointer to the current Pen position. If passed a
    * non-null mouse event, determine the new position, first. We call
    * this onmousemove even if we're not drawing because of possible
-   * keypress events (which don't come with a position). Moving the
-   * mouse ends Wall Mode because Wall Mode has one coordinate + 0.5.
+   * keypress events (which don't come with a position).
    */
   update: function(evt) {
     Pen.ts = null;
     if (evt) {
-      if (Pen.type === 'wall')
-        Pen.type = null;
       var pos = Pen.position(evt);
       Pen.x = pos.x;
       Pen.y = pos.y;
@@ -239,7 +257,7 @@ var Demo = {
    */
   stop: function () {
     Demo.isRunning = false;
-    Demo.link("Abort! Abort!", "void", false);
+    Demo.link('Abort! Abort!', 'void', false);
   },
 
   /**
@@ -248,7 +266,7 @@ var Demo = {
   run: function () {
     Map.initialize();
     Demo.isRunning = true;
-    Demo.link("Click to stop demo", "Demo.stop()", false);
+    Demo.link('Click to stop demo', 'Demo.stop()', false);
     var demo = document.getElementById('messages');
     var help = document.getElementById('help').firstElementChild;
     moveElement(demo,
@@ -265,18 +283,18 @@ var Demo = {
    */
   step: function (demo, step) {
     // hide previous step
-    var elements = demo.getElementsByClassName("step" + (step - 1));
+    var elements = demo.getElementsByClassName('step' + (step - 1));
     for (var i = 0; i < elements.length; i++) {
       elements[i].setAttribute('visibility', 'collapse');
     }
     if (Demo.isRunning) {
       var wait = 5000;
       // show next step
-      elements = demo.getElementsByClassName("step" + step);
+      elements = demo.getElementsByClassName('step' + step);
       for (var i = 0; i < elements.length; i++) {
-        if (elements[i].nodeName === "tspan") {
+        if (elements[i].nodeName === 'tspan') {
           elements[i].setAttribute('visibility', 'visible');
-        } else if (elements[i].nodeName === "code") {
+        } else if (elements[i].nodeName === 'code') {
           // Note that using any 'z' in an element will result in
           // confusion as later code elements start executing.
           var code = elements[i].textContent;
@@ -896,6 +914,7 @@ function drawToCommand (x, y, tile, type) {
 }
 
 function drawTo (evt) {
+  wallModeOff();
   var target = Pen.position(evt);
   // draw up to the current position (at least once if we just started)
   do {
