@@ -132,10 +132,18 @@ var Pen = {
   /**
    * Moves the Pen one step closer to the target position. Returns
    * true if the Pen moved, returns false if the Pen is already at
-   * the target.
+   * the target. As Wall Mode means that one of the coordinates is
+   * off by half, this needs special consideration.
    */
   moveTo: function(target) {
-    if (Pen.x != target.x) {
+    // jump a corner, if necessary
+    if (Pen.type === 'wallMode'
+        && (Math.abs(Pen.x - target.x) == 0.5
+           || Math.abs(Pen.y - target.y) == 0.5)) {
+      Pen.x += target.x > Pen.x ? 0.5 : -0.5;
+      Pen.y += target.y > Pen.y ? 0.5 : -0.5;
+      return true;
+    } else if (Pen.x != target.x) {
       Pen.x += target.x > Pen.x ? 1 : -1;
       return true;
     } else if (Pen.y != target.y) {
@@ -205,7 +213,7 @@ var Demo = {
   start: function () {
     Demo.link('Reset map and run demo', 'Demo.run()', true);
   },
-  
+
   /**
    * Changes the demo link to something else.
    */
@@ -225,31 +233,31 @@ var Demo = {
         }
       }, 2000);
   },
-  
+
   /**
    *
    */
   stop: function () {
     Demo.isRunning = false;
-    Demo.link("Waiting for demo to stop", "void", false);
+    Demo.link("Abort! Abort!", "void", false);
   },
-  
+
   /**
    * Demo the application.
    */
   run: function () {
-  Map.initialize();
-  Demo.isRunning = true;
-  Demo.link("Click to stop demo", "Demo.stop()", false);
-  var demo = document.getElementById('messages');
-  var help = document.getElementById('help').firstElementChild;
-  moveElement(demo,
-              demo.getBBox().x,
-              demo.getBBox().y,
-              (Map.width + 2) * Map.tileWidth,
-              parseInt(help.getAttribute('height')) + 2 * Map.tileWidth,
-              bounceEaseOut);
-  Demo.step(demo, 1);
+    Map.initialize();
+    Demo.isRunning = true;
+    Demo.link("Click to stop demo", "Demo.stop()", false);
+    var demo = document.getElementById('messages');
+    var help = document.getElementById('help').firstElementChild;
+    moveElement(demo,
+                demo.getBBox().x,
+                demo.getBBox().y,
+                (Map.width + 2) * Map.tileWidth,
+                parseInt(help.getAttribute('height')) + 2 * Map.tileWidth,
+                bounceEaseOut);
+    Demo.step(demo, 1);
   },
 
   /**
@@ -262,25 +270,45 @@ var Demo = {
       elements[i].setAttribute('visibility', 'collapse');
     }
     if (Demo.isRunning) {
+      var wait = 5000;
       // show next step
       elements = demo.getElementsByClassName("step" + step);
       for (var i = 0; i < elements.length; i++) {
         if (elements[i].nodeName === "tspan") {
           elements[i].setAttribute('visibility', 'visible');
         } else if (elements[i].nodeName === "code") {
-          interpret(elements[i].textContent);
+          // Note that using any 'z' in an element will result in
+          // confusion as later code elements start executing.
+          var code = elements[i].textContent;
+          if (code) {
+            // Add a delay for every 'z' in the code.
+            var z = code.match(/z/g);
+            if (z)
+              wait += 500 * z.length;
+            interpret(code);
+          }
         }
       }
       // if there was a step, schedule it; else quit
       if (elements.length > 0) {
         setTimeout(function() {
           Demo.step(demo, step + 1);
-        }, 5000);
+        }, wait);
       } else {
+        wallModeOff(); // just in case
         Demo.isRunning = false;
       }
     }
   },
+
+  /**
+   * Skips demo steps. Good for testing.
+   */
+  resume: function(step) {
+    Demo.isRunning = true;
+    Dem.step(document.getElementById('messages'), step);
+  },
+
 }
 
 /* The animations at the beginning are taken from these examples:
@@ -947,7 +975,7 @@ function move (dir) {
   // switch position on the grid and end up on 4. So we need to adjust
   // the position by (-0.5,-0.5):
   //
-  //  x→ 
+  //  x→
   // y  |   |
   // ↓--+---+---
   //    1   |
@@ -993,22 +1021,27 @@ function move (dir) {
  * position is always tracked (onmousemove, Pen.update).
  */
 function keyPressed (evt) {
-  var key = evt; // could be a string
+  // Could be a string when running interpreted code.
+  var key = evt;
 
-  // Firefox
-  if (evt.key) {
-    key = evt.key;
-  }
+  // When running the demo, ignore key events from the browser.
+  if (!Demo.isRunning) {
 
-  //Google Chrome
-  if(!key && evt.keyIdentifier) {
-    if (evt.keyIdentifier.substring(0,2) === 'U+') { // U+0044 = D
-      key = String.fromCharCode(parseInt(event.keyIdentifier.substr(2), 16));
-      if (!evt.shiftKey) {
-        key = key.toLowerCase(); // 'D' to 'd'
+    // Firefox
+    if (evt.key) {
+      key = evt.key;
+    }
+
+    //Google Chrome
+    if(!key && evt.keyIdentifier) {
+      if (evt.keyIdentifier.substring(0,2) === 'U+') { // U+0044 = D
+        key = String.fromCharCode(parseInt(event.keyIdentifier.substr(2), 16));
+        if (!evt.shiftKey) {
+          key = key.toLowerCase(); // 'D' to 'd'
       }
-    } else {
-      key = evt.keyIdentifier; // 'Left'
+      } else {
+        key = evt.keyIdentifier; // 'Left'
+      }
     }
   }
 
@@ -1126,13 +1159,13 @@ function interpret (code) {
 
 /**
  * Continues the interpretation where we left oft. The variables are
- * not initialized so taht we can simply pick up where we left off.
+ * not initialized so that we can simply pick up where we left off.
  * This is because we want to interrupt the computation using
  * timeouts.
  */
 function interpretCont (code, i) {
   for (; i < code.length; i++) {
-    var advance = false;
+    var advance = null;
     switch(code[i]) { // needs charAt?
     case '.': Pen.ts = null; break;
     case 'z':
@@ -1143,8 +1176,9 @@ function interpretCont (code, i) {
     case '(':
       var match = code.substr(i).match(/(\d+(?:\.\d+)?),(\d+(?:\.\d+)?)/);
       if (match) {
-        x = parseInt(match[1]);
-        y = parseInt(match[2]);
+        // no longer ints!
+        x = Number(match[1]);
+        y = Number(match[2]);
         if (Pen.moveTo({x: x, y: y})) {
           Pen.update(null);
           setTimeout(function() {
@@ -1155,16 +1189,19 @@ function interpretCont (code, i) {
         i += match[0].length;
       }
       break;
+    case '-':
+      advance = 'left';
+      break;
     case 'f':
     case 't':
     case 'p':
     case 'b':
-      advance = true;
+      advance = 'right';
     default:
       keyPressed(code[i]);
     }
     if (advance)
-      move("right");
+      move(advance);
   }
 }
 
@@ -1391,68 +1428,92 @@ onload = initialize;
     <code class="step1">(10,10)</code>
 
     <tspan class="step2" x="0" y="0">You can move around the map using your mouse.</tspan>
-    <tspan class="step2" x="0" dy="20">Or you can use the </tspan>
+    <tspan class="step2" x="0" dy="20">Or you can use the</tspan>
     <tspan class="step2 key">Arrow keys</tspan>
-    <tspan class="step2"> to move around.</tspan>
+    <tspan class="step2">to move around.</tspan>
     <code class="step2">(20,10)(20,20)(10,20)(10,10)</code>
 
     <tspan class="step3" x="0" y="0">You can draw the floor using your mouse.</tspan>
-    <tspan class="step3" x="0" dy="20">Or you can use </tspan>
+    <tspan class="step3" x="0" dy="20">Or you can use</tspan>
     <tspan class="step3 key">Shift</tspan>
-    <tspan class="step3"> and the </tspan>
+    <tspan class="step3">and the</tspan>
     <tspan class="step3 key">Arrow keys</tspan><tspan class="step3">.</tspan>
     <code class="step3">(13,11)ffff(13,12)ffff(13,13)ffff(13,14)ffff(13,15)ffff</code>
 
-    <tspan class="step4" x="0" y="0">In general I recomend using the </tspan>
+    <tspan class="step4" x="0" y="0">In general I recomend using the</tspan>
     <tspan class="step4 key">Arrow keys</tspan>
     <tspan class="step4" x="0" dy="20">to move around on the map.</tspan>
-    <code class="step4">(14,16)ff(14,17)ff(11,18)ffffff(11,19)ffffff(11,20)ffffff</code>
+    <tspan class="step4" x="0" dy="20">Use</tspan>
+    <tspan class="step4 key">f</tspan>
+    <tspan class="step4">to draw or erase the floor.</tspan>
+    <code class="step4">(14,16)ff(14,17)ff(11,18)ffffff(11,19)ffffff(11,20)ffffffzff-zf--f-</code>
 
     <tspan class="step5" x="0" y="0">Things like traps, statues and pillars are easy.</tspan>
     <tspan class="step5" x="0" dy="20">Just press the appropriate key:</tspan>
-    <tspan class="step5 key">t</tspan><tspan class="step5">, </tspan>
-    <tspan class="step5 key">p</tspan><tspan class="step5">, </tspan>
-    <tspan class="step5 key">b</tspan><tspan class="step5">.</tspan>
-    <code class="step5">(11,18)pppz(11,20)pppz(11,19)bzt</code>
+    <tspan class="step5 key">t</tspan><tspan class="step5">,</tspan>
+    <tspan class="step5 key">b</tspan><tspan class="step5">,</tspan>
+    <tspan class="step5 key">p</tspan><tspan class="step5">.</tspan>
+    <code class="step5">(12,19)tz(11,19)bz(11,18)pppz(11,20)pppz</code>
 
-    <tspan class="step6" x="0" y="0">Doors are trickier. Press </tspan>
+    <tspan class="step6" x="0" y="0">Doors are trickier. Press</tspan>
     <tspan class="step6 key">d</tspan>
-    <tspan class="step6"> to rotate the door.</tspan>
+    <tspan class="step6">to rotate the door.</tspan>
     <tspan class="step6" x="0" dy="20">Watch: left, top, right, bottom, and back to left.</tspan>
     <code class="step6">(17,12)zdzdzdzdzd</code>
 
     <tspan class="step7" x="0" y="0">To remove a door you added</tspan>
-    <tspan class="step7" x="0" dy="20">press </tspan>
+    <tspan class="step7" x="0" dy="20">press</tspan>
     <tspan class="step7 key">x</tspan><tspan class="step7">.</tspan>
     <code class="step7">(17,13)zdzzxz(17,14)d</code>
 
     <tspan class="step8" x="0" y="0">Secret doors and conceiled doors work just the same.</tspan>
-    <tspan class="step8" x="0" dy="20">Press </tspan><tspan class="step8 key">$</tspan><tspan class="step8"> and </tspan>
-    <tspan class="step8 key">c</tspan><tspan class="step8"> to set and rotate them into place.</tspan>
+    <tspan class="step8" x="0" dy="20">Press</tspan>
+    <tspan class="step8 key">$</tspan>
+    <tspan class="step8">and</tspan>
+    <tspan class="step8 key">c</tspan>
+    <tspan class="step8">to set and rotate them into place.</tspan>
     <code class="step8">ff(18,15)fff(18,16)fffzczfff(21,17)fff(23,17)z$z$z$z(21,18)fff</code>
 
     <tspan class="step9" x="0" y="0">Stairs work just the same.</tspan>
     <tspan class="step9" x="0" dy="20">Press </tspan><tspan class="step9 key">s</tspan>
-    <tspan class="step9"> to set and rotate them into place.</tspan>
-    <code class="step9">(11,12)ssss(17,12)fssss  f(21,11)fff(21,12)fff(21,13)fff</code>
+    <tspan class="step9">to set and rotate them into place.</tspan>
+    <code class="step9">(11,12)szszszsz(17,12)fszszszs  f(21,11)fff(21,12)fff(21,13)fff</code>
 
     <tspan class="step10" x="0" y="0">Gates can be also be confusing, but see diagram!</tspan>
     <tspan class="step10" x="0" dy="20">Press </tspan><tspan class="step10 key">g</tspan>
-    <tspan class="step10"> to set and rotate them into place.</tspan>
+    <tspan class="step10">to set and rotate them into place.</tspan>
     <code class="step10">(15,16)zgzg</code>
 
-    <tspan class="step11" x="0" y="0">You can draw walls the same way using </tspan>
+    <tspan class="step11" x="0" y="0">You can draw walls the same way using</tspan>
     <tspan class="step11 key">w</tspan><tspan class="step11">.</tspan>
     <tspan class="step11" x="0" dy="20"></tspan>
-    <code class="step11">(16,18)zd(16,19)zw(16,20)zw</code>
+    <code class="step11">(16,18)z$(16,19)zw(16,20)zw</code>
 
     <tspan class="step12" x="0" y="0">This gets tedious very fast.</tspan>
-    <tspan class="step12" x="0" dy="20">Use </tspan>
+    <tspan class="step12" x="0" dy="20">Use</tspan>
     <tspan class="step12 key">m</tspan>
-    <tspan class="step12"> to enter </tspan>
+    <tspan class="step12">to enter</tspan>
     <tspan class="step12" style="font-weight: bold">Wall Mode</tspan><tspan class="step12">.</tspan>
     <tspan class="step12" x="0" dy="20">Note the shift by half a square!</tspan>
-    <code class="step12">(21,11)zmz wz wz</code>
+    <code class="step12">(21,11)zm</code>
+
+    <tspan class="step13" x="0" y="0" style="font-weight: bold">Wall Mode</tspan>
+    <tspan class="step13">keeps the cursor on the walls.</tspan>
+    <tspan class="step13" x="0" dy="20">Doors and walls no longer rotate.</tspan>
+    <code class="step13"> wz wz(21.5,13)wz wz</code>
+
+    <tspan class="step14" x="0" y="0">Move from wall to wall and use</tspan>
+    <tspan class="step14 key">d</tspan><tspan class="step14">,</tspan>
+    <tspan class="step14 key">$</tspan><tspan class="step14">,</tspan>
+    <tspan class="step14 key">c</tspan><tspan class="step14">,</tspan>
+    <tspan class="step14 key">g</tspan><tspan class="step14">,</tspan>
+    <tspan class="step14 key">w</tspan><tspan class="step14"> or</tspan>
+    <tspan class="step14 key">x</tspan><tspan class="step14">.</tspan>
+    <tspan class="step14" x="0" dy="20">Wall Mode does not work with the mouse.</tspan>
+    <code class="step14">(21,11.5)dz dz dz(21,12.5)dz dz dz(23.5,12)$</code>
+
+    <tspan class="step15" x="0" y="0">Well, that's it.</tspan>
+    <tspan class="step15" x="0" dy="20">The rest is up to you.</tspan>
 
   </text>
 </svg>
