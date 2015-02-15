@@ -1379,10 +1379,15 @@ function interpretCont (code, i) {
       advance = 'left';
       break;
     case 'z':
-      Commands.push(Map.swap, Map.swap); // with undo
-      Pen.x = 0;
-      Pen.y = 0;
-      Pen.type = null;
+      // Make sure we can undo this step.
+      Commands.push(Map.swap, Map.swap);
+      // When loading from an URL, we need to reposition the Pen. When
+      // running the Demo, we do not.
+      if (!Demo.running) {
+        Pen.x = 0;
+        Pen.y = 0;
+        Pen.type = null;
+      }
       break;
     case 'f':
     case 't':
@@ -1679,46 +1684,53 @@ onload = initialize;
     <tspan class="step9" x="0" y="0">Stairs work just the same.</tspan>
     <tspan class="step9" x="0" dy="20">Press </tspan><tspan class="step9 key">s</tspan>
     <tspan class="step9">to set and rotate them into place.</tspan>
-    <code class="step9">(11,12)s;s;s;s;(17,12)fs;s;s;s  f(21,11)fff(21,12)fff(21,13)fff</code>
+    <code class="step9">(11,12)s;s;s;s;(17,12)fs;s;s;s  </code>
 
-    <tspan class="step10" x="0" y="0">Gates can be also be confusing, but see diagram!</tspan>
-    <tspan class="step10" x="0" dy="20">Press </tspan><tspan class="step10 key">g</tspan>
-    <tspan class="step10">to set and rotate them into place.</tspan>
-    <code class="step10">(15,16);g;g</code>
+    <tspan class="step10" x="0" y="0">You can draw on two layers.</tspan>
+    <tspan class="step10" x="0" dy="20">Press</tspan>
+    <tspan class="step10 key">z</tspan>
+    <tspan class="step10">to switch layers.</tspan>
+    <code class="step10">z(21,11)fff(20,12)ffff(21,13)fff;z</code>
 
-    <tspan class="step11" x="0" y="0">Press </tspan><tspan class="step11 key">n</tspan>
-    <tspan class="step11">to place and rotate diagonals.</tspan>
-    <code class="step11">(17,15);n;n;n;n(18,14);n;n</code>
+    <tspan class="step11" x="0" y="0">Gates can be also be confusing, but see diagram!</tspan>
+    <tspan class="step11" x="0" dy="20">Press </tspan><tspan class="step11 key">g</tspan>
+    <tspan class="step11">to set and rotate them into place.</tspan>
+    <code class="step11">(15,16);g;g</code>
 
-    <tspan class="step12" x="0" y="0">You can draw walls using</tspan>
-    <tspan class="step12 key">w</tspan><tspan class="step12">.</tspan>
-    <tspan class="step12" x="0" dy="20">Thus, walls work just like doors.</tspan>
-    <code class="step12">(16,18);$(16,19);w(16,20);w</code>
+    <tspan class="step12" x="0" y="0">Press </tspan><tspan class="step12 key">n</tspan>
+    <tspan class="step12">to place and rotate diagonals.</tspan>
+    <code class="step12">(17,15);n;n;n;n(18,14);n;n</code>
 
-    <tspan class="step13" x="0" y="0">This gets tedious very fast.</tspan>
-    <tspan class="step13" x="0" dy="20">Use</tspan>
-    <tspan class="step13 key">m</tspan>
-    <tspan class="step13">to enter</tspan>
-    <tspan class="step13" style="font-weight: bold">Wall Mode</tspan><tspan class="step13">.</tspan>
-    <tspan class="step13" x="0" dy="20">Note the shift by half a square!</tspan>
-    <code class="step13">(21,11);m</code>
+    <tspan class="step13" x="0" y="0">You can draw walls using</tspan>
+    <tspan class="step13 key">w</tspan><tspan class="step13">.</tspan>
+    <tspan class="step13" x="0" dy="20">Thus, walls work just like doors.</tspan>
+    <code class="step13">(16,18);$(16,19);w(16,20);w</code>
 
-    <tspan class="step14" x="0" y="0" style="font-weight: bold">Wall Mode</tspan>
-    <tspan class="step14">keeps the cursor on the walls.</tspan>
-    <tspan class="step14" x="0" dy="20">Doors and walls no longer rotate.</tspan>
-    <code class="step14"> w; w;(21.5,13)w; w</code>
+    <tspan class="step14" x="0" y="0">This gets tedious very fast.</tspan>
+    <tspan class="step14" x="0" dy="20">Use</tspan>
+    <tspan class="step14 key">m</tspan>
+    <tspan class="step14">to enter</tspan>
+    <tspan class="step14" style="font-weight: bold">Wall Mode</tspan><tspan class="step14">.</tspan>
+    <tspan class="step14" x="0" dy="20">Note the shift by half a square!</tspan>
+    <code class="step14">z(21,11);m</code>
 
-    <tspan class="step15" x="0" y="0">Move from wall to wall and use</tspan>
-    <tspan class="step15 key">d</tspan><tspan class="step15">,</tspan>
-    <tspan class="step15 key">$</tspan><tspan class="step15">,</tspan>
-    <tspan class="step15 key">c</tspan><tspan class="step15">,</tspan>
-    <tspan class="step15 key">g</tspan><tspan class="step15">,</tspan>
-    <tspan class="step15 key">w</tspan><tspan class="step15"> or</tspan>
-    <tspan class="step15 key">x</tspan><tspan class="step15">.</tspan>
-    <code class="step15">(21,11.5)d; d; d;(21,12.5)d; d; d;(23.5,12)$</code>
+    <tspan class="step15" x="0" y="0" style="font-weight: bold">Wall Mode</tspan>
+    <tspan class="step15">keeps the cursor on the walls.</tspan>
+    <tspan class="step15" x="0" dy="20">Doors and walls no longer rotate.</tspan>
+    <code class="step15"> w; w;(21.5,13)w; w</code>
 
-    <tspan class="step16" x="0" y="0">Well, that's it. The rest is up to you.</tspan>
-    <tspan class="step16" x="0" dy="20">What lies beyond the secret doors to the east?</tspan>
+    <tspan class="step16" x="0" y="0">Move from wall to wall and use</tspan>
+    <tspan class="step16 key">d</tspan><tspan class="step16">,</tspan>
+    <tspan class="step16 key">$</tspan><tspan class="step16">,</tspan>
+    <tspan class="step16 key">c</tspan><tspan class="step16">,</tspan>
+    <tspan class="step16 key">g</tspan><tspan class="step16">,</tspan>
+    <tspan class="step16 key">w</tspan><tspan class="step16"> or</tspan>
+    <tspan class="step16 key">x</tspan><tspan class="step16">.</tspan>
+    <code class="step16">(21,11.5)d; d; d;(21,12.5)d; d; d;(23.5,12)$m</code>
+
+    <tspan class="step17" x="0" y="0">Well, that's it. The rest is up to you.</tspan>
+    <tspan class="step17" x="0" dy="20">What lies beyond the secret doors to the east?</tspan>
+    <code class="step17">z</code>
 
   </text>
 </svg>
