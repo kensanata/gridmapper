@@ -1458,9 +1458,9 @@ onload = initialize;
       <path fill="forestgreen" d="M 23,5 L 30,0 23,-5 Z" />
     </g>
   </defs>
-  <g id="floor-below"/>
-  <g id="stairs-below"/>
-  <g id="walls-below"/>
+  <g id="floor-below" transform="translate(-5,-5)"/>
+  <g id="stairs-below" transform="translate(-5,-5)"/>
+  <g id="walls-below" transform="translate(-5,-5)"/>
   <g id="background">
     <rect x="20" y="20" width="0" height="0" fill="none" stroke="black" stroke-width="1"/>
     <rect x="20" y="20" width="0" height="0" fill="lightgrey" opacity="0.8"/>
