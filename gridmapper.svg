@@ -116,7 +116,6 @@ var Map = {
    * the map, and finally we move the temp stuff below.
    */
   swap: function() {
-    var swapIt = function() {
       var temp = {};
    
       temp.floor = Map.floor;
@@ -156,20 +155,59 @@ var Map = {
       temp.floorChildren.forEach(function(child, i, array) { Map.below.floorElement.appendChild(child); });
       temp.wallsChildren.forEach(function(child, i, array) { Map.below.wallsElement.appendChild(child); });
       temp.stairsChildren.forEach(function(child, i, array) { Map.below.stairsElement.appendChild(child); });
-    };
+  },
+
+  swapWithAnimation: function() {
     var duration = 500;
 
     fadeElementTo(Map.floorElement, 0.2, linear, duration);
     fadeElementTo(Map.wallsElement, 0.2, linear, duration);
     fadeElementTo(Map.stairsElement, 0.2, linear, duration);
 
-    setTimeout(function(){Commands.push(swapIt,swapIt)}, duration);
-    
+    setTimeout(function(){Commands.push(Map.swap, Map.swap)}, duration);
+
     setTimeout(function(){
       fadeElementTo(Map.floorElement, 1, linear, duration);
       fadeElementTo(Map.wallsElement, 1, linear, duration);
       fadeElementTo(Map.stairsElement, 1, linear, duration);
     }, duration);
+  },
+
+  code: function() {
+    var source = '';
+    var mapping = {door: 'd', secret: '$', concealed: 'c', gate: 'g', wall: 'w',
+                   trap: 't', empty: 'f', pillar: 'p', stair: 's', statue: 'b',
+                   diagonal: 'n', };
+    for (var y = 0; y < Map.height; y++) {
+      for (var x = 0; x < Map.width; x++) {
+        if (Map.walls[x][y]) {
+          Map.walls[x][y] = Map.walls[x][y].sort(function(a,b){
+            return parseInt(a.getAttribute('rotate')) - parseInt(b.getAttribute('rotate'));
+          });
+          for (var i = 0; i < Map.walls[x][y].length; i++) {
+            var tile = Map.walls[x][y][i];
+            var type = mapping[tile.type];
+            if (type) {
+              source += type.repeat(1 + tile.getAttribute('rotate') / 90 - i);
+            }
+            if (i < Map.walls[x][y].length - 1)
+              source += '.';
+          }
+        }
+        // stairs cover the floor beneath
+        if (Map.stairs[x][y]) {
+          source += mapping[Map.stairs[x][y].type].repeat(1 + Map.stairs[x][y].getAttribute('rotate') / 90) + ' ';
+        } else if (Map.floor[x][y]) {
+          source += mapping[Map.floor[x][y].type];
+        } else {
+          source += ' ';
+        }
+      }
+      source += '\n';
+    }
+    source = source.replace(/ +$/gm,'');
+    source = source.replace(/\n+$/,'');
+    return source;
   },
 };
 
@@ -599,39 +637,18 @@ function download () {
  * to recreate it.
  */
 function textExport () {
+  // do we need to export the map below
   var source = '';
-  var mapping = {door: 'd', secret: '$', concealed: 'c', gate: 'g', wall: 'w',
-                 trap: 't', empty: 'f', pillar: 'p', stair: 's', statue: 'b',
-                 diagonal: 'n', };
-  for (var y = 0; y < Map.height; y++) {
-    for (var x = 0; x < Map.width; x++) {
-      if (Map.walls[x][y]) {
-        Map.walls[x][y] = Map.walls[x][y].sort(function(a,b){
-          return parseInt(a.getAttribute('rotate')) - parseInt(b.getAttribute('rotate'));
-        });
-        for (var i = 0; i < Map.walls[x][y].length; i++) {
-          var tile = Map.walls[x][y][i];
-          var type = mapping[tile.type];
-          if (type) {
-            source += type.repeat(1 + tile.getAttribute('rotate') / 90 - i);
-          }
-          if (i < Map.walls[x][y].length - 1)
-            source += '.';
-        }
-      }
-      // stairs cover the floor beneath
-      if (Map.stairs[x][y]) {
-        source += mapping[Map.stairs[x][y].type].repeat(1 + Map.stairs[x][y].getAttribute('rotate') / 90) + ' ';
-      } else if (Map.floor[x][y]) {
-        source += mapping[Map.floor[x][y].type];
-      } else {
-        source += ' ';
-      }
-    }
-    source += '\n';
+  if (Map.below.floorElement.hasChildNodes()
+      || Map.below.wallsElement.hasChildNodes()
+      || Map.below.stairsElement.hasChildNodes()) {
+    Map.swap();
+    source += Map.code() + 'z';
+    Map.swap()
+    source += Map.code();
+  } else {
+    source = Map.code();
   }
-  source = source.replace(/ +$/gm,'');
-  source = source.replace(/\n+$/,'');
   source = encodeURIComponent(source);
   var link = document.getElementById('export');
   var text = link.firstElementChild.firstChild.nodeValue;
@@ -1286,10 +1303,10 @@ function keyPressed (evt) {
     floor(Pen.x, Pen.y);
     break;
   case 'z':
-    Map.swap();
+    Map.swapWithAnimation();
     break;
   default:
-    console.log('Gridmapper doesn know how to handle "'+ key + '"');
+    console.log('Gridmapper does not know how to handle "'+ key + '"');
     break;
   }
 }
@@ -1340,11 +1357,13 @@ function interpretCont (code, i) {
     case '-':
       advance = 'left';
       break;
+    case 'z': Map.swap(); break;
     case 'f':
     case 't':
     case 'p':
     case 'b':
       advance = 'right';
+      // fall through to default
     default:
       keyPressed(code[i]);
     }
