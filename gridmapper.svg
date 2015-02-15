@@ -1379,7 +1379,7 @@ function interpretCont (code, i) {
       advance = 'left';
       break;
     case 'z':
-      Map.swap();
+      Commands.push(Map.swap, Map.swap); // with undo
       Pen.x = 0;
       Pen.y = 0;
       Pen.type = null;
