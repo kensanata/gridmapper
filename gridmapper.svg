@@ -51,11 +51,12 @@ var Map = {
   stairs: [], // the model for the stairs
   wallsElement: null, // the SVG element for the walls
   walls: [], // the model for the walls
-  below: {}, // the data for the map below
+  below: { floor: [], stairs: [], walls: [], }, // the data for the map below
   
   /**
-   * Initializes the datastructures and resets the map. We only need
-   * to run this at the very beginning.
+   * Initializes the datastructures if necessary. We only need to run
+   * this at the very beginning. This does not reset the map in case
+   * we're loading an existing file.
    */
   initialize: function() {
     Map.pointer = document.getElementById('pointer');
@@ -70,7 +71,6 @@ var Map = {
     Map.ui.ondragstart = function() { return false };
     Map.ui.onmousedown = penDown;
     Map.ui.onmousemove = Pen.update;
-    Map.reset();
   },
 
   /**
@@ -79,34 +79,59 @@ var Map = {
    * example. There is no undo.
    */
   reset: function() {
-    below = {};
-    var width = Map.width - 1;
-    Map.width = 0;
-    Map.minimumSize(width); // make sure the data structure exists
+    Map.wipe(0, Map.width - 1);
     while (Map.floorElement.lastChild) 
       Map.floorElement.removeChild(Map.floorElement.lastChild);
     while (Map.stairsElement.lastChild) 
       Map.stairsElement.removeChild(Map.stairsElement.lastChild);
     while (Map.wallsElement.lastChild) 
       Map.wallsElement.removeChild(Map.wallsElement.lastChild);
+    while (Map.below.floorElement.lastChild) 
+      Map.below.floorElement.removeChild(Map.below.floorElement.lastChild);
+    while (Map.below.stairsElement.lastChild) 
+      Map.below.stairsElement.removeChild(Map.below.stairsElement.lastChild);
+    while (Map.below.wallsElement.lastChild)
+      Map.below.wallsElement.removeChild(Map.below.wallsElement.lastChild);
     moveElements();
+  },
+
+  /**
+   * Wipes columns of the data structures.
+   */
+  wipe: function(from, to) {
+    for (var i = from; from < to; from++) {
+      Map.floor[i] = [];
+      Map.walls[i] = [];
+      Map.stairs[i] = [];
+      Map.below.floor[i] = [];
+      Map.below.walls[i] = [];
+      Map.below.stairs[i] = [];
+      i++;
+    }
+  },
+  
+  /**
+   * Grows the data structures along the x axis, if necessary. Returns
+   * true if the map did in fact grow. Remember that Map.width is one
+   * larger: If we have rows from 0 to 3 and Map.width is 4. If we
+   * need one more column, call grow(4). Map.width ends up being 5.
+   */
+  grow: function(to_x) {
+    if (to_x > Map.width) {
+      Map.wipe(Map.width, to_x);
+      Map.width = to_x + 1;
+      return true;
+    }
+    return false;
   },
   
   /**
    * Grows the data structures along the x axis, if necessary.
+   * Animate the process.
    */
-  minimumSize: function(width) {
-    var growth = false;
-    // first call will create all the columns
-    while (width >= Map.width) {
-      Map.floor[Map.width] = [];
-      Map.walls[Map.width] = [];
-      Map.stairs[Map.width] = [];
-      Map.width++;
-      growth = true;
-    }
+  growWithAnimation: function(to_x) {
     // show it
-    if (growth)
+    if (Map.grow(to_x))
       moveElements();
   },
 
@@ -137,10 +162,6 @@ var Map = {
       Map.walls = Map.below.walls||[];
       Map.stairs = Map.below.stairs||[];
 
-      var width = Math.max(Map.width, Map.floor.length); // make sure those limits match
-      Map.width = Map.floor.length;
-      Map.minimumSize(width - 1); // if we swapped in a smaller map, grow it
-      
       while (Map.below.floorElement.lastChild)
         Map.floorElement.appendChild(Map.below.floorElement.removeChild(Map.below.floorElement.lastChild));
       while (Map.below.wallsElement.lastChild)
@@ -1114,7 +1135,7 @@ function move (dir) {
       Pen.x--;
     break;
   case 'right':
-    Map.minimumSize(Pen.x + 1);
+    Map.growWithAnimation(Pen.x + 1);
     Pen.x++;
     break;
   case 'up':
@@ -1357,7 +1378,12 @@ function interpretCont (code, i) {
     case '-':
       advance = 'left';
       break;
-    case 'z': Map.swap(); break;
+    case 'z':
+      Map.swap();
+      Pen.x = 0;
+      Pen.y = 0;
+      Pen.type = null;
+      break;
     case 'f':
     case 't':
     case 'p':
@@ -1373,22 +1399,6 @@ function interpretCont (code, i) {
 }
 
 /**
- * Recreates one particular model based on a matching SVG element.
- * This looks only at id attributes.
- */
-function recreateModelFor (re, model, element) {
-  for (var i = 0; i < element.children.length; i++) {
-    var result = element.children[i].getAttribute('id').match(re);
-    if (result) {
-      var x = result[1];
-      var y = result[2];
-      Map.minimumSize(x);
-      model[x][y] = element.children[i];
-    }
-  }
-}
-
-/**
  * Recreates the models based on existing SVG elements (if loading a
  * saved file) and the URL (if loading a page). When loading a file,
  * We go through the elements and add the appropriate data to the
@@ -1398,12 +1408,42 @@ function recreateModelFor (re, model, element) {
  * used to simulate a little pause (to prevent doors from rotating).
  */
 function recreateModel () {
+  Map.wipe(0,Map.width);
   var re = /^\w+_(\d+)_(\d+)$/;
+  recreateModelFor(re, Map.below.floor, Map.below.floorElement);
+  recreateModelFor(re, Map.below.stairs, Map.below.stairsElement);
+  recreateModelFor(re, Map.below.walls, Map.below.wallsElement);
   recreateModelFor(re, Map.floor, Map.floorElement);
   recreateModelFor(re, Map.stairs, Map.stairsElement);
-  // doors are a special case because of the array
-  for (var i = 0; i < Map.wallsElement.children.length; i++) {
-    var result = Map.wallsElement.children[i].getAttribute('id').match(re);
+  recreateModelFor(re, Map.walls, Map.wallsElement);
+  // skip initial '?'
+  interpret(decodeURIComponent(window.location.search).substring(1));
+  moveElements(); // animate grows in the end
+}
+
+/**
+ * Recreates one particular model based on a matching SVG element.
+ * This looks only at id attributes.
+ */
+function recreateModelFor (re, model, element) {
+  for (var i = 0; i < element.children.length; i++) {
+    var result = element.children[i].getAttribute('id').match(re);
+    if (result) {
+      var x = result[1];
+      var y = result[2];
+      Map.grow(x);
+      model[x][y] = element.children[i];
+    }
+  }
+}
+
+/**
+ * Recreates one particular wall model on a matching SVG element.
+ * This looks only at id attributes.
+ */
+function recreateModelForDoors (re, model, element) {
+  for (var i = 0; i < element.children.length; i++) {
+    var result = element.children[i].getAttribute('id').match(re);
     if (result) {
       var x = result[1];
       var y = result[2];
@@ -1411,11 +1451,9 @@ function recreateModel () {
       if (!Map.walls[x][y]) {
         Map.walls[x][y] = [];
       }
-      Map.walls[x][y].push(Map.wallsElement.children[i]);
+      model[x][y].push(element.children[i]);
     }
   }
-  // skip initial '?'
-  interpret(decodeURIComponent(window.location.search).substring(1));
 }
 
 /**
@@ -1424,7 +1462,7 @@ function recreateModel () {
 function initialize () {
   scaleTiles();
   document.onkeydown = keyPressed; // capture arrow keys
-  Map.initialize();
+  Map.initialize(); // don't reset the Map so we can load from a file
   Pen.update(null); // show it
   recreateModel(); // create model
 }
