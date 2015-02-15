@@ -138,9 +138,7 @@ var Map = {
       Map.walls = Map.below.walls||[];
       Map.stairs = Map.below.stairs||[];
 
-      var width = Map.width - 1;
-      Map.width = 0;
-      Map.minimumSize(width); // make sure the data structure exists
+      Map.width = Map.floor.length; // make sure those limits match
       
       while (Map.below.floorElement.lastChild)
         Map.floorElement.appendChild(Map.below.floorElement.removeChild(Map.below.floorElement.lastChild));
