@@ -170,25 +170,25 @@ var Map = {
           Map.below.stairsElement.setAttribute('opacity', delta);
         }
       });
-    }
+    };
     var fadeOut = function() {
       var f = function(progress) {
         return 1 - 0.9 * progress;
       }
       fadeTo(f);
-    }
+    };
     var fadeIn = function() {
       var f = function(progress) {
         return 0.1 + 0.9 * progress;
       }
       fadeTo(f);
-    }
-    var animatedSwap = function() {
-      fadeOut();
-      setTimeout(swapIt, 1000);
-      setTimeout(fadeIn, 2000);
-    }
-    Commands.push(swapIt,animatedSwap);
+    };
+    var doIt = function() {
+      Commands.push(swapIt,swapIt);
+    };
+    fadeOut();
+    setTimeout(doIt, 1000);
+    setTimeout(fadeIn, 2000);
   },
 };
 
