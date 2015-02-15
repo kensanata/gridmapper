@@ -113,7 +113,7 @@ Here's the combined map.
 Turn spaces back into ```%20```, newlines into ```%0A```, and append it to
 the Gridmapper URL: [Combined Map](https://campaignwiki.org/gridmapper.svg?%0A%20w.dfwwfwwfw%0A%20wftfw.wfwwfww.dddfw%0A%20wfffwnnnn%20nn%20wfwwfwwfw%0A%20ww%20ww%20w.dfffwfn%20nnn%20w%0A%20%20%20ww%20ww%20ww%20wfnnnn%20fd%0A%20%20%20%20%20%20ww%20ww%20ww%0A%20(0,0)%0A%20%20%20%20%20%20%20%20%20%20%20ffnn%20n%20nn%20ffnn%0A%20%20%20%20%20%20%20%20%20%20%20dfbfdfwfwfbf%0A%20%20%20%20%20%20%20%20%20%20%20ffnnn%20fwfdffnnn)
 
-You could now go back to your map and move the second around in
+You could now go back to your map and move the second map around in
 relation to the first map by adding or removing newlines and spaces.
 And when you're good to go, click on *Prepare Link* and on the
 resulting *Link*. You should get a "simplified" link that results in
