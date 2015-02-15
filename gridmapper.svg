@@ -1542,7 +1542,7 @@ onload = initialize;
   ]]></style>
 
   <g id="help">
-    <rect x="10" y="80" width="440" height="510" fill="ivory" stroke="black" stroke-width="1"/>
+    <rect x="10" y="80" width="440" height="530" fill="ivory" stroke="black" stroke-width="1"/>
     <a xlink:href="https://alexschroeder.ch/wiki/Gridmapper">
       <text x="460" y="90" transform="rotate(90,460,90)" style="font-weight: bold">Gridmapper</text>
     </a>
@@ -1566,6 +1566,7 @@ onload = initialize;
     <use x="30" y="400" xlink:href="#empty"/>
     <use x="30" y="430" xlink:href="#empty"/>
     <use x="20" y="430" xlink:href="#cursor"/>
+
     <g>
       <use x="370" y="260" xlink:href="#empty" opacity="0.3"/>
       <use x="350" y="280" xlink:href="#empty" opacity="0.3"/>
@@ -1586,6 +1587,7 @@ onload = initialize;
       <use x="340" y="250" xlink:href="#curved-arrow" transform="rotate(180,380,290)"/>
       <use x="340" y="250" xlink:href="#curved-arrow" transform="rotate(270,380,290)"/>
     </g>
+
     <text y="105">
       <tspan x="60">Use the mouse to draw and erase the floor</tspan>
       <tspan x="60" dy="30"><tspan class="key">t</tspan> : trap</tspan>
@@ -1601,13 +1603,10 @@ onload = initialize;
       <tspan x="60" dy="30"><tspan class="key">f</tspan> : floor / erase</tspan>
       <tspan x="60" dy="30" class="key">m</tspan><tspan> : enter / leave Wall Mode</tspan>
       <tspan x="60" dy="20" class="key">x</tspan><tspan> : clear wall</tspan>
-      <tspan x="210" dy="0" class="key">Space</tspan><tspan> : move right</tspan>
       <tspan x="60" dy="20" class="key">u</tspan><tspan> : undo</tspan>
-      <tspan x="210" class="key">Enter</tspan><tspan> : begin new line</tspan>
       <tspan x="60" dy="20" class="key">r</tspan><tspan> : redo</tspan>
-      <tspan x="210" class="key">Arrows</tspan><tspan> : move around</tspan>
+      <tspan x="60" dy="20" class="key">z</tspan><tspan> : switch layer</tspan>
       <tspan x="60" dy="20" class="key">?</tspan><tspan> : toggle help</tspan>
-      <tspan x="210" class="key">Shift Arr.</tspan><tspan> : floor / erase</tspan>
       <a id="download" fill="blue" xlink:href="javascript:download()">
 	<tspan x="30" dy="30">Prepare Download</tspan>
       </a>
@@ -1626,6 +1625,13 @@ onload = initialize;
       <a id="demo" fill="blue" xlink:href="javascript:Demo.start()">
 	<tspan>Demo</tspan>
       </a>
+    </text>
+
+    <text x="210" y="485">
+      <tspan class="key">Space</tspan><tspan> : move right</tspan>
+      <tspan x="210" dy="20" class="key">Enter</tspan><tspan> : begin new line</tspan>
+      <tspan x="210" dy="20" class="key">Arrows</tspan><tspan> : move around</tspan>
+      <tspan x="210" dy="20" class="key">Shift Arr.</tspan><tspan> : floor / erase</tspan>
     </text>
   </g>
 
@@ -1649,11 +1655,11 @@ onload = initialize;
 
     <tspan class="step4" x="0" y="0">In general I recomend using the</tspan>
     <tspan class="step4 key">Arrow keys</tspan>
-    <tspan class="step4" x="0" dy="20">to move around on the map.</tspan>
+    <tspan class="step4">to move.</tspan>
     <tspan class="step4" x="0" dy="20">Use</tspan>
     <tspan class="step4 key">f</tspan>
     <tspan class="step4">to draw or erase the floor.</tspan>
-    <code class="step4">(14,16)ff(14,17)ff(11,18)ffffff(11,19)ffffff(11,20)ffffff;ff-;f--f-</code>
+    <code class="step4">(14,16)ff(14,17)ff(11,18)ffffff(11,19)ffffff(11,20)ffffff;ffff-;f--;f--;f--f-</code>
 
     <tspan class="step5" x="0" y="0">Things like traps, statues and pillars are easy.</tspan>
     <tspan class="step5" x="0" dy="20">Just press the appropriate key:</tspan>
@@ -1679,7 +1685,7 @@ onload = initialize;
     <tspan class="step8">and</tspan>
     <tspan class="step8 key">c</tspan>
     <tspan class="step8">to set and rotate them into place.</tspan>
-    <code class="step8">(17,14)dff(18,15)fff(18,16)fff;c;fff(21,17)fff(23,17);$;$;$;(21,18)fff</code>
+    <code class="step8">(17,14)dff(18,15)fff(19,16)ff;c;fff(21,17)fff(23,17);$;$;$;(21,18)fff</code>
 
     <tspan class="step9" x="0" y="0">Stairs work just the same.</tspan>
     <tspan class="step9" x="0" dy="20">Press </tspan><tspan class="step9 key">s</tspan>
@@ -1727,6 +1733,9 @@ onload = initialize;
     <tspan class="step16 key">w</tspan><tspan class="step16"> or</tspan>
     <tspan class="step16 key">x</tspan><tspan class="step16">.</tspan>
     <code class="step16">(21,11.5)d; d; d;(21,12.5)d; d; d;(23.5,12)$m</code>
+    <tspan class="step16" x="0" dy="20">Use </tspan>
+    <tspan class="step16 key">m</tspan>
+    <tspan class="step16">to leave Wall Mode.</tspan>
 
     <tspan class="step17" x="0" y="0">Well, that's it. The rest is up to you.</tspan>
     <tspan class="step17" x="0" dy="20">What lies beyond the secret doors to the east?</tspan>
