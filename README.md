@@ -42,7 +42,7 @@ You can take the part starting with the question mark and use it with
 a newer copy of Gridmapper!
 
 For example, load the
-[same simple map on Campaign Wiki's Gridmapper]([One](https://campaignwiki.org/gridmapper.svg?%0A%20s%0A%0A%20ff%0A%20ff).
+[same simple map on Campaign Wiki's Gridmapper](https://campaignwiki.org/gridmapper.svg?%0A%20s%0A%0A%20ff%0A%20ff).
 Now you can click on *Prepare Download* and then click on *Download* –
 and you have an upgraded, local copy of your dungeon!
 
