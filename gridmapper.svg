@@ -138,7 +138,9 @@ var Map = {
       Map.walls = Map.below.walls||[];
       Map.stairs = Map.below.stairs||[];
 
-      Map.width = Map.floor.length; // make sure those limits match
+      var width = Math.max(Map.width, Map.floor.length); // make sure those limits match
+      Map.width = Map.floor.length;
+      Map.minimumSize(width - 1); // if we swapped in a smaller map, grow it
       
       while (Map.below.floorElement.lastChild)
         Map.floorElement.appendChild(Map.below.floorElement.removeChild(Map.below.floorElement.lastChild));
@@ -155,26 +157,19 @@ var Map = {
       temp.wallsChildren.forEach(function(child, i, array) { Map.below.wallsElement.appendChild(child); });
       temp.stairsChildren.forEach(function(child, i, array) { Map.below.stairsElement.appendChild(child); });
     };
-    var fadeTo = function(delta) {
-      animate({
-        duration: 500,
-        delta: delta,
-        step: function(delta) {
-          Map.floorElement.setAttribute('opacity', delta);
-          Map.wallsElement.setAttribute('opacity', delta);
-          Map.stairsElement.setAttribute('opacity', delta);
-          Map.below.floorElement.setAttribute('opacity', delta);
-          Map.below.wallsElement.setAttribute('opacity', delta);
-          Map.below.stairsElement.setAttribute('opacity', delta);
-        }
-      });
-    };
-    var doIt = function() {
-      Commands.push(swapIt,swapIt);
-    };
-    fadeTo(linear);
-    setTimeout(doIt, 500);
-    setTimeout(fadeTo(function(progress){1-linear(progress)}), 500);
+    var duration = 500;
+
+    fadeElementTo(Map.floorElement, 0.2, linear, duration);
+    fadeElementTo(Map.wallsElement, 0.2, linear, duration);
+    fadeElementTo(Map.stairsElement, 0.2, linear, duration);
+
+    setTimeout(function(){Commands.push(swapIt,swapIt)}, duration);
+    
+    setTimeout(function(){
+      fadeElementTo(Map.floorElement, 1, linear, duration);
+      fadeElementTo(Map.wallsElement, 1, linear, duration);
+      fadeElementTo(Map.stairsElement, 1, linear, duration);
+    }, duration);
   },
 };
 
@@ -452,6 +447,10 @@ function linear (progress) {
   return progress;
 }
 
+function inverse (progress) {
+  return 1 - progress;
+}
+
 function bounce (progress) {
   for(var a = 0, b = 1; 1; a += b, b /= 2) {
     if (progress >= (7 - 4 * a) / 11) {
@@ -508,6 +507,23 @@ function moveElement (element, x1, y1, x2, y2, delta, duration) {
       }
     })
 }
+
+function fadeElementTo (element, opacity, delta, duration) {
+  var from = Number(element.getAttribute('opacity')) || 1;
+  animate({
+    delay: 10,
+    duration: duration || 1000, // 1 sec by default
+    delta: delta,
+    step: function(delta) {
+      var value = from + (opacity - from) * delta;
+      if (value > 0.99) {
+        element.removeAttribute('opacity');
+      } else {
+        element.setAttribute('opacity', value);
+      }
+    }
+  });
+};
 
 function moveElements () {
   Map.ui.setAttribute('x', Map.tileWidth);
@@ -1446,13 +1462,12 @@ onload = initialize;
       <path fill="forestgreen" d="M 23,5 L 30,0 23,-5 Z" />
     </g>
   </defs>
-  <g id="floor-below"/>
-  <g id="stairs-below"/>
-  <g id="walls-below"/>
   <g id="background">
-    <rect x="20" y="20" width="0" height="0" fill="none" stroke="black" stroke-width="1"/>
-    <rect x="20" y="20" width="0" height="0" fill="lightgrey" opacity="0.8"/>
+    <rect x="20" y="20" width="0" height="0" fill="lightgrey" stroke="black" stroke-width="1"/>
   </g>
+  <g id="floor-below" opacity="0.2"/>
+  <g id="stairs-below" opacity="0.2"/>
+  <g id="walls-below" opacity="0.2"/>
   <g id="floor"/>
   <g id="stairs"/>
   <use id="pointer" xlink:href="#cursor"/>
