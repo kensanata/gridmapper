@@ -21,13 +21,35 @@ Examples
 * [OSR Logo](https://campaignwiki.org/gridmapper.svg?%0A%20w.dfwwfwwfw%0A%20wftfw.wfwwfww.dddfw%0A%20wfffwnnnn%20nn%20wfwwfwwfw%0A%20ww%20ww%20w.dfffwfn%20nnn%20w%0A%20%20%20ww%20ww%20ww%20wfnnnn%20fd%0A%20%20%20%20%20%20ww%20ww%20ww)
 * [Demo Dungeon](https://campaignwiki.org/gridmapper.svg?%0A%0A%0A%0A%0A%0A%0A%0A%0A%0A%0A%20%20%20%20%20%20%20%20%20%20%20%20%20ffff%20%20%20%20fwfwf%0A%20%20%20%20%20%20%20%20%20%20%20ssss%20%20ffffdfssss%20%20fddfddfddf%24%0A%20%20%20%20%20%20%20%20%20%20%20%20%20ffff%20%20%20%20ddfw.dfw.df%0A%20%20%20%20%20%20%20%20%20%20%20%20%20ffffdfnn%0A%20%20%20%20%20%20%20%20%20%20%20%20%20ffffnnnn%20fff%0A%20%20%20%20%20%20%20%20%20%20%20%20%20%20fggf%20%20fffcfff%0A%20%20%20%20%20%20%20%20%20%20%20%20%20%20ff%20%20%20%20%20ff%24%24%24f%0A%20%20%20%20%20%20%20%20%20%20%20pppff%24f%20%20%20%20fff%0A%20%20%20%20%20%20%20%20%20%20%20btfffwf%0A%20%20%20%20%20%20%20%20%20%20%20pppffwf)
 
-Editing Maps
-------------
-
 You will have noticed that those example URLs contain a lot of
 gibberish past the questionmark. It's a sort of code that's very close
-to a stream of keyboard commands. You can use this to make edits to
-your map.
+to a stream of keyboard commands. You can get this **Link URL** by
+clicking on *Prepare Link* and then clicking on the resulting *Link*.
+(Incidentally, this also kills your undo history.)
+
+Upgrading your local copy of Gridmapper
+---------------------------------------
+
+Let's assume you downloaded a copy of Gridmapper and started creating
+your dungeon. Then you discovered that there's a new release out
+there. How can you upgrade your local file? The **Link URL** is key!
+
+You can get this **Link URL** by clicking on *Prepare Link* and then
+clicking on the resulting *Link*. Here's a simple example:
+```file:///Users/alex/Source/gridmapper/gridmapper.svg?%0A%20s%0A%0A%20ff%0A%20ff```
+
+You can take the part starting with the question mark and use it with
+a newer copy of Gridmapper!
+
+For example, load the
+[same simple map on Campaign Wiki's Gridmapper]([One](https://campaignwiki.org/gridmapper.svg?%0A%20s%0A%0A%20ff%0A%20ff).
+Now you can click on *Prepare Download* and then click on *Download* –
+and you have an upgraded, local copy of your dungeon!
+
+Editing Maps using a Text Editor
+--------------------------------
+
+You can use the **Link URL** to make edits to your map.
 
 Assume you have these two maps:
 [One](https://campaignwiki.org/gridmapper.svg?%0A%20w.dfwwfwwfw%0A%20wftfw.wfwwfww.dddfw%0A%20wfffwnnnn%20nn%20wfwwfwwfw%0A%20ww%20ww%20w.dfffwfn%20nnn%20w%0A%20%20%20ww%20ww%20ww%20wfnnnn%20fd%0A%20%20%20%20%20%20ww%20ww%20ww)
