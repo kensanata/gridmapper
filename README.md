@@ -34,17 +34,21 @@ Let's assume you downloaded a copy of Gridmapper and started creating
 your dungeon. Then you discovered that there's a new release out
 there. How can you upgrade your local file? The **Link URL** is key!
 
-You can get this **Link URL** by clicking on *Prepare Link* and then
-clicking on the resulting *Link*.
-Here's a simple example: ```file:///Users/alex/Source/gridmapper/gridmapper.svg?%0A%20s%0A%0A%20ff%0A%20ff```
+You can get this **Link URL** by loading your local copy, clicking on
+*Prepare Link* and then clicking on the resulting *Link*. Here's a
+simple example: ```file:///Users/alex/Documents/awesome.svg?%0A%20s%0A%0A%20ff%0A%20ff```
 
 You can take the part starting with the question mark and use it with
-a newer copy of Gridmapper!
+a newer copy of Gridmapper! Download a new copy, load it, and append
+the stuff starting with the question mark.
+Here's a simple example: ```file:///Users/alex/Download/gridmapper.svg?%0A%20s%0A%0A%20ff%0A%20ff```
 
-For example, load the
-[same simple map on Campaign Wiki's Gridmapper](https://campaignwiki.org/gridmapper.svg?%0A%20s%0A%0A%20ff%0A%20ff).
-Now you can click on *Prepare Download* and then click on *Download* –
-and you have an upgraded, local copy of your dungeon!
+This also works with the
+[Campaign Wiki's Gridmapper](https://campaignwiki.org/gridmapper.svg?%0A%20s%0A%0A%20ff%0A%20ff).
+
+Once you have your map in the new copy of Gridmapper, click on
+*Prepare Download* and then click on *Download* – and you have an
+upgraded, local copy of your dungeon!
 
 Editing Maps using a Text Editor
 --------------------------------
