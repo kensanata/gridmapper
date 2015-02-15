@@ -35,8 +35,8 @@ your dungeon. Then you discovered that there's a new release out
 there. How can you upgrade your local file? The **Link URL** is key!
 
 You can get this **Link URL** by clicking on *Prepare Link* and then
-clicking on the resulting *Link*. Here's a simple example:
-```file:///Users/alex/Source/gridmapper/gridmapper.svg?%0A%20s%0A%0A%20ff%0A%20ff```
+clicking on the resulting *Link*.
+Here's a simple example: ```file:///Users/alex/Source/gridmapper/gridmapper.svg?%0A%20s%0A%0A%20ff%0A%20ff```
 
 You can take the part starting with the question mark and use it with
 a newer copy of Gridmapper!
