@@ -25,13 +25,11 @@ var svgNs   = 'http://www.w3.org/2000/svg';
 var xlinkNs = 'http://www.w3.org/1999/xlink';
 
 /**
- * Stores everything about the map. The fooElement members point to
- * the SVG elements where we'll be adding stuff and the foo members
- * are arrays with references to those elements, indexed by x and y.
- * We need multiple elements because that's how we make sure that they
- * are painted in the correct order -- a sort of primitive z-axis. The
- * ui Element is a transparent overlay where we'll register the mouse
- * event handlers.
+ * Stores everything about the map. The element members point to the
+ * SVG elements where we'll be adding stuff. We need multiple elements
+ * because that's how we make sure that they are painted in the
+ * correct order -- a sort of primitive z-axis. The ui Element is a
+ * transparent overlay where we'll register the mouse event handlers.
  *
  * If you want to change the size of the map, simply change width and
  * height. 30x30 was the template for the first One Page Dungeon
@@ -46,12 +44,10 @@ var Map = {
   ui: null, // the SVG element with the event handlers
   pointer: null, // the SVG element for the current position
   floorElement: null, // the SVG element for the floor
-  floor: [], // the model for the floor
   stairsElement: null, // the SVG element for the stairs
-  stairs: [], // the model for the stairs
   wallsElement: null, // the SVG element for the walls
-  walls: [], // the model for the walls
-  below: { floor: [], stairs: [], walls: [], }, // the data for the map below
+  data: new Tiles(),
+  below: { data: new Tiles(), }, // the data for the map below
   
   /**
    * Initializes the datastructures if necessary. We only need to run
@@ -79,7 +75,8 @@ var Map = {
    * example. There is no undo.
    */
   reset: function() {
-    Map.wipe(0, Map.width - 1);
+    Map.data = [];
+    Map.below.data = [];
     while (Map.floorElement.lastChild) 
       Map.floorElement.removeChild(Map.floorElement.lastChild);
     while (Map.stairsElement.lastChild) 
@@ -93,36 +90,7 @@ var Map = {
     while (Map.below.wallsElement.lastChild)
       Map.below.wallsElement.removeChild(Map.below.wallsElement.lastChild);
     moveElements();
-  },
-
-  /**
-   * Wipes columns of the data structures.
-   */
-  wipe: function(from, to) {
-    for (var i = from; from < to; from++) {
-      Map.floor[i] = [];
-      Map.walls[i] = [];
-      Map.stairs[i] = [];
-      Map.below.floor[i] = [];
-      Map.below.walls[i] = [];
-      Map.below.stairs[i] = [];
-      i++;
-    }
-  },
-  
-  /**
-   * Grows the data structures along the x axis, if necessary. Returns
-   * true if the map did in fact grow. Remember that Map.width is one
-   * larger: If we have rows from 0 to 3 and Map.width is 4. If we
-   * need one more column, call grow(4). Map.width ends up being 5.
-   */
-  grow: function(to_x) {
-    if (to_x > Map.width) {
-      Map.wipe(Map.width, to_x);
-      Map.width = to_x + 1;
-      return true;
-    }
-    return false;
+    Commands.reset();
   },
   
   /**
@@ -131,8 +99,10 @@ var Map = {
    */
   growWithAnimation: function(to_x) {
     // show it
-    if (Map.grow(to_x))
+    if (to_x >= Map.width) {
+      Map.width = to_x + 1;
       moveElements();
+    }
   },
 
   /**
@@ -143,9 +113,7 @@ var Map = {
   swap: function() {
       var temp = {};
    
-      temp.floor = Map.floor;
-      temp.walls = Map.walls;
-      temp.stairs = Map.stairs;
+      temp.data = Map.data;
 
       temp.floorChildren = [];
       temp.wallsChildren = [];
@@ -158,9 +126,7 @@ var Map = {
       while (Map.stairsElement.lastChild)
         temp.stairsChildren.push(Map.stairsElement.removeChild(Map.stairsElement.lastChild));
 
-      Map.floor = Map.below.floor||[];
-      Map.walls = Map.below.walls||[];
-      Map.stairs = Map.below.stairs||[];
+      Map.data = Map.below.data;
 
       while (Map.below.floorElement.lastChild)
         Map.floorElement.appendChild(Map.below.floorElement.removeChild(Map.below.floorElement.lastChild));
@@ -169,9 +135,7 @@ var Map = {
       while (Map.below.stairsElement.lastChild)
         Map.stairsElement.appendChild(Map.below.stairsElement.removeChild(Map.below.stairsElement.lastChild));
       
-      Map.below.floor = temp.floor;
-      Map.below.walls = temp.walls;
-      Map.below.stairs = temp.stairs;
+      Map.below.data = temp.data;
 
       temp.floorChildren.forEach(function(child, i, array) { Map.below.floorElement.appendChild(child); });
       temp.wallsChildren.forEach(function(child, i, array) { Map.below.wallsElement.appendChild(child); });
@@ -201,25 +165,30 @@ var Map = {
                    diagonal: 'n', };
     for (var y = 0; y < Map.height; y++) {
       for (var x = 0; x < Map.width; x++) {
-        if (Map.walls[x][y]) {
-          Map.walls[x][y] = Map.walls[x][y].sort(function(a,b){
+        var walls = Map.data.get(x, y).walls;
+        if (walls) {
+          walls = walls.sort(function(a,b){
             return parseInt(a.getAttribute('rotate')) - parseInt(b.getAttribute('rotate'));
           });
-          for (var i = 0; i < Map.walls[x][y].length; i++) {
-            var tile = Map.walls[x][y][i];
+          for (var i = 0; i < walls.length; i++) {
+            var tile = walls[i];
             var type = mapping[tile.type];
             if (type) {
               source += type.repeat(1 + tile.getAttribute('rotate') / 90 - i);
             }
-            if (i < Map.walls[x][y].length - 1)
+            if (i < walls.length - 1)
               source += '.';
           }
         }
-        // stairs cover the floor beneath
-        if (Map.stairs[x][y]) {
-          source += mapping[Map.stairs[x][y].type].repeat(1 + Map.stairs[x][y].getAttribute('rotate') / 90) + ' ';
-        } else if (Map.floor[x][y]) {
-          source += mapping[Map.floor[x][y].type];
+        var tile = Map.data.get(x, y).floor;
+        if (tile) {
+          if (tile.hasAttribute('rotate')) {
+            var rotate = tile.getAttribute('rotate') / 90;
+            source += mapping[tile.type].repeat(1 + rotate);
+            source += ' ';
+          } else {
+            source += mapping[tile.type];
+          }
         } else {
           source += ' ';
         }
@@ -230,6 +199,30 @@ var Map = {
     source = source.replace(/\n+$/,'');
     return source;
   },
+};
+
+/**
+ *
+ */
+function Tiles() {
+  this.data = [];
+  this.get = function(x, y) {
+    if (!this.data[x]) {
+      this.data[x] = [];
+    }
+    if (!this.data[x][y]) {
+      this.data[x][y] = new Tile();
+    }
+    return this.data[x][y];
+  }
+};
+
+/**
+ * Stores everything about a single square and its surrounding walls.
+ */
+function Tile() {
+  this.floor = null;
+  this.walls = [];
 };
 
 /**
@@ -333,6 +326,12 @@ var Commands = {
   i: -1, // where are we in the undo/redo chain
   undoSteps: [],
   redoSteps: [],
+
+  /**
+   * Add two closures to the lists. The first one is how to undo a
+   * change, the second one is how to do a change. This automatically
+   * does the change, too.
+   */
   push: function(undoStep, redoStep) {
     // once we're pushing new steps, discard the undone steps
     while (this.undoSteps.length - 1 > this.i) {
@@ -345,16 +344,23 @@ var Commands = {
     // finally, execute the last step
     redoStep();
   },
+  
   undo: function() {
     if (this.i >= 0) {
       this.undoSteps[this.i--]();
     }
   },
+  
   redo: function() {
     if (this.i < this.redoSteps.length - 1) {
       this.redoSteps[++this.i]();
     }
   },
+  
+  reset: function() {
+    undoSteps = [];
+    redoSteps = [];
+  }
 };
 
 /**
@@ -732,8 +738,9 @@ function getUnusedAngle (x, y, rotate) {
                    (rotate + 180) % 360,
                    (rotate + 270) % 360];
   var existingWalls = [];
-  for (var i = 0; i < Map.walls[x][y].length; i++) {
-    existingWalls.push(Map.walls[x][y][i].getAttribute('rotate'));
+  var walls = Map.data.get(x, y).walls;
+  for (var i = 0; i < walls.length; i++) {
+    existingWalls.push(walls[i].getAttribute('rotate'));
   }
   search: for (var c = 0; c < 4; c++) {
     for (var i = 0; i < existingWalls.length; i++) {
@@ -770,11 +777,12 @@ function rotateTile (tile, type, x, y, angle) {
  */
 function wallPlacement (x, y, type) {
   var now = new Date();
+  var walls = Map.data.get(x, y).walls;
   if (Pen.type === type
-      && Map.walls[x][y]  && Map.walls[x][y].length > 0
+      && walls  && walls.length > 0
       && Pen.ts && now - Pen.ts <= 2000) {
     // we just placed a door: take the last one and rotate it
-    var tile = Map.walls[x][y][Map.walls[x][y].length - 1];
+    var tile = walls[walls.length - 1];
     var old = tile.getAttributeNS(null,'transform');
     var angle = parseInt(tile.getAttribute('rotate'));
     var rotate = getUnusedAngle(x, y, (angle + 90) % 360);
@@ -788,21 +796,17 @@ function wallPlacement (x, y, type) {
         });
     }
   } else {
-    // make sure the data structure exists
-    if (!Map.walls[x][y]) {
-      Map.walls[x][y] = [];
-    }
     var rotate = getUnusedAngle(x, y, 0);
     if (rotate != null) {
       var tile = createTile(x, y, type);
       rotateTile(tile, type, x, y, rotate);
       Commands.push(
         function(){
-          Map.walls[x][y].pop();
+          walls.pop();
           Map.wallsElement.removeChild(tile);
         },
         function(){
-          Map.walls[x][y].push(tile);
+          walls.push(tile);
           Map.wallsElement.appendChild(tile);
         });
     }
@@ -824,15 +828,13 @@ function wallDraw (x, y, type) {
     angle = 90;
     y = Math.ceil(y);
   }
-  // make sure the data structure exists
-  if (!Map.walls[x][y]) {
-    Map.walls[x][y] = [];
-  }
-  var i, old, tile = createTile(x, y, type);
+  var i, old;
+  var tile = createTile(x, y, type);
+  var walls = Map.data.get(x, y).walls;
   rotateTile(tile, type, x, y, angle)
-  for (i = 0; i < Map.walls[x][y].length; i++) {
-    if (parseInt(Map.walls[x][y][i].getAttribute('rotate')) == angle) {
-      old = Map.walls[x][y][i];
+  for (i = 0; i < walls.length; i++) {
+    if (parseInt(walls[i].getAttribute('rotate')) == angle) {
+      old = walls[i];
       break;
     }
   }
@@ -841,17 +843,17 @@ function wallDraw (x, y, type) {
       Map.wallsElement.removeChild(tile);
       if (old) {
         Map.wallsElement.appendChild(old);
-        Map.walls[x][y][i] = old;
+        walls[i] = old;
       } else {
-        Map.walls[x][y].pop();
+        walls.pop();
       }
     },
     function(){
       if (old) {
         Map.wallsElement.removeChild(old);
-        Map.walls[x][y][i] = tile;
+        walls[i] = tile;
       } else {
-        Map.walls[x][y].push(tile);
+        walls.push(tile);
       }
       Map.wallsElement.appendChild(tile);
     });
@@ -892,6 +894,7 @@ function wall (x, y, type) {
  * Removes a tile from the surrounding walls of the give tile.
  */
 function removeWall  (x, y) {
+  var walls = Map.data.get(x, y).walls;
   if (Pen.type === 'wallMode') {
     var angle = 0;
     if (y % 1 === 0) {
@@ -900,11 +903,11 @@ function removeWall  (x, y) {
       angle = 90;
       y = Math.ceil(y);
     }
-    if (Map.walls[x][y] && Map.walls[x][y].length > 0) {
+    if (walls && walls.length > 0) {
       var i, old;
-      for (i = 0; i < Map.walls[x][y].length; i++) {
-        if (parseInt(Map.walls[x][y][i].getAttribute('rotate')) == angle) {
-          old = Map.walls[x][y][i];
+      for (i = 0; i < walls.length; i++) {
+        if (parseInt(walls[i].getAttribute('rotate')) == angle) {
+          old = walls[i];
           break;
         }
       }
@@ -912,24 +915,24 @@ function removeWall  (x, y) {
         Commands.push(
           function(){
             Map.wallsElement.appendChild(old);
-            Map.walls[x][y].push(old);
+            walls.push(old);
           },
           function(){
             Map.wallsElement.removeChild(old);
-            Map.walls[x][y].splice(i,1);
+            walls.splice(i,1);
           });
       }
     }
-  } else if (Map.walls[x][y] && Map.walls[x][y].length > 0) {
+  } else if (walls && walls.length > 0) {
     // take the last one and remove it
-    var tile = Map.walls[x][y][Map.walls[x][y].length - 1];
+    var tile = walls[walls.length - 1];
     Commands.push(
       function(){
-        Map.walls[x][y].push(tile);
+        walls.push(tile);
         Map.wallsElement.appendChild(tile);
       },
       function(){
-        Map.walls[x][y].pop();
+        walls.pop();
         Map.wallsElement.removeChild(tile);
       });
   }
@@ -941,64 +944,53 @@ function removeWall  (x, y) {
  * layer!
  */
 function draw (x, y, type) {
-  var old = Map.floor[x][y];
+  var old = Map.data.get(x, y).floor;
   if (old != null && old.type === type) {
     floor(x, y);
   } else {
-    var stair = Map.stairs[x][y];
-    var tile = createTile(x, y, type);
-    Commands.push(
-      function(){
-        Map.floorElement.removeChild(tile);
-        if (old != null) {
-          Map.floorElement.appendChild(old);
-        }
-        Map.floor[x][y] = old;
-        if (stair != null) {
-          Map.stairsElement.appendChild(stair);
-          Map.stairs[x][y] = stair;
-        }
-      },
-      function(){
-        if (stair != null) {
-          Map.stairsElement.removeChild(stair);
-          Map.stairs[x][y] = null;
-        }
-        if (old != null) {
-          Map.floorElement.removeChild(old);
-        }
-        Map.floor[x][y] = tile;
-        Map.floorElement.appendChild(tile);
-      });
+    replaceFloor(x, y, old, createTile(x, y, type));
   }
+}
+
+/**
+ * Replaces the old tile on the floor with a new tile.
+ */
+function replaceFloor(x, y, old, tile) {
+  Commands.push(
+    function(){
+      Map.floorElement.removeChild(tile);
+      if (old != null) {
+        Map.floorElement.appendChild(old);
+      }
+      Map.data.get(x, y).floor = old;
+    },
+    function(){
+      if (old != null) {
+        Map.floorElement.removeChild(old);
+      }
+      Map.data.get(x, y).floor = tile;
+      Map.floorElement.appendChild(tile);
+    });
 }
 
 /**
  * Draws stairs and diagonals on the floor.
  */
 function floorRotate (x, y, type) {
-  if (Map.stairs[x][y] != null) {
-    var tile = Map.stairs[x][y];
-    var angle = parseInt(tile.getAttribute('rotate'));
+  var old = Map.data.get(x, y).floor;
+  if (old && old.type === type && old.hasAttribute('rotate')) {
+    var angle = parseInt(old.getAttribute('rotate'));
     Commands.push(
       function(){
-        rotateTile(tile, type, x, y, angle);
+        rotateTile(old, type, x, y, angle);
       },
       function() {
-        rotateTile(tile, type, x, y, (angle + 90) % 360);
+        rotateTile(old, type, x, y, (angle + 90) % 360);
       });
   } else {
     var tile = createTile(x, y, type);
     tile.setAttribute('rotate', 0);
-    Commands.push(
-      function(){
-        Map.stairsElement.removeChild(tile);
-        Map.stairs[x][y] = null;
-      },
-      function(){
-        Map.stairs[x][y] = tile;
-        Map.stairsElement.appendChild(tile);
-      });
+    replaceFloor(x, y, old, tile);
   }
 }
 
@@ -1006,43 +998,11 @@ function floorRotate (x, y, type) {
  * Draws or erases a floor tile.
  */
 function floor (x, y) {
-  var stair = Map.stairs[x][y];
-  var old   = Map.floor[x][y];
-  var tile  = createTile(x, y, 'empty');
-  if (stair || !old || old.type != 'empty') {
-    Commands.push(
-      function(){
-        if (stair != null) {
-          Map.stairsElement.appendChild(stair);
-          Map.stairs[x][y] = stair;
-        }
-        Map.floorElement.removeChild(tile);
-        if (old != null) {
-          Map.floorElement.appendChild(old);
-        }
-        Map.floor[x][y] = old;
-      },
-      function(){
-        if (stair != null) {
-          Map.stairsElement.removeChild(stair);
-          Map.stairs[x][y] = null;
-        }
-        if (old != null) {
-          Map.floorElement.removeChild(old);
-        }
-        Map.floorElement.appendChild(tile);
-        Map.floor[x][y] = tile;
-      });
+  var old   = Map.data.get(x, y).floor;
+  if (!old || old.type != 'empty') {
+    replaceFloor(x, y, old, createTile(x, y, 'empty'));
   } else {
-    Commands.push(
-      function(){
-        Map.floorElement.appendChild(tile);
-        Map.floor[x][y] = tile;
-      },
-      function(){
-        Map.floorElement.removeChild(old);
-        Map.floor[x][y] = null;
-      });
+    replaceFloor(x, y, old, null);
   }
 }
 
@@ -1060,10 +1020,10 @@ function floor (x, y) {
 function drawToCommand (x, y, tile, type) {
   var remove = function(){
     Map.floorElement.removeChild(tile);
-    Map.floor[x][y] = null;
+    Map.data.get(x, y).floor = null;
   };
   var add = function(){
-    Map.floor[x][y] = tile;
+    Map.data.get(x, y).floor = tile;
     Map.floorElement.appendChild(tile);
   };
   if (type === 'add') {
@@ -1077,10 +1037,10 @@ function drawTo (evt) {
   var target = Pen.position(evt);
   // draw up to the current position (at least once if we just started)
   do {
-    if (!Map.floor[Pen.x][Pen.y] && Pen.type === 'empty') {
+    if (!Map.data.get(Pen.x, Pen.y).floor && Pen.type === 'empty') {
       drawToCommand(Pen.x, Pen.y, createTile(Pen.x, Pen.y, 'empty'), 'add');
-    } else if (Map.floor[Pen.x][Pen.y] && Pen.type === 'null') {
-      drawToCommand(Pen.x, Pen.y, Map.floor[Pen.x][Pen.y], 'remove');
+    } else if (Map.data.get(Pen.x, Pen.y).floor && Pen.type === 'null') {
+      drawToCommand(Pen.x, Pen.y, Map.data.get(Pen.x, Pen.y).floor, 'remove');
     }
   } while (Pen.moveTo(target));
   Pen.update(evt);
@@ -1097,7 +1057,7 @@ function drawTo (evt) {
 function penDown (evt) {
   wallModeOff();
   Pen.update(evt);
-  if (Map.floor[Pen.x][Pen.y]) {
+  if (Map.data.get(Pen.x, Pen.y).floor) {
     Pen.type = 'null';
   } else {
     Pen.type = 'empty';
@@ -1272,6 +1232,10 @@ function keyPressed (evt) {
     }
     move('right');
     break;
+  case 'f':
+    wallModeOff();
+    floor(Pen.x, Pen.y);
+    break;
   case '\n':
   case 'Enter':
     wallModeOff();
@@ -1318,10 +1282,6 @@ function keyPressed (evt) {
   case 'n':
     wallModeOff();
     floorRotate(Pen.x, Pen.y, 'diagonal');
-    break;
-  case 'f':
-    wallModeOff();
-    floor(Pen.x, Pen.y);
     break;
   case 'z':
     Map.swapWithAnimation();
@@ -1398,7 +1358,8 @@ function interpretCont (code, i) {
     default:
       keyPressed(code[i]);
     }
-    if (advance)
+    // advance unless we're going to move elsewhere (peek ahead)
+    if (advance && code[i+1] !== '\n' && code[i] !== '(')
       move(advance);
   }
 }
@@ -1413,14 +1374,13 @@ function interpretCont (code, i) {
  * used to simulate a little pause (to prevent doors from rotating).
  */
 function recreateModel () {
-  Map.wipe(0,Map.width);
   var re = /^\w+_(\d+)_(\d+)$/;
-  recreateModelFor(re, Map.below.floor, Map.below.floorElement);
-  recreateModelFor(re, Map.below.stairs, Map.below.stairsElement);
-  recreateModelFor(re, Map.below.walls, Map.below.wallsElement);
-  recreateModelFor(re, Map.floor, Map.floorElement);
-  recreateModelFor(re, Map.stairs, Map.stairsElement);
-  recreateModelFor(re, Map.walls, Map.wallsElement);
+  recreateModelFor(re, Map.below.data, Map.below.floorElement);
+  recreateModelFor(re, Map.below.data, Map.below.stairsElement);
+  recreateModelForDoors(re, Map.below.data, Map.below.wallsElement);
+  recreateModelFor(re, Map.data, Map.floorElement);
+  recreateModelFor(re, Map.data, Map.stairsElement);
+  recreateModelForDoors(re, Map.data, Map.wallsElement);
   // skip initial '?'
   interpret(decodeURIComponent(window.location.search).substring(1));
   moveElements(); // animate grows in the end
@@ -1430,14 +1390,13 @@ function recreateModel () {
  * Recreates one particular model based on a matching SVG element.
  * This looks only at id attributes.
  */
-function recreateModelFor (re, model, element) {
+function recreateModelFor (re, data, element) {
   for (var i = 0; i < element.children.length; i++) {
     var result = element.children[i].getAttribute('id').match(re);
     if (result) {
       var x = result[1];
       var y = result[2];
-      Map.grow(x);
-      model[x][y] = element.children[i];
+      data.get(x, y).floor = element.children[i];
     }
   }
 }
@@ -1446,17 +1405,13 @@ function recreateModelFor (re, model, element) {
  * Recreates one particular wall model on a matching SVG element.
  * This looks only at id attributes.
  */
-function recreateModelForDoors (re, model, element) {
+function recreateModelForDoors (re, data, element) {
   for (var i = 0; i < element.children.length; i++) {
     var result = element.children[i].getAttribute('id').match(re);
     if (result) {
       var x = result[1];
       var y = result[2];
-      // make sure the data structure exists
-      if (!Map.walls[x][y]) {
-        Map.walls[x][y] = [];
-      }
-      model[x][y].push(element.children[i]);
+      data.get(x, y).walls.push(element.children[i]);
     }
   }
 }
