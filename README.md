@@ -8,7 +8,7 @@ tool.
 The user interface comes with a help screen explaining all the
 details, and a link to a demo.
 
-Also note that it's totally free and gratis. It costs nothing to use,
+Also note that it’s totally free and gratis. It costs nothing to use,
 and you can do with it what you want. Using the appropriate download
 link you can save your work to a local file – and the local file comes
 with all the code to keep working on it, off line! A bit like
@@ -22,7 +22,7 @@ Examples
 * [Demo Dungeon](https://campaignwiki.org/gridmapper.svg?%0A%0A%0A%0A%0A%0A%0A%0A%0A%0A%0A%20%20%20%20%20%20%20%20%20%20%20%20%20ffff%20%20%20%20fwfwf%0A%20%20%20%20%20%20%20%20%20%20%20ssss%20%20ffffdfssss%20%20fddfddfddf%24%0A%20%20%20%20%20%20%20%20%20%20%20%20%20ffff%20%20%20%20ddfw.dfw.df%0A%20%20%20%20%20%20%20%20%20%20%20%20%20ffffdfnn%0A%20%20%20%20%20%20%20%20%20%20%20%20%20ffffnnnn%20fff%0A%20%20%20%20%20%20%20%20%20%20%20%20%20%20fggf%20%20fffcfff%0A%20%20%20%20%20%20%20%20%20%20%20%20%20%20ff%20%20%20%20%20ff%24%24%24f%0A%20%20%20%20%20%20%20%20%20%20%20pppff%24f%20%20%20%20fff%0A%20%20%20%20%20%20%20%20%20%20%20btfffwf%0A%20%20%20%20%20%20%20%20%20%20%20pppffwf)
 
 You will have noticed that those example URLs contain a lot of
-gibberish past the questionmark. It's a sort of code that's very close
+gibberish past the questionmark. It’s a sort of code that’s very close
 to a stream of keyboard commands. You can get this **Link URL** by
 clicking on *Prepare Link* and then clicking on the resulting *Link*.
 (Incidentally, this also kills your undo history.)
@@ -30,21 +30,22 @@ clicking on *Prepare Link* and then clicking on the resulting *Link*.
 Upgrading your local copy of Gridmapper
 ---------------------------------------
 
-Let's assume you downloaded a copy of Gridmapper and started creating
-your dungeon. Then you discovered that there's a new release out
+Let’s assume you downloaded a copy of Gridmapper and started creating
+your dungeon. Then you discovered that there’s a new release out
 there. How can you upgrade your local file? The **Link URL** is key!
 
 You can get this **Link URL** by loading your local copy, clicking on
-*Prepare Link* and then clicking on the resulting *Link*. Here's a
+*Prepare Link* and then clicking on the resulting *Link*. Here’s a
 simple example: ```file:///Users/alex/Documents/awesome.svg?%0A%20s%0A%0A%20ff%0A%20ff```
 
 You can take the part starting with the question mark and use it with
 a newer copy of Gridmapper! Download a new copy, load it, and append
 the stuff starting with the question mark.
-Here's a simple example: ```file:///Users/alex/Download/gridmapper.svg?%0A%20s%0A%0A%20ff%0A%20ff```
+Here’s a simple example: ```file:///Users/alex/Download/gridmapper.svg?%0A%20s%0A%0A%20ff%0A%20ff```
 
-This also works with the
-[Campaign Wiki's Gridmapper](https://campaignwiki.org/gridmapper.svg?%0A%20s%0A%0A%20ff%0A%20ff).
+This also works with the Campaign Wiki’s
+Gridmapper: ```https://campaignwiki.org/gridmapper.svg?%0A%20s%0A%0A%20ff%0A%20ff```.
+[Verify it](https://campaignwiki.org/gridmapper.svg?%0A%20s%0A%0A%20ff%0A%20ff).
 
 Once you have your map in the new copy of Gridmapper, click on
 *Prepare Download* and then click on *Download* – and you have an
@@ -94,7 +95,7 @@ First, we need to shift it over by 10 spaces:
 
 Then we combine them, and we add a little extra: we can tell
 Gridmapper to return to the top left corner by providing ```(0,0)```.
-Here's the combined map.
+Here’s the combined map.
 
 ```
 
@@ -115,7 +116,7 @@ the Gridmapper URL: [Combined Map](https://campaignwiki.org/gridmapper.svg?%0A%2
 
 You could now go back to your map and move the second map around in
 relation to the first map by adding or removing newlines and spaces.
-And when you're good to go, click on *Prepare Link* and on the
+And when you’re good to go, click on *Prepare Link* and on the
 resulting *Link*. You should get a "simplified" link that results in
 the same map: [Simplified Combined Map](https://campaignwiki.org/gridmapper.svg?%0A%20w.dfwwfwwfw%20%20%20%20%20%20%20ffnn%20n%20nn%20ffnn%0A%20wftfw.wfwwfww.dddfw%20%20%20%20dfbfdfwfwfbf%0A%20wfffwnnnn%20nn%20wfwwfwwfw%20%20ffnnn%20fwfdffnnn%0A%20ww%20ww%20w.dfffwfn%20nnn%20w%0A%20%20%20ww%20ww%20ww%20wfnnnn%20fd%0A%20%20%20%20%20%20ww%20ww%20ww)
 
@@ -136,13 +137,13 @@ z
            ffnnn fwfdffnnn
 ```
 
-Turn spaces back into ```%20```, newlines into ```%0A```, and this is what you'll get:
+Turn spaces back into ```%20```, newlines into ```%0A```, and this is what you’ll get:
 [Stacked Combined Maps](https://campaignwiki.org/gridmapper.svg?%0A%20w.dfwwfwwfw%0A%20wftfw.wfwwfww.dddfw%0A%20wfffwnnnn%20nn%20wfwwfwwfw%0A%20ww%20ww%20w.dfffwfn%20nnn%20w%0A%20%20%20ww%20ww%20ww%20wfnnnn%20fd%0A%20%20%20%20%20%20ww%20ww%20ww%0Az%0A%20%20%20%20%20%20%20%20%20%20%20ffnn%20n%20nn%20ffnn%0A%20%20%20%20%20%20%20%20%20%20%20dfbfdfwfwfbf%0A%20%20%20%20%20%20%20%20%20%20%20ffnnn%20fwfdffnnn)
 
 See Also
 --------
 
-The project was the result of admiring Daniel R. Collins' [original
+The project was the result of admiring Daniel R. Collins’ [original
 GridMapper 1.0](http://www.superdan.net/software/gridmapper/).
 
 This originally started as a Clojure project. You can find the Clojure
@@ -153,8 +154,8 @@ branch.
 There is also a branch called
 [c2](https://github.com/kensanata/gridmapper/tree/c2) which uses
 [C2](https://keminglabs.com/c2/) to create a web application.
-Unfortunately, it doesn't scale well: when you use a 30×30 grid, it's
+Unfortunately, it doesn’t scale well: when you use a 30×30 grid, it’s
 too slow. I decided to move to [VanillaJS](http://vanilla-js.com/).
 
-There's also a very good looking, Flash based website with a similar
+There’s also a very good looking, Flash based website with a similar
 interface called [ANAmap](http://deepnight.net/anamap/).
