@@ -19,7 +19,7 @@ Examples
 
 * [Gridmapper Logo](https://campaignwiki.org/gridmapper.svg?%0A%20f%20ss%20f%0A%20s%0A%20%20%20%20sss%0A%20fssss%20%20f)
 * [OSR Logo](https://campaignwiki.org/gridmapper.svg?%0A%20w.dfwwfwwfw%0A%20wftfw.wfwwfww.dddfw%0A%20wfffwnnnn%20nn%20wfwwfwwfw%0A%20ww%20ww%20w.dfffwfn%20nnn%20w%0A%20%20%20ww%20ww%20ww%20wfnnnn%20fd%0A%20%20%20%20%20%20ww%20ww%20ww)
-* [Demo Dungeon](https://campaignwiki.org/gridmapper.svg?%0A%0A%0A%0A%0A%0A%0A%0A%0A%0A%0A%20%20%20%20%20%20%20%20%20%20%20%20%20ffff%20%20%20%20fwfwf%0A%20%20%20%20%20%20%20%20%20%20%20ssss%20%20ffffdfssss%20%20fddfddfddf%24%0A%20%20%20%20%20%20%20%20%20%20%20%20%20ffff%20%20%20%20ddfw.dfw.df%0A%20%20%20%20%20%20%20%20%20%20%20%20%20ffffdfnn%0A%20%20%20%20%20%20%20%20%20%20%20%20%20ffffnnnn%20fff%0A%20%20%20%20%20%20%20%20%20%20%20%20%20%20fggf%20%20fffcfff%0A%20%20%20%20%20%20%20%20%20%20%20%20%20%20ff%20%20%20%20%20ff%24%24%24f%0A%20%20%20%20%20%20%20%20%20%20%20pppff%24f%20%20%20%20fff%0A%20%20%20%20%20%20%20%20%20%20%20btfffwf%0A%20%20%20%20%20%20%20%20%20%20%20pppffwf)
+* [Demo Dungeon](https://campaignwiki.org/gridmapper.svg?%0A%0A%0A%0A%0A%0A%0A%0A%0A%0A%0A%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20fwfwf%0A%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20fddfddfddf%24%0A%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20ddfw.dfw.dfz%0A%0A%0A%0A%0A%0A%0A%0A%0A%0A%0A%20%20%20%20%20%20%20%20%20%20%20%20%20ffff%0A%20%20%20%20%20%20%20%20%20%20%20ssss%20%20ffffdfssss%0A%20%20%20%20%20%20%20%20%20%20%20%20%20ffff%0A%20%20%20%20%20%20%20%20%20%20%20%20%20ffffdfnn%0A%20%20%20%20%20%20%20%20%20%20%20%20%20ffffnnnn%20fff%0A%20%20%20%20%20%20%20%20%20%20%20%20%20%20fggf%20%20%20ffcfff%0A%20%20%20%20%20%20%20%20%20%20%20%20%20%20ff%20%20%20%20%20ff%24%24%24f%0A%20%20%20%20%20%20%20%20%20%20%20pppff%24f%20%20%20%20fff%0A%20%20%20%20%20%20%20%20%20%20%20btfffwf%0A%20%20%20%20%20%20%20%20%20%20%20pppffwf)
 
 You will have noticed that those example URLs contain a lot of
 gibberish past the questionmark. It’s a sort of code that’s very close
@@ -50,6 +50,9 @@ Gridmapper: ```https://campaignwiki.org/gridmapper.svg?%0A%20s%0A%0A%20ff%0A%20f
 Once you have your map in the new copy of Gridmapper, click on
 *Prepare Download* and then click on *Download* – and you have an
 upgraded, local copy of your dungeon!
+
+Open it in your browser and check that everything works before
+deleting your old copy. :)
 
 Editing Maps using a Text Editor
 --------------------------------
