@@ -14,6 +14,8 @@ link you can save your work to a local file – and the local file comes
 with all the code to keep working on it, off line! A bit like
 [Tiddly Wiki](http://tiddlywiki.com/), I guess.﻿
 
+Written using [Vanilla JS](http://vanilla-js.com/).
+
 Examples
 --------
 
