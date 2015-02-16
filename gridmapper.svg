@@ -75,8 +75,8 @@ var Map = {
    * example. There is no undo.
    */
   reset: function() {
-    Map.data = [];
-    Map.below.data = [];
+    Map.data = new Tiles();
+    Map.below.data = new Tiles();
     while (Map.floorElement.lastChild) 
       Map.floorElement.removeChild(Map.floorElement.lastChild);
     while (Map.stairsElement.lastChild) 
@@ -999,23 +999,25 @@ function draw (x, y, type) {
 }
 
 /**
- * Replaces the old tile on the floor with a new tile.
+ * Replaces the old tile on the floor with a new tile. The code
+ * handles both the old tile and the new tile being null.
  */
 function replaceFloor(x, y, old, tile) {
   Commands.push(
     function(){
-      Map.floorElement.removeChild(tile);
-      if (old != null) {
+      if (tile)
+        Map.floorElement.removeChild(tile);
+      if (old)
         Map.floorElement.appendChild(old);
-      }
       Map.data.get(x, y).floor = old;
     },
     function(){
-      if (old != null) {
+      if (old) {
         Map.floorElement.removeChild(old);
       }
+      if (tile)
+        Map.floorElement.appendChild(tile);
       Map.data.get(x, y).floor = tile;
-      Map.floorElement.appendChild(tile);
     });
 }
 
@@ -1388,7 +1390,7 @@ function interpretCont (code, i) {
           }, 100);
           return; // end!
         }
-        i += match[0].length;
+        i += match[0].length + 1;
       }
       break;
     case '-':
