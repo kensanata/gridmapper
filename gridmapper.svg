@@ -301,11 +301,13 @@ var Pen = {
    * keypress events (which don't come with a position).
    */
   update: function(evt) {
-    Pen.ts = null;
     if (evt) {
       var pos = Pen.position(evt);
-      Pen.x = pos.x;
-      Pen.y = pos.y;
+      if (Pen.x !== pos.x || Pen.y !== pos.y) {
+        Pen.ts = null;
+        Pen.x = pos.x;
+        Pen.y = pos.y;
+      }
     }
     Map.pointer.setAttribute('x', (Pen.x + 1) * Map.tileWidth);
     Map.pointer.setAttribute('y', (Pen.y + 1) * Map.tileWidth);
