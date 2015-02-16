@@ -721,7 +721,7 @@ function download () {
   var text = link.firstElementChild.firstChild.nodeValue;
   link.firstElementChild.firstChild.nodeValue = 'Download';
   var href = link.getAttributeNS(xlinkNs, 'href');
-  link.setAttributeNS(null, 'download', 'gridmapper.svg');
+  link.setAttribute('download', 'gridmapper.svg');
   link.setAttributeNS(xlinkNs, 'href', 'data:image/svg+xml;base64,' + source);
   // reset after 10s
   var t = setInterval(function() {
@@ -793,9 +793,9 @@ function scaleTiles () {
  */
 function createTile (x, y, type) {
   var tile = document.createElementNS(svgNs, 'use');
-  tile.setAttributeNS(null, 'id', type + '_' + x + '_' + y);
-  tile.setAttributeNS(null, 'x', (x + 1) * Map.tileWidth); // empty column to the left
-  tile.setAttributeNS(null, 'y', (y + 1) * Map.tileWidth); // empty row at the top
+  tile.setAttribute('id', type + '_' + x + '_' + y);
+  tile.setAttribute('x', (x + 1) * Map.tileWidth); // empty column to the left
+  tile.setAttribute('y', (y + 1) * Map.tileWidth); // empty row at the top
   tile.type = type;
   tile.setAttributeNS(xlinkNs, 'href', '#' + type);
   return tile;
@@ -809,10 +809,10 @@ function addToLabel(x, y, s) {
   var text = null;
   if (tile === null) {
     tile = document.createElementNS(svgNs, 'text');
-    tile.setAttributeNS(null, 'id', 'label' + '_' + x + '_' + y);
-    tile.setAttributeNS(null, 'x', (x + 1.5) * Map.tileWidth); // empty column to the left
-    tile.setAttributeNS(null, 'y', (y + 1.8) * Map.tileWidth); // empty row at the top, + lineheight
-    tile.setAttributeNS(null, 'style', 'text-anchor: middle'); // centered
+    tile.setAttribute('id', 'label' + '_' + x + '_' + y);
+    tile.setAttribute('x', (x + 1.5) * Map.tileWidth); // empty column to the left
+    tile.setAttribute('y', (y + 1.7) * Map.tileWidth); // empty row at the top, + lineheight
+    tile.setAttribute('style', 'text-anchor: middle'); // centered
     text = tile.textContent;
   }
   Commands.push(
@@ -894,13 +894,13 @@ function getUnusedAngle (x, y, rotate) {
 function rotateTile (tile, type, x, y, angle) {
   tile.setAttribute('rotate', angle);
   if (angle === 180 && type === 'concealed') {
-    tile.setAttributeNS(null,'transform', 'translate('+Map.tileWidth+',0)');
+    tile.setAttribute('transform', 'translate('+Map.tileWidth+',0)');
   } else if (angle > 0) {
     var cx = (x + 1.5) * Map.tileWidth; // empty column to the left
     var cy = (y + 1.5) * Map.tileWidth; // empty row at the top
-    tile.setAttributeNS(null,'transform', 'rotate('+angle+','+cx+','+cy+')');
+    tile.setAttribute('transform', 'rotate('+angle+','+cx+','+cy+')');
   } else {
-    tile.removeAttributeNS(null,'transform');
+    tile.removeAttribute('transform');
   }
 }
 
@@ -916,7 +916,7 @@ function wallPlacement (x, y, type) {
       && Pen.ts && now - Pen.ts <= 2000) {
     // we just placed a door: take the last one and rotate it
     var tile = walls[walls.length - 1];
-    var old = tile.getAttributeNS(null,'transform');
+    var old = tile.getAttribute('transform');
     var angle = parseInt(tile.getAttribute('rotate'));
     var rotate = getUnusedAngle(x, y, (angle + 90) % 360);
     if (rotate != null) {
@@ -1310,6 +1310,9 @@ function keyPressed (evt) {
     if(!evt.key && evt.keyIdentifier) {
       // // Google Chrome on Windows doesn't provide access to $ and ?
       switch (evt.keyCode) {
+      case 8:
+        key = 'Backspace';
+        break;
       case 46:
         key = 'Del';
         break;
@@ -1335,10 +1338,10 @@ function keyPressed (evt) {
   switch (key) {
   case '?':
     var help = document.getElementById('help');
-    if (help.getAttributeNS(null, 'visibility') === 'hidden') {
-      help.setAttributeNS(null, 'visibility', 'visible');
+    if (help.getAttribute('visibility') === 'hidden') {
+      help.setAttribute('visibility', 'visible');
     } else {
-      help.setAttributeNS(null, 'visibility', 'hidden');
+      help.setAttribute('visibility', 'hidden');
     }
     break;
   case 'u':
@@ -1392,6 +1395,8 @@ function keyPressed (evt) {
   case '0':
     addToLabel(Pen.x, Pen.y, key);
     break;
+  case 'Backspace':
+    evt.bubble = false;
   case 'Del':
     deleteFromLabel(Pen.x, Pen.y);
     break;
@@ -1653,23 +1658,24 @@ onload = initialize;
   <g id="floor-below" opacity="0.2"/>
   <g id="stairs-below" opacity="0.2"/>
   <g id="walls-below" opacity="0.2"/>
-  <g id="labels-below" opacity="0.2"/>
+  <g id="labels-below" class="labels" opacity="0.2"/>
   <g id="floor"/>
   <g id="stairs"/>
-  <g id="labels"/>
+  <g id="labels" class="labels"/>
   <use id="pointer" xlink:href="#cursor"/>
   <g id="walls"/>
   <rect id="ui" opacity="0"/>
 
   <style><![CDATA[
   text { font: 14px 'Courier New', Courier, monospace; }
+  .labels text { font: 10px 'Arial Narrow', sans-serif; font-weight: bold; }
   .key { fill: forestgreen; font-weight: bold; }
   ]]></style>
 
   <g id="help">
     <rect x="10" y="80" width="440" height="530" fill="ivory" stroke="black" stroke-width="1"/>
     <a xlink:href="https://alexschroeder.ch/wiki/Gridmapper">
-      <text x="460" y="90" transform="rotate(90,460,90)" style="font-weight: bold">Gridmapper</text>
+      <text x="460" y="90" transform="rotate(90,460,90)" style="font-weight: bold;">Gridmapper</text>
     </a>
     <use x="30" y="90" xlink:href="#empty"/>
     <use x="30" y="120" xlink:href="#trap"/>
@@ -1689,9 +1695,9 @@ onload = initialize;
     <use x="30" y="320" xlink:href="#stair"/>
     <use x="30" y="370" xlink:href="#diagonal"/>
     <use x="30" y="400" xlink:href="#empty"/>
-    <use x="30" y="430" xlink:href="#empty"/>
-    <use x="20" y="430" xlink:href="#cursor"/>
-
+    <use x="20" y="400" xlink:href="#cursor"/>
+    <use x="30" y="530" xlink:href="#empty"/>
+    <g class="labels"><text x="40" y="544" style="text-anchor: middle">123</text></g>
     <g>
       <use x="370" y="260" xlink:href="#empty" opacity="0.3"/>
       <use x="350" y="280" xlink:href="#empty" opacity="0.3"/>
@@ -1712,9 +1718,9 @@ onload = initialize;
       <use x="340" y="250" xlink:href="#curved-arrow" transform="rotate(180,380,290)"/>
       <use x="340" y="250" xlink:href="#curved-arrow" transform="rotate(270,380,290)"/>
     </g>
-
+    
     <text y="105">
-      <tspan x="60">Use the mouse to draw and erase the floor</tspan>
+      <tspan x="60"><tspan class="key">f</tspan> : floor / erase (like using the mouse)</tspan>
       <tspan x="60" dy="30"><tspan class="key">t</tspan> : trap</tspan>
       <tspan x="180"><tspan class="key">p</tspan> : pillar</tspan>
       <tspan x="320"><tspan class="key">b</tspan> : statue</tspan>
@@ -1725,13 +1731,13 @@ onload = initialize;
       <tspan x="60" dy="30"><tspan class="key">g</tspan> : a gate, repeat to rotate</tspan>
       <tspan x="60" dy="50"><tspan class="key">s</tspan> : stairs, repeat to rotate</tspan>
       <tspan x="60" dy="50"><tspan class="key">n</tspan> : diagonal, repeat to rotate</tspan>
-      <tspan x="60" dy="30"><tspan class="key">f</tspan> : floor / erase</tspan>
       <tspan x="60" dy="30" class="key">m</tspan><tspan> : enter / leave Wall Mode</tspan>
       <tspan x="60" dy="20" class="key">x</tspan><tspan> : clear wall</tspan>
       <tspan x="60" dy="20" class="key">u</tspan><tspan> : undo</tspan>
       <tspan x="60" dy="20" class="key">r</tspan><tspan> : redo</tspan>
       <tspan x="60" dy="20" class="key">z</tspan><tspan> : switch layer</tspan>
       <tspan x="60" dy="20" class="key">Z</tspan><tspan> : hide below</tspan>
+      <tspan x="60" dy="30" class="key">0-9</tspan><tspan>, </tspan><tspan class="key">Backspace</tspan><tspan> : add / remove labels</tspan>
       <a id="download" fill="blue" xlink:href="javascript:download()">
 	<tspan x="30" dy="30">Prepare Download</tspan>
       </a>
@@ -1752,7 +1758,7 @@ onload = initialize;
       </a>
     </text>
 
-    <text x="210" y="465">
+    <text x="210" y="435">
       <tspan x="210" class="key">?</tspan><tspan> : toggle help</tspan>
       <tspan x="210" dy="20" class="key">Space</tspan><tspan> : move right</tspan>
       <tspan x="210" dy="20" class="key">Enter</tspan><tspan> : begin new line</tspan>
@@ -1863,9 +1869,15 @@ onload = initialize;
     <tspan class="step16 key">m</tspan>
     <tspan class="step16">to leave Wall Mode.</tspan>
 
-    <tspan class="step17" x="0" y="0">Well, that's it. The rest is up to you.</tspan>
-    <tspan class="step17" x="0" dy="20">What lies beyond the secret doors to the east?</tspan>
-    <code class="step17">z</code>
+    <tspan class="step17" x="0" y="0">Use the number keys</tspan>
+    <tspan class="step17 key">0-9</tspan><tspan class="step17"> to add labels.</tspan>
+    <tspan class="step17" x="0" dy="20">Use</tspan>
+    <tspan class="step17 key">Backspace</tspan><tspan class="step17"> or</tspan>
+    <tspan class="step17 key">Delete</tspan><tspan class="step17"> to delete labels.</tspan>
+    <code class="step17">(20,12)6z(15,12)1(14,19)2(19,16)4(22,17)5</code>
+
+    <tspan class="step18" x="0" y="0">Well, that's it. The rest is up to you.</tspan>
+    <tspan class="step18" x="0" dy="20">What lies beyond the secret doors to the east?</tspan>
 
   </text>
 </svg>
