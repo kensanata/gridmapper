@@ -46,6 +46,7 @@ var Map = {
   floorElement: null, // the SVG element for the floor
   stairsElement: null, // the SVG element for the stairs
   wallsElement: null, // the SVG element for the walls
+  labelElement: null, // the SVG element for the labels
   data: new Tiles(),
   below: { data: new Tiles(), }, // the data for the map below
   
@@ -59,9 +60,11 @@ var Map = {
     Map.floorElement = document.getElementById('floor');
     Map.wallsElement = document.getElementById('walls');
     Map.stairsElement = document.getElementById('stairs');
+    Map.labelsElement = document.getElementById('labels');
     Map.below.floorElement = document.getElementById('floor-below');
     Map.below.wallsElement = document.getElementById('walls-below');
     Map.below.stairsElement = document.getElementById('stairs-below');
+    Map.below.labelsElement = document.getElementById('labels-below');
     // http://javascript.info/tutorial/mouse-events#drag-n-drop
     Map.ui = document.getElementById('ui'); // will be moved, too
     Map.ui.ondragstart = function() { return false };
@@ -83,12 +86,16 @@ var Map = {
       Map.stairsElement.removeChild(Map.stairsElement.lastChild);
     while (Map.wallsElement.lastChild) 
       Map.wallsElement.removeChild(Map.wallsElement.lastChild);
+    while (Map.labelsElement.lastChild) 
+      Map.labelsElement.removeChild(Map.labelsElement.lastChild);
     while (Map.below.floorElement.lastChild) 
       Map.below.floorElement.removeChild(Map.below.floorElement.lastChild);
     while (Map.below.stairsElement.lastChild) 
       Map.below.stairsElement.removeChild(Map.below.stairsElement.lastChild);
     while (Map.below.wallsElement.lastChild)
       Map.below.wallsElement.removeChild(Map.below.wallsElement.lastChild);
+    while (Map.below.labelsElement.lastChild) 
+      Map.below.labelsElement.removeChild(Map.below.labelsElement.lastChild);
     moveElements();
     Commands.reset();
   },
@@ -118,6 +125,7 @@ var Map = {
       temp.floorChildren = [];
       temp.wallsChildren = [];
       temp.stairsChildren = [];
+      temp.labelsChildren = [];
 
       while (Map.floorElement.lastChild)
         temp.floorChildren.push(Map.floorElement.removeChild(Map.floorElement.lastChild));
@@ -125,6 +133,8 @@ var Map = {
         temp.wallsChildren.push(Map.wallsElement.removeChild(Map.wallsElement.lastChild));
       while (Map.stairsElement.lastChild)
         temp.stairsChildren.push(Map.stairsElement.removeChild(Map.stairsElement.lastChild));
+      while (Map.labelsElement.lastChild)
+        temp.labelsChildren.push(Map.labelsElement.removeChild(Map.labelsElement.lastChild));
 
       Map.data = Map.below.data;
 
@@ -134,12 +144,15 @@ var Map = {
         Map.wallsElement.appendChild(Map.below.wallsElement.removeChild(Map.below.wallsElement.lastChild));
       while (Map.below.stairsElement.lastChild)
         Map.stairsElement.appendChild(Map.below.stairsElement.removeChild(Map.below.stairsElement.lastChild));
+      while (Map.below.labelsElement.lastChild)
+        Map.labelsElement.appendChild(Map.below.labelsElement.removeChild(Map.below.labelsElement.lastChild));
       
       Map.below.data = temp.data;
 
       temp.floorChildren.forEach(function(child, i, array) { Map.below.floorElement.appendChild(child); });
       temp.wallsChildren.forEach(function(child, i, array) { Map.below.wallsElement.appendChild(child); });
       temp.stairsChildren.forEach(function(child, i, array) { Map.below.stairsElement.appendChild(child); });
+      temp.labelsChildren.forEach(function(child, i, array) { Map.below.labelsElement.appendChild(child); });
   },
 
   swapWithAnimation: function() {
@@ -148,6 +161,7 @@ var Map = {
     fadeElementTo(Map.floorElement, opacity, linear, duration);
     fadeElementTo(Map.wallsElement, opacity, linear, duration);
     fadeElementTo(Map.stairsElement, opacity, linear, duration);
+    fadeElementTo(Map.labelsElement, opacity, linear, duration);
 
     setTimeout(function(){Commands.push(Map.swap, Map.swap)}, duration);
 
@@ -155,6 +169,7 @@ var Map = {
       fadeElementTo(Map.floorElement, 1, linear, duration);
       fadeElementTo(Map.wallsElement, 1, linear, duration);
       fadeElementTo(Map.stairsElement, 1, linear, duration);
+      fadeElementTo(Map.labelsElement, 1, linear, duration);
     }, duration);
   },
 
@@ -206,6 +221,7 @@ var Map = {
     fadeElementTo(Map.below.floorElement, opacity, linear, duration);
     fadeElementTo(Map.below.wallsElement, opacity, linear, duration);
     fadeElementTo(Map.below.stairsElement, opacity, linear, duration);
+    fadeElementTo(Map.below.labelsElement, opacity, linear, duration);
   },
 };
 
@@ -231,6 +247,7 @@ function Tiles() {
 function Tile() {
   this.floor = null;
   this.walls = [];
+  this.label = null;
 };
 
 /**
@@ -723,7 +740,8 @@ function textExport () {
   var source = '';
   if (Map.below.floorElement.hasChildNodes()
       || Map.below.wallsElement.hasChildNodes()
-      || Map.below.stairsElement.hasChildNodes()) {
+      || Map.below.stairsElement.hasChildNodes()
+      || Map.below.labelsElement.hasChildNodes()) {
     Map.swap();
     source += Map.code() + 'z';
     Map.swap()
@@ -782,6 +800,66 @@ function createTile (x, y, type) {
   tile.setAttributeNS(xlinkNs, 'href', '#' + type);
   return tile;
 }
+
+/**
+ * Add s to the label at (x,y).
+ */
+function addToLabel(x, y, s) {
+  var tile = Map.data.get(x, y).label;
+  var text = null;
+  if (tile === null) {
+    tile = document.createElementNS(svgNs, 'text');
+    tile.setAttributeNS(null, 'id', 'label' + '_' + x + '_' + y);
+    tile.setAttributeNS(null, 'x', (x + 1.5) * Map.tileWidth); // empty column to the left
+    tile.setAttributeNS(null, 'y', (y + 1.8) * Map.tileWidth); // empty row at the top, + lineheight
+    tile.setAttributeNS(null, 'style', 'text-anchor: middle'); // centered
+    text = tile.textContent;
+  }
+  Commands.push(
+    function(){
+      if (text === s) {
+        Map.labelsElement.removeChild(tile);
+        Map.data.get(x, y).label = null;
+      } else {
+        tile.textContent = tile.textContent.substr(0, tile.textContent.length - 1);
+      }
+    },
+    function(){
+      if (text === "") {
+        Map.labelsElement.appendChild(tile);
+        Map.data.get(x, y).label = tile;
+      }
+      tile.textContent += s;
+    });
+}
+
+/**
+ * Remove the last character from the label at (x,y).
+ */
+function deleteFromLabel(x, y) {
+  var tile = Map.data.get(x, y).label;
+  if (tile !== null) {
+    var text = tile.textContent;
+    if (text !== "") {
+      Commands.push(
+        function(){
+          if (text.length === 1) {
+            Map.labelsElement.appendChild(tile);
+            Map.data.get(x, y).label = tile;
+          }
+          tile.textContent = text;
+        },
+        function(){
+          tile.textContent = tile.textContent.substr(0, tile.textContent.length - 1);
+          if (tile.textContent === "") {
+            Map.labelsElement.removeChild(tile);
+            Map.data.get(x, y).label = null;
+          }
+        });
+    }
+  }
+}
+
 
 /**
  * Returns an unused angle for wall tiles. Provide a preferred angle.
@@ -1232,6 +1310,9 @@ function keyPressed (evt) {
     if(!evt.key && evt.keyIdentifier) {
       // // Google Chrome on Windows doesn't provide access to $ and ?
       switch (evt.keyCode) {
+      case 46:
+        key = 'Del';
+        break;
       case 219:
         key = '?';
         break;
@@ -1298,6 +1379,21 @@ function keyPressed (evt) {
       floor(Pen.x, Pen.y);
     }
     move('right');
+    break;
+  case '1':
+  case '2':
+  case '3':
+  case '4':
+  case '5':
+  case '6':
+  case '7':
+  case '8':
+  case '9':
+  case '0':
+    addToLabel(Pen.x, Pen.y, key);
+    break;
+  case 'Del':
+    deleteFromLabel(Pen.x, Pen.y);
     break;
   case 'f':
     wallModeOff();
@@ -1447,9 +1543,11 @@ function recreateModel () {
   var re = /^\w+_(\d+)_(\d+)$/;
   recreateModelFor(re, Map.below.data, Map.below.floorElement);
   recreateModelFor(re, Map.below.data, Map.below.stairsElement);
+  recreateModelFor(re, Map.below.data, Map.below.labelsElement);
   recreateModelForDoors(re, Map.below.data, Map.below.wallsElement);
   recreateModelFor(re, Map.data, Map.floorElement);
   recreateModelFor(re, Map.data, Map.stairsElement);
+  recreateModelFor(re, Map.data, Map.labelsElement);
   recreateModelForDoors(re, Map.data, Map.wallsElement);
   // skip initial '?'
   interpret(decodeURIComponent(window.location.search).substring(1));
@@ -1555,8 +1653,10 @@ onload = initialize;
   <g id="floor-below" opacity="0.2"/>
   <g id="stairs-below" opacity="0.2"/>
   <g id="walls-below" opacity="0.2"/>
+  <g id="labels-below" opacity="0.2"/>
   <g id="floor"/>
   <g id="stairs"/>
+  <g id="labels"/>
   <use id="pointer" xlink:href="#cursor"/>
   <g id="walls"/>
   <rect id="ui" opacity="0"/>
