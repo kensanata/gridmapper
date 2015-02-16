@@ -1328,6 +1328,22 @@ function move (dir) {
 }
 
 /**
+ * Extract key from KeyboardEvent
+ * Basic source from http://javascript.info/tutorial/keyboard-events#processing-the-character-keypress
+ */
+function getChar(event) {
+  if (event.which == null) {
+    return String.fromCharCode(event.keyCode) // IE character keys
+  } else if (event.which!=0 && event.charCode!=0) {
+    return String.fromCharCode(event.which) // the rest character keys
+  } else if (event.type == 'keydown') { // special key
+    if(event.key && event.key.length != 1) return event.key; // Firefox
+    if(event.keyIdentifier && event.keyIdentifier.substring(0,2) !== 'U+') return event.keyIdentifier; // Chrome
+  }
+  return null; // ignore second key event
+}
+
+/**
  * Processes key press events and single character strings (in case
  * the interpreter is feeding us some). Many of the key commands need
  * a 'current' position. We determine it by looking at the Pen. It's
@@ -1338,43 +1354,13 @@ function keyPressed (evt) {
   var key = evt;
 
   // When running the demo, ignore key events from the browser.
-  if (!Demo.running) {
-
-    // Firefox
-    if (evt.key) {
-      key = evt.key;
-    }
-
-    //Google Chrome
-    if(!evt.key && evt.keyIdentifier) {
-      // // Google Chrome on Windows doesn't provide access to $ and ?
-      switch (evt.keyCode) {
-      case 8:
-        key = 'Backspace';
-        break;
-      case 46:
-        key = 'Del';
-        break;
-      case 219:
-        key = '?';
-        break;
-      case 223:
-        key = '$';
-        break;
-      default:
-        if (evt.keyIdentifier.substring(0,2) === 'U+') { // U+0044 = D
-          key = String.fromCharCode(parseInt(event.keyIdentifier.substr(2), 16));
-          if (!evt.shiftKey) {
-            key = key.toLowerCase(); // 'D' to 'd'
-          }
-        } else {
-          key = evt.keyIdentifier; // 'Left'
-        }
-      }
-    }
+  if (!Demo.running && evt instanceof KeyboardEvent) {
+    key = getChar(evt);
+    if(key === null) return; // ignore one of onkeydown or onkeypress event
   }
 
   switch (key) {
+
   case '?':
     var help = document.getElementById('help');
     if (help.getAttribute('visibility') === 'hidden') {
@@ -1383,12 +1369,15 @@ function keyPressed (evt) {
       help.setAttribute('visibility', 'hidden');
     }
     break;
+
   case 'u':
     Commands.undo();
     break;
+
   case 'r':
     Commands.redo();
     break;
+
   case 'ArrowDown':
   case 'Down':
     if (evt.shiftKey) {
@@ -1397,6 +1386,7 @@ function keyPressed (evt) {
     }
     move('down');
     break;
+
   case 'ArrowUp':
   case 'Up':
     if (evt.shiftKey) {
@@ -1405,6 +1395,7 @@ function keyPressed (evt) {
     }
     move('up');
     break;
+
   case 'ArrowLeft':
   case 'Left':
     if (evt.shiftKey) {
@@ -1413,6 +1404,7 @@ function keyPressed (evt) {
     }
     move('left');
     break;
+
   case 'ArrowRight':
   case 'Right':
   case ' ':
@@ -1422,6 +1414,7 @@ function keyPressed (evt) {
     }
     move('right');
     break;
+
   case '1':
   case '2':
   case '3':
@@ -1434,73 +1427,91 @@ function keyPressed (evt) {
   case '0':
     addToLabel(Pen.x, Pen.y, key);
     break;
-  case 'Backspace':
-    evt.bubble = false;
+
   case 'Del':
     deleteFromLabel(Pen.x, Pen.y);
     break;
+
   case 'f':
     wallModeOff();
     floor(Pen.x, Pen.y);
     break;
+
   case '\n':
   case 'Enter':
     wallModeOff();
     Pen.x = 0;
     move('down');
     break;
+
   case 'd':
     wall(Pen.x, Pen.y, 'door');
     break;
+
   case '$':
     wall(Pen.x, Pen.y, 'secret');
     break;
+
   case 'c':
     wall(Pen.x, Pen.y, 'concealed');
     break;
+
   case 'g':
     wall(Pen.x, Pen.y, 'gate');
     break;
+
   case 'w':
     wall(Pen.x, Pen.y, 'wall');
     break;
+
   case 'm':
     wallMode(Pen.x, Pen.y);
     break;
+
   case 'x':
     removeWall(Pen.x, Pen.y);
     break;
+
   case 'p':
     wallModeOff();
     draw(Pen.x, Pen.y, 'pillar');
     break;
+
   case 't':
     wallModeOff();
     draw(Pen.x, Pen.y, 'trap');
     break;
+
   case 'b':
     wallModeOff();
     draw(Pen.x, Pen.y, 'statue');
     break;
+
   case 's':
     wallModeOff();
     floorRotate(Pen.x, Pen.y, 'stair');
     break;
+
   case 'v':
     variant(Pen.x, Pen.y);
     break;
+
   case 'n':
     wallModeOff();
     floorRotate(Pen.x, Pen.y, 'diagonal');
     break;
+
   case 'z':
     Map.swapWithAnimation();
     break;
+
   case 'Z':
     Map.hideBelowWithAnimation();
     break;
+
   default:
-    console.log('Gridmapper does not know how to handle "'+ key + '" (keyIdentifier: '+evt.keyIdentifier+', keyCode: '+ evt.keyCode+')');
+    console.log('Gridmapper does not know how to handle "'+ key
+                + '" (keyIdentifier: '+evt.keyIdentifier+', keyCode: '+ evt.keyCode+')');
     break;
   }
 }
@@ -1641,6 +1652,7 @@ function recreateModelForDoors (re, data, element) {
 function initialize () {
   scaleTiles();
   document.onkeydown = keyPressed; // capture arrow keys
+  document.onkeypress = keyPressed; // capture character keys
   Map.initialize(); // don't reset the Map so we can load from a file
   Pen.update(null); // show it
   recreateModel(); // create model
