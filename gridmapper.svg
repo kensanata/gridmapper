@@ -673,7 +673,6 @@ function moveElements () {
               // an empty column at the top
               Map.tileWidth / scale,
               linear, 500);
-  var help = document.getElementById('help');
 }
 
 /**
@@ -1220,13 +1219,23 @@ function keyPressed (evt) {
 
     //Google Chrome
     if(!evt.key && evt.keyIdentifier) {
-      if (evt.keyIdentifier.substring(0,2) === 'U+') { // U+0044 = D
-        key = String.fromCharCode(parseInt(event.keyIdentifier.substr(2), 16));
-        if (!evt.shiftKey) {
-          key = key.toLowerCase(); // 'D' to 'd'
-      }
-      } else {
-        key = evt.keyIdentifier; // 'Left'
+      // // Google Chrome on Windows doesn't provide access to $ and ?
+      switch (evt.keyCode) {
+      case 219:
+        key = '?';
+        break;
+      case 223:
+        key = '$';
+        break;
+      default:
+        if (evt.keyIdentifier.substring(0,2) === 'U+') { // U+0044 = D
+          key = String.fromCharCode(parseInt(event.keyIdentifier.substr(2), 16));
+          if (!evt.shiftKey) {
+            key = key.toLowerCase(); // 'D' to 'd'
+          }
+        } else {
+          key = evt.keyIdentifier; // 'Left'
+        }
       }
     }
   }
@@ -1334,7 +1343,7 @@ function keyPressed (evt) {
     Map.swapWithAnimation();
     break;
   default:
-    console.log('Gridmapper does not know how to handle "'+ key + '"');
+    console.log('Gridmapper does not know how to handle "'+ key + '" (keyIdentifier: '+evt.keyIdentifier+', keyCode: '+ evt.keyCode+')');
     break;
   }
 }
