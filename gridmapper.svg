@@ -144,10 +144,10 @@ var Map = {
 
   swapWithAnimation: function() {
     var duration = 500;
-
-    fadeElementTo(Map.floorElement, 0.2, linear, duration);
-    fadeElementTo(Map.wallsElement, 0.2, linear, duration);
-    fadeElementTo(Map.stairsElement, 0.2, linear, duration);
+    var opacity = Number(Map.below.floorElement.getAttribute('opacity'));
+    fadeElementTo(Map.floorElement, opacity, linear, duration);
+    fadeElementTo(Map.wallsElement, opacity, linear, duration);
+    fadeElementTo(Map.stairsElement, opacity, linear, duration);
 
     setTimeout(function(){Commands.push(Map.swap, Map.swap)}, duration);
 
@@ -198,6 +198,14 @@ var Map = {
     source = source.replace(/ +$/gm,'');
     source = source.replace(/\n+$/,'');
     return source;
+  },
+
+  hideBelowWithAnimation: function(){
+    var duration = 500;
+    var opacity = 0.2 - Number(Map.below.floorElement.getAttribute('opacity')||0);
+    fadeElementTo(Map.below.floorElement, opacity, linear, duration);
+    fadeElementTo(Map.below.wallsElement, opacity, linear, duration);
+    fadeElementTo(Map.below.stairsElement, opacity, linear, duration);
   },
 };
 
@@ -622,7 +630,7 @@ function moveElement (element, x1, y1, x2, y2, delta, duration) {
 }
 
 function fadeElementTo (element, opacity, delta, duration) {
-  var from = Number(element.getAttribute('opacity')) || 1;
+  var from = element.hasAttribute('opacity') ? Number(element.getAttribute('opacity')) : 1;
   animate({
     delay: 10,
     duration: duration || 1000, // 1 sec by default
@@ -1345,6 +1353,9 @@ function keyPressed (evt) {
   case 'z':
     Map.swapWithAnimation();
     break;
+  case 'Z':
+    Map.hideBelowWithAnimation();
+    break;
   default:
     console.log('Gridmapper does not know how to handle "'+ key + '" (keyIdentifier: '+evt.keyIdentifier+', keyCode: '+ evt.keyCode+')');
     break;
@@ -1620,7 +1631,7 @@ onload = initialize;
       <tspan x="60" dy="20" class="key">u</tspan><tspan> : undo</tspan>
       <tspan x="60" dy="20" class="key">r</tspan><tspan> : redo</tspan>
       <tspan x="60" dy="20" class="key">z</tspan><tspan> : switch layer</tspan>
-      <tspan x="60" dy="20" class="key">?</tspan><tspan> : toggle help</tspan>
+      <tspan x="60" dy="20" class="key">Z</tspan><tspan> : hide below</tspan>
       <a id="download" fill="blue" xlink:href="javascript:download()">
 	<tspan x="30" dy="30">Prepare Download</tspan>
       </a>
@@ -1641,8 +1652,9 @@ onload = initialize;
       </a>
     </text>
 
-    <text x="210" y="485">
-      <tspan class="key">Space</tspan><tspan> : move right</tspan>
+    <text x="210" y="465">
+      <tspan x="210" class="key">?</tspan><tspan> : toggle help</tspan>
+      <tspan x="210" dy="20" class="key">Space</tspan><tspan> : move right</tspan>
       <tspan x="210" dy="20" class="key">Enter</tspan><tspan> : begin new line</tspan>
       <tspan x="210" dy="20" class="key">Arrows</tspan><tspan> : move around</tspan>
       <tspan x="210" dy="20" class="key">Shift Arr.</tspan><tspan> : floor / erase</tspan>
