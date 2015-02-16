@@ -1201,6 +1201,22 @@ function move (dir) {
 }
 
 /**
+ * Extract key from KeyboardEvent
+ * Basic source from http://javascript.info/tutorial/keyboard-events#processing-the-character-keypress
+ */
+function getChar(event) {
+  if (event.which == null) {
+    return String.fromCharCode(event.keyCode) // IE character keys
+  } else if (event.which!=0 && event.charCode!=0) {
+    return String.fromCharCode(event.which) // the rest character keys
+  } else if (event.type == 'keydown') { // special key
+    if(event.key && event.key.length != 1) return event.key; // Firefox
+    if(event.keyIdentifier && event.keyIdentifier.substring(0,2) !== 'U+') return event.keyIdentifier; // Chrome
+  }
+  return null; // ignore second key event
+}
+
+/**
  * Processes key press events and single character strings (in case
  * the interpreter is feeding us some). Many of the key commands need
  * a 'current' position. We determine it by looking at the Pen. It's
@@ -1212,22 +1228,9 @@ function keyPressed (evt) {
 
   // When running the demo, ignore key events from the browser.
   if (!Demo.running) {
-
-    // Firefox
-    if (evt.key) {
-      key = evt.key;
-    }
-
-    //Google Chrome
-    if(!evt.key && evt.keyIdentifier) {
-      if (evt.keyIdentifier.substring(0,2) === 'U+') { // U+0044 = D
-        key = String.fromCharCode(parseInt(event.keyIdentifier.substr(2), 16));
-        if (!evt.shiftKey) {
-          key = key.toLowerCase(); // 'D' to 'd'
-      }
-      } else {
-        key = evt.keyIdentifier; // 'Left'
-      }
+    if(evt instanceof KeyboardEvent){
+      key = getChar(evt);
+      if(key === null) return; // ignore one of onkeydown or onkeypress event
     }
   }
 
@@ -1469,6 +1472,7 @@ function recreateModelForDoors (re, data, element) {
 function initialize () {
   scaleTiles();
   document.onkeydown = keyPressed; // capture arrow keys
+  document.onkeypress = keyPressed; // capture character keys
   Map.initialize(); // don't reset the Map so we can load from a file
   Pen.update(null); // show it
   recreateModel(); // create model
