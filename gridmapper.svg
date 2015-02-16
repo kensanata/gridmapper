@@ -180,6 +180,7 @@ var Map = {
                    diagonal: 'n', };
     for (var y = 0; y < Map.height; y++) {
       for (var x = 0; x < Map.width; x++) {
+
         var walls = Map.data.get(x, y).walls;
         if (walls) {
           walls = walls.sort(function(a,b){
@@ -195,6 +196,12 @@ var Map = {
               source += '.';
           }
         }
+        
+        // label must precede floor tiles which advance the position
+        var label = Map.data.get(x, y).label;
+        if (label)
+          source += label.textContent;
+        
         var tile = Map.data.get(x, y).floor;
         if (tile) {
           if (tile.hasAttribute('rotate')) {
@@ -1547,7 +1554,7 @@ function interpretCont (code, i) {
  * used to simulate a little pause (to prevent doors from rotating).
  */
 function recreateModel () {
-  var re = /^\w+_(\d+)_(\d+)$/;
+  var re = /^(\w+)_(\d+)_(\d+)$/;
   recreateModelFor(re, Map.below.data, Map.below.floorElement);
   recreateModelFor(re, Map.below.data, Map.below.stairsElement);
   recreateModelFor(re, Map.below.data, Map.below.labelsElement);
@@ -1569,9 +1576,13 @@ function recreateModelFor (re, data, element) {
   for (var child = element.firstElementChild; child; child = child.nextElementSibling) {
     var result = child.getAttribute('id').match(re);
     if (result) {
-      var x = result[1];
-      var y = result[2];
-      data.get(x, y).floor = child;
+      var x = result[2];
+      var y = result[3];
+      if (result[1] === 'label') {
+        data.get(x, y).label = child;
+      } else {
+        data.get(x, y).floor = child;
+      }
     }
   }
 }
@@ -1584,8 +1595,8 @@ function recreateModelForDoors (re, data, element) {
   for (var child = element.firstElementChild; child; child = child.nextElementSibling) {
     var result = child.getAttribute('id').match(re);
     if (result) {
-      var x = result[1];
-      var y = result[2];
+      var x = result[2];
+      var y = result[3];
       data.get(x, y).walls.push(child);
     }
   }
