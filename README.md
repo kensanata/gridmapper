@@ -20,7 +20,7 @@ How to Save
 -----------
 
 This being a very simple web application, it has no access to your
-file system. And worse: If you use "Save As..." you'll save a copy
+file system. And worse: If you use "Save As..." you’ll save a copy
 *without* all your changes!
 
 There are two ways to save your creation:
@@ -33,7 +33,7 @@ There are two ways to save your creation:
    *Download*. On **Firefox**, this will download a copy of Gridmapper
    containing the current state of your dungeon. On **Chrome**, this will
    *open* a copy of Gridmapper containing the current state of your
-   dungeon. *Now* you can use "Save As..." On **IE** this won't work.
+   dungeon. *Now* you can use "Save As..." On **IE** this won’t work.
    Yikes!
 
 Examples
@@ -41,13 +41,14 @@ Examples
 
 * [Gridmapper Logo](https://campaignwiki.org/gridmapper.svg?%0A%20f%20ss%20f%0A%20s%0A%20%20%20%20sss%0A%20fssss%20%20f)
 * [OSR Logo](https://campaignwiki.org/gridmapper.svg?%0A%20w.dfwwfwwfw%0A%20wftfw.wfwwfww.dddfw%0A%20wfffwnnnn%20nn%20wfwwfwwfw%0A%20ww%20ww%20w.dfffwfn%20nnn%20w%0A%20%20%20ww%20ww%20ww%20wfnnnn%20fd%0A%20%20%20%20%20%20ww%20ww%20ww)
-* [Demo Dungeon](https://campaignwiki.org/gridmapper.svg?%0A%0A%0A%0A%0A%0A%0A%0A%0A%0A%0A%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20fwfwf%0A%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%206fddfddfddf%24%0A%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20ddfw.dfw.dfz%0A%0A%0A%0A%0A%0A%0A%0A%0A%0A%0A%20%20%20%20%20%20%20%20%20%20%20%20%20ffff%0A%20%20%20%20%20%20%20%20%20%20%20ssss%20%20ff1ffdfssss%0A%20%20%20%20%20%20%20%20%20%20%20%20%20ffff%0A%20%20%20%20%20%20%20%20%20%20%20%20%20ffffdfnn%0A%20%20%20%20%20%20%20%20%20%20%20%20%20ffffnnnn%20fff%0A%20%20%20%20%20%20%20%20%20%20%20%20%20%20fggf%20%20%204ffcfff%0A%20%20%20%20%20%20%20%20%20%20%20%20%20%20ff%20%20%20%20%20f5f%24%24%24f%0A%20%20%20%20%20%20%20%20%20%20%20pppff%24f%20%20%20%20fff%0A%20%20%20%20%20%20%20%20%20%20%20btf2ffwf%0A%20%20%20%20%20%20%20%20%20%20%20pppffwf)
+* [Demo Dungeon](https://campaignwiki.org/gridmapper.svg?%0A%0A%0A%0A%0A%0A%0A%0A%0A%0A%0A%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20fwfwf%0A%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%206fddfddfddf%24%0A%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20ddfw.dfw.dfz%0A%0A%0A%0A%0A%0A%0A%0A%0A%0A%0A%20%20%20%20%20%20%20%20%20%20%20%20%20ffff%0A%20%20%20%20%20%20%20%20%20%20%20ssss%20%20ff1ffdffsvsvsvsv%0A%20%20%20%20%20%20%20%20%20%20%20%20%20ffff%0A%20%20%20%20%20%20%20%20%20%20%20%20%20ffffdfnn%0A%20%20%20%20%20%20%20%20%20%20%20%20%20ffffnnnn%20fff%0A%20%20%20%20%20%20%20%20%20%20%20%20%20%20fggf%20%20%204ffcfff%0A%20%20%20%20%20%20%20%20%20%20%20%20%20%20ff%20%20%20%20%20f5f%24%24%24f%0A%20%20%20%20%20%20%20%20%20%20%20pppff%24f%20%20%20%20fff%0A%20%20%20%20%20%20%20%20%20%20%20btf2ffwf%0A%20%20%20%20%20%20%20%20%20%20%20pppffwf)
 
 You will have noticed that those example URLs contain a lot of
-gibberish past the questionmark. It’s a sort of code that’s very close
-to a stream of keyboard commands. You can get this **Link URL** by
-clicking on *Prepare Link* and then clicking on the resulting *Link*.
-(Incidentally, this also kills your undo history.)
+gibberish past the questionmark. This is the URL’s *query string*.
+It’s a sort of code that’s very close to a stream of keyboard
+commands. You can get this link by clicking on *Prepare Link* and then
+clicking on the resulting *Link*. (Incidentally, this also kills your
+undo history.)
 
 Upgrading your local copy of Gridmapper
 ---------------------------------------
