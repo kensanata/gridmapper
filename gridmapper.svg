@@ -209,7 +209,8 @@ var Map = {
         if (tile) {
           if (tile.hasAttribute('rotate')) {
             var rotate = tile.getAttribute('rotate') / 90;
-            source += mapping[tile.type].repeat(1 + rotate);
+            var type = mapping[tile.type];
+            source += type[0].repeat(1 + rotate) + type.substr(1);
             source += ' ';
           } else {
             source += mapping[tile.type];
