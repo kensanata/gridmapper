@@ -1607,6 +1607,7 @@ function recreateModelFor (re, data, element) {
   for (var child = element.firstElementChild; child; child = child.nextElementSibling) {
     var result = child.getAttribute('id').match(re);
     if (result) {
+      child.type = result[1]; // to enable code generation
       var x = result[2];
       var y = result[3];
       if (result[1] === 'label') {
@@ -1626,6 +1627,7 @@ function recreateModelForDoors (re, data, element) {
   for (var child = element.firstElementChild; child; child = child.nextElementSibling) {
     var result = child.getAttribute('id').match(re);
     if (result) {
+      child.type = result[1]; // to enable code generation
       var x = result[2];
       var y = result[3];
       data.get(x, y).walls.push(child);
