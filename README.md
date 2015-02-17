@@ -16,6 +16,26 @@ with all the code to keep working on it, off line! A bit like
 
 Written using [Vanilla JS](http://vanilla-js.com/).
 
+How to Save
+-----------
+
+This being a very simple web application, it has no access to your
+file system. And worse: If you use "Save As..." you'll save a copy
+*without* all your changes!
+
+There are two ways to save your creation:
+
+1. Click on *Prepare Link* and then click on the resulting *Link*.
+   Bookmark this page. The link now basically contains a little script
+   recreating your dungeon.
+
+2. Click on *Prepare Download* and the click on the resulting
+   *Download*. On **Firefox**, this will download a copy of Gridmapper
+   containing the current state of your dungeon. On **Chrome**, this will
+   *open* a copy of Gridmapper containing the current state of your
+   dungeon. *Now* you can use "Save As..." On **IE** this won't work.
+   Yikes!
+
 Examples
 --------
 
