@@ -176,8 +176,9 @@ var Map = {
   code: function() {
     var source = '';
     var mapping = {door: 'd', secret: '$', concealed: 'c', gate: 'g', wall: 'w',
-                   trap: 't', empty: 'f', pillar: 'p', stair: 's', statue: 'b',
-                   diagonal: 'n', };
+                   trap: 't', empty: 'f', pillar: 'p', statue: 'b', diagonal: 'n',
+                   stair: 's', 'stair-small': 'sv', 'stair-big': 'svv',
+                   };
     for (var y = 0; y < Map.height; y++) {
       for (var x = 0; x < Map.width; x++) {
 
@@ -190,7 +191,7 @@ var Map = {
             var tile = walls[i];
             var type = mapping[tile.type];
             if (type) {
-              source += type.repeat(1 + tile.getAttribute('rotate') / 90 - i);
+              source += type[0].repeat(1 + tile.getAttribute('rotate') / 90 - i) + type.substr(1);
             }
             if (i < walls.length - 1)
               source += '.';
@@ -233,7 +234,8 @@ var Map = {
 };
 
 /**
- *
+ * Provides a matrix of Tiles. If you use the get method on
+ * coordinates where no Tile exists, a new one will be created.
  */
 function Tiles() {
   this.data = [];
@@ -1118,6 +1120,44 @@ function replaceFloor(x, y, old, tile) {
 }
 
 /**
+ * Lists the replacement for a particular tile type.
+ */
+var variants = {
+  'stair': 'stair-small',
+  'stair-small': 'stair-big',
+  'stair-big': 'stair',
+}
+
+/**
+ * Replaces the last tile placed with a variant thereof.
+ */
+function variant (x, y) {
+  var tile;
+  if (Pen.type === 'wallMode') {
+    var walls = Map.data.get(x, y).wall;
+    tile = walls[walls.length - 1];
+  } else {
+    tile = Map.data.get(x, y).floor;
+  }
+  if (tile) {
+    var old = tile.type;
+    var type = variants[tile.type];
+    if (type) {
+      Commands.push(
+        function(){
+          tile.type = old;
+          tile.setAttribute('id', old + '_' + x + '_' + y);
+        },
+        function(){
+          tile.type = type;
+          tile.setAttribute('id', type + '_' + x + '_' + y);
+          tile.setAttributeNS(xlinkNs, 'href', '#' + type);
+        });
+    }
+  }
+}
+
+/**
  * Draws stairs and diagonals on the floor.
  */
 function floorRotate (x, y, type) {
@@ -1456,6 +1496,9 @@ function keyPressed (evt) {
     wallModeOff();
     floorRotate(Pen.x, Pen.y, 'stair');
     break;
+  case 'v':
+    variant(Pen.x, Pen.y);
+    break;
   case 'n':
     wallModeOff();
     floorRotate(Pen.x, Pen.y, 'diagonal');
@@ -1660,6 +1703,22 @@ onload = initialize;
       <line x1="3" y1="12" x2="7" y2="12" stroke="black" stroke-width="0.8"/>
       <line x1="4" y1="15" x2="6" y2="15" stroke="black" stroke-width="0.8"/>
     </g>
+    <g id="stair-small" width="10">
+      <rect width="10" height="10" fill="white" stroke="black" stroke-width="1"/>
+      <line x1="1" y1="2" x2="9" y2="2" stroke="black" stroke-width="0.8"/>
+      <line x1="2" y1="4" x2="8" y2="4" stroke="black" stroke-width="0.8"/>
+      <line x1="3" y1="6" x2="7" y2="6" stroke="black" stroke-width="0.8"/>
+      <line x1="4" y1="8" x2="6" y2="8" stroke="black" stroke-width="0.8"/>
+    </g>
+    <g id="stair-big" width="10">
+      <rect width="20" height="20" fill="white" stroke="black" stroke-width="1"/>
+      <line x1="1" y1="3" x2="19" y2="3" stroke="black" stroke-width="0.8"/>
+      <line x1="2" y1="6" x2="18" y2="6" stroke="black" stroke-width="0.8"/>
+      <line x1="3" y1="9" x2="17" y2="9" stroke="black" stroke-width="0.8"/>
+      <line x1="4" y1="12" x2="16" y2="12" stroke="black" stroke-width="0.8"/>
+      <line x1="5" y1="15" x2="15" y2="15" stroke="black" stroke-width="0.8"/>
+      <line x1="6" y1="18" x2="14" y2="18" stroke="black" stroke-width="0.8"/>
+    </g>
     <g id="curved-arrow">
       <path fill="none" stroke="forestgreen" stroke-width="1" d="M 0,30 C 0,9 9,0 30,0" />
       <path fill="forestgreen" d="M 23,5 L 30,0 23,-5 Z" />
@@ -1743,7 +1802,8 @@ onload = initialize;
       <tspan x="60" dy="30"><tspan class="key">w</tspan> : wall, repeat to rotate</tspan>
       <tspan x="60" dy="30"><tspan class="key">g</tspan> : a gate, repeat to rotate</tspan>
       <tspan x="60" dy="50"><tspan class="key">s</tspan> : stairs, repeat to rotate</tspan>
-      <tspan x="60" dy="50"><tspan class="key">n</tspan> : diagonal, repeat to rotate</tspan>
+      <tspan x="60" dy="20">    use <tspan class="key">v</tspan> for variants</tspan>
+      <tspan x="60" dy="30"><tspan class="key">n</tspan> : diagonal, repeat to rotate</tspan>
       <tspan x="60" dy="30" class="key">m</tspan><tspan> : enter / leave Wall Mode</tspan>
       <tspan x="60" dy="20" class="key">x</tspan><tspan> : clear wall</tspan>
       <tspan x="60" dy="20" class="key">u</tspan><tspan> : undo</tspan>
