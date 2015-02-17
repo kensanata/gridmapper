@@ -1339,6 +1339,10 @@ function getChar(event) {
   } else if (event.type == 'keydown') { // special key
     if(event.key && event.key.length != 1) return event.key; // Firefox
     if(event.keyIdentifier && event.keyIdentifier.substring(0,2) !== 'U+') return event.keyIdentifier; // Chrome
+    if(event.keyCode === 8) { // Chrome Backspace
+      event.preventDefault();
+      return 'Backspace';
+    }
   }
   return null; // ignore second key event
 }
@@ -1428,6 +1432,7 @@ function keyPressed (evt) {
     addToLabel(Pen.x, Pen.y, key);
     break;
 
+  case 'Backspace':
   case 'Del':
     deleteFromLabel(Pen.x, Pen.y);
     break;
