@@ -44,7 +44,6 @@ var Map = {
   ui: null, // the SVG element with the event handlers
   pointer: null, // the SVG element for the current position
   floorElement: null, // the SVG element for the floor
-  stairsElement: null, // the SVG element for the stairs
   wallsElement: null, // the SVG element for the walls
   labelElement: null, // the SVG element for the labels
   data: new Tiles(),
@@ -59,11 +58,9 @@ var Map = {
     Map.pointer = document.getElementById('pointer');
     Map.floorElement = document.getElementById('floor');
     Map.wallsElement = document.getElementById('walls');
-    Map.stairsElement = document.getElementById('stairs');
     Map.labelsElement = document.getElementById('labels');
     Map.below.floorElement = document.getElementById('floor-below');
     Map.below.wallsElement = document.getElementById('walls-below');
-    Map.below.stairsElement = document.getElementById('stairs-below');
     Map.below.labelsElement = document.getElementById('labels-below');
     // http://javascript.info/tutorial/mouse-events#drag-n-drop
     Map.ui = document.getElementById('ui'); // will be moved, too
@@ -82,16 +79,12 @@ var Map = {
     Map.below.data = new Tiles();
     while (Map.floorElement.lastChild) 
       Map.floorElement.removeChild(Map.floorElement.lastChild);
-    while (Map.stairsElement.lastChild) 
-      Map.stairsElement.removeChild(Map.stairsElement.lastChild);
     while (Map.wallsElement.lastChild) 
       Map.wallsElement.removeChild(Map.wallsElement.lastChild);
     while (Map.labelsElement.lastChild) 
       Map.labelsElement.removeChild(Map.labelsElement.lastChild);
     while (Map.below.floorElement.lastChild) 
       Map.below.floorElement.removeChild(Map.below.floorElement.lastChild);
-    while (Map.below.stairsElement.lastChild) 
-      Map.below.stairsElement.removeChild(Map.below.stairsElement.lastChild);
     while (Map.below.wallsElement.lastChild)
       Map.below.wallsElement.removeChild(Map.below.wallsElement.lastChild);
     while (Map.below.labelsElement.lastChild) 
@@ -131,8 +124,6 @@ var Map = {
         temp.floorChildren.push(Map.floorElement.removeChild(Map.floorElement.lastChild));
       while (Map.wallsElement.lastChild)
         temp.wallsChildren.push(Map.wallsElement.removeChild(Map.wallsElement.lastChild));
-      while (Map.stairsElement.lastChild)
-        temp.stairsChildren.push(Map.stairsElement.removeChild(Map.stairsElement.lastChild));
       while (Map.labelsElement.lastChild)
         temp.labelsChildren.push(Map.labelsElement.removeChild(Map.labelsElement.lastChild));
 
@@ -142,8 +133,6 @@ var Map = {
         Map.floorElement.appendChild(Map.below.floorElement.removeChild(Map.below.floorElement.lastChild));
       while (Map.below.wallsElement.lastChild)
         Map.wallsElement.appendChild(Map.below.wallsElement.removeChild(Map.below.wallsElement.lastChild));
-      while (Map.below.stairsElement.lastChild)
-        Map.stairsElement.appendChild(Map.below.stairsElement.removeChild(Map.below.stairsElement.lastChild));
       while (Map.below.labelsElement.lastChild)
         Map.labelsElement.appendChild(Map.below.labelsElement.removeChild(Map.below.labelsElement.lastChild));
       
@@ -151,7 +140,6 @@ var Map = {
 
       temp.floorChildren.forEach(function(child, i, array) { Map.below.floorElement.appendChild(child); });
       temp.wallsChildren.forEach(function(child, i, array) { Map.below.wallsElement.appendChild(child); });
-      temp.stairsChildren.forEach(function(child, i, array) { Map.below.stairsElement.appendChild(child); });
       temp.labelsChildren.forEach(function(child, i, array) { Map.below.labelsElement.appendChild(child); });
   },
 
@@ -160,7 +148,6 @@ var Map = {
     var opacity = Number(Map.below.floorElement.getAttribute('opacity'));
     fadeElementTo(Map.floorElement, opacity, linear, duration);
     fadeElementTo(Map.wallsElement, opacity, linear, duration);
-    fadeElementTo(Map.stairsElement, opacity, linear, duration);
     fadeElementTo(Map.labelsElement, opacity, linear, duration);
 
     setTimeout(function(){Commands.push(Map.swap, Map.swap)}, duration);
@@ -168,7 +155,6 @@ var Map = {
     setTimeout(function(){
       fadeElementTo(Map.floorElement, 1, linear, duration);
       fadeElementTo(Map.wallsElement, 1, linear, duration);
-      fadeElementTo(Map.stairsElement, 1, linear, duration);
       fadeElementTo(Map.labelsElement, 1, linear, duration);
     }, duration);
   },
@@ -231,7 +217,6 @@ var Map = {
     var opacity = 0.2 - Number(Map.below.floorElement.getAttribute('opacity')||0);
     fadeElementTo(Map.below.floorElement, opacity, linear, duration);
     fadeElementTo(Map.below.wallsElement, opacity, linear, duration);
-    fadeElementTo(Map.below.stairsElement, opacity, linear, duration);
     fadeElementTo(Map.below.labelsElement, opacity, linear, duration);
   },
 };
@@ -754,7 +739,6 @@ function textExport () {
   var source = '';
   if (Map.below.floorElement.hasChildNodes()
       || Map.below.wallsElement.hasChildNodes()
-      || Map.below.stairsElement.hasChildNodes()
       || Map.below.labelsElement.hasChildNodes()) {
     Map.swap();
     source += Map.code() + 'z';
@@ -1603,13 +1587,11 @@ function interpretCont (code, i) {
  * used to simulate a little pause (to prevent doors from rotating).
  */
 function recreateModel () {
-  var re = /^(\w+)_(\d+)_(\d+)$/;
+  var re = /^([-a-z]+)_(\d+)_(\d+)$/;
   recreateModelFor(re, Map.below.data, Map.below.floorElement);
-  recreateModelFor(re, Map.below.data, Map.below.stairsElement);
   recreateModelFor(re, Map.below.data, Map.below.labelsElement);
   recreateModelForDoors(re, Map.below.data, Map.below.wallsElement);
   recreateModelFor(re, Map.data, Map.floorElement);
-  recreateModelFor(re, Map.data, Map.stairsElement);
   recreateModelFor(re, Map.data, Map.labelsElement);
   recreateModelForDoors(re, Map.data, Map.wallsElement);
   // skip initial '?'
@@ -1754,11 +1736,9 @@ onload = initialize;
     <rect x="20" y="20" width="0" height="0" fill="lightgrey" stroke="black" stroke-width="1"/>
   </g>
   <g id="floor-below" opacity="0.2"/>
-  <g id="stairs-below" opacity="0.2"/>
   <g id="walls-below" opacity="0.2"/>
   <g id="labels-below" class="labels" opacity="0.2"/>
   <g id="floor"/>
-  <g id="stairs"/>
   <g id="labels" class="labels"/>
   <use id="pointer" xlink:href="#cursor"/>
   <g id="walls"/>
