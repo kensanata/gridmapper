@@ -178,8 +178,8 @@ var Map = {
     // this must match the variants
     var mapping = {door: 'd', secret: '$', concealed: 'c', gate: 'g', wall: 'w',
                    trap: 't', empty: 'f', pillar: 'p', statue: 'b', diagonal: 'n',
-                   stair: 's', 'stair-small': 'sv', 'stair-spiral': 'svvvv',
-		   'stair-big-spiral': 'svvv', 'stair-big': 'svv',
+                   stair: 's', 'stair-small': 'sv', 'stair-spiral': 'svv',
+		   'stair-big-spiral': 'svvv', 'stair-big': 'svvvv',
                    };
     for (var y = 0; y < Map.height; y++) {
       for (var x = 0; x < Map.width; x++) {
