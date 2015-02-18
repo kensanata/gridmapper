@@ -24,7 +24,7 @@ Examples
 * [Demo Dungeon](https://campaignwiki.org/gridmapper.svg?%0A%0A%0A%0A%0A%0A%0A%0A%0A%0A%0A%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20fwfwf%0A%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%206fddfddfddf%24%0A%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20ddfw.dfw.dfz%0A%0A%0A%0A%0A%0A%0A%0A%0A%0A%0A%20%20%20%20%20%20%20%20%20%20%20%20%20ffff%0A%20%20%20%20%20%20%20%20%20%20%20ssss%20%20ff1ffdffssssv%0A%20%20%20%20%20%20%20%20%20%20%20%20%20ffff%0A%20%20%20%20%20%20%20%20%20%20%20%20%20ffffdfnn%0A%20%20%20%20%20%20%20%20%20%20%20%20%20ffffnnnn%20fff%0A%20%20%20%20%20%20%20%20%20%20%20%20%20%20fggf%20%20%204ffcfff%0A%20%20%20%20%20%20%20%20%20%20%20%20%20%20ff%20%20%20%20%20f5f%24%24%24f%0A%20%20%20%20%20%20%20%20%20%20%20pppff%24f%20%20%20%20fff%0A%20%20%20%20%20%20%20%20%20%20%20btf2ffwf%0A%20%20%20%20%20%20%20%20%20%20%20pppffwf)
 
 You will have noticed that those example URLs contain a lot of
-gibberish past the questionmark. This is the URL’s *query string*.
+gibberish past the questionmark. This is the URL’s **query string**.
 It’s a sort of code that’s very close to a stream of keyboard
 commands. You can get this link by clicking on *Prepare Link* and then
 clicking on the resulting *Link*. Perfect for sharing and bookmarking.
@@ -54,9 +54,9 @@ Upgrading your local copy of Gridmapper
 
 Let’s assume you downloaded a copy of Gridmapper and started creating
 your dungeon. Then you discovered that there’s a new release out
-there. How can you upgrade your local file? The **Link URL** is key!
+there. How can you upgrade your local file? The **query string** is key!
 
-You can get this **Link URL** by loading your local copy, clicking on
+You can get this **query string** by loading your local copy, clicking on
 *Prepare Link* and then clicking on the resulting *Link*. Here’s a
 simple example: ```file:///Users/alex/Documents/awesome.svg?%0A%20s%0A%0A%20ff%0A%20ff```
 
@@ -79,7 +79,7 @@ deleting your old copy. :)
 Editing Maps using a Text Editor
 --------------------------------
 
-You can use the **Link URL** to make edits to your map.
+You can use the **query string** to make edits to your map.
 
 Assume you have these two maps:
 [One](https://campaignwiki.org/gridmapper.svg?%0A%20w.dfwwfwwfw%0A%20wftfw.wfwwfww.dddfw%0A%20wfffwnnnn%20nn%20wfwwfwwfw%0A%20ww%20ww%20w.dfffwfn%20nnn%20w%0A%20%20%20ww%20ww%20ww%20wfnnnn%20fd%0A%20%20%20%20%20%20ww%20ww%20ww)
