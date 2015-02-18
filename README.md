@@ -33,8 +33,8 @@ How to Save
 -----------
 
 This being a very simple web application, it has no access to your
-file system. And worse: If you use "Save As..." you'll save a copy
-*without* all your changes!
+file system. And worse: If you use "Save As..." in your browser you'll
+save a copy *without* any of the changes you made!
 
 There are two ways to save your creation:
 
