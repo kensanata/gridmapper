@@ -1022,49 +1022,59 @@ function wall (x, y, type) {
 }
 
 /**
+ * Finds a wall tile for the current position of a given angle in wall
+ * mode and return its index in the wall array. You're meant to call
+ * this multiple times: Once for (x, y) where the angle could be 0° or
+ * 90°, once for (x-1, y) where the angle could be 180° and once for
+ * (x, y-1) where the angle could be 270°.
+ */
+function findWall (walls, angle) {
+  for (var i = 0; i < walls.length; i++) {
+    if (parseInt(walls[i].getAttribute('rotate')) == angle) {
+      return i;
+    }
+  }
+  return null;
+}
+
+/**
  * Removes a tile from the surrounding walls of the give tile.
  */
-function removeWall  (x, y) {
-  var walls = Map.data.get(x, y).walls;
+function removeWall (x, y) {
+  var angle = 0;
   if (Pen.type === 'wallMode') {
-    var angle = 0;
     if (y % 1 === 0) {
       x = Math.ceil(x);
     } else {
       angle = 90;
       y = Math.ceil(y);
     }
-    if (walls && walls.length > 0) {
-      var i, old;
-      for (i = 0; i < walls.length; i++) {
-        if (parseInt(walls[i].getAttribute('rotate')) == angle) {
-          old = walls[i];
-          break;
-        }
-      }
-      if (old) {
-        Commands.push(
-          function(){
-            Map.wallsElement.appendChild(old);
-            walls.push(old);
-          },
-          function(){
-            Map.wallsElement.removeChild(old);
-            walls.splice(i,1);
-          });
-      }
+  }
+  var walls = Map.data.get(x, y).walls;
+  var i;
+  if (Pen.type === 'wallMode') {
+    i = findWall(walls, angle);
+    if (i === null && angle === 0 && x > 0) {
+      walls = Map.data.get(x - 1, y).walls;
+      i = findWall(walls, 180);
     }
-  } else if (walls && walls.length > 0) {
-    // take the last one and remove it
-    var tile = walls[walls.length - 1];
+    if (i === null && angle === 90 && y > 0) {
+      walls = Map.data.get(x , y - 1).walls;
+      i = findWall(y - 1, y, 270);
+    }
+  } else {
+    i = walls.length - 1;
+  }
+  if (i >= 0) {
+    var old = walls[i];
     Commands.push(
       function(){
-        walls.push(tile);
-        Map.wallsElement.appendChild(tile);
+        Map.wallsElement.appendChild(old);
+        walls.push(old);
       },
       function(){
-        walls.pop();
-        Map.wallsElement.removeChild(tile);
+        Map.wallsElement.removeChild(old);
+        walls.splice(i,1);
       });
   }
 }
