@@ -33,7 +33,7 @@ How to Save
 -----------
 
 This being a very simple web application, it has no access to your
-file system. And worse: If you use "Save As..." you’ll save a copy
+file system. And worse: If you use “Save As...” you’ll save a copy
 *without* all your changes!
 
 There are two ways to save your creation:
@@ -43,10 +43,10 @@ There are two ways to save your creation:
    recreating your dungeon.
 
 2. Click on **Prepare Download** and the click on the resulting
-   *Download*. On **Firefox**, this will download a copy of Gridmapper
+   *Download*. On **Firefox**, this will *download* a copy of Gridmapper
    containing the current state of your dungeon. On **Chrome**, this will
    *open* a copy of Gridmapper containing the current state of your
-   dungeon. *Now* you can use "Save As..." On **IE** this won’t work.
+   dungeon. *Now* you can use “Save As...” On **IE** this won’t work.
    Yikes!
 
 Upgrading your local copy of Gridmapper
@@ -142,7 +142,7 @@ the Gridmapper URL: [Combined Map](https://campaignwiki.org/gridmapper.svg?%0A%2
 You could now go back to your map and move the second map around in
 relation to the first map by adding or removing newlines and spaces.
 And when you’re good to go, click on *Prepare Link* and on the
-resulting *Link*. You should get a "simplified" link that results in
+resulting *Link*. You should get a “simplified” link that results in
 the same map: [Simplified Combined Map](https://campaignwiki.org/gridmapper.svg?%0A%20w.dfwwfwwfw%20%20%20%20%20%20%20ffnn%20n%20nn%20ffnn%0A%20wftfw.wfwwfww.dddfw%20%20%20%20dfbfdfwfwfbf%0A%20wfffwnnnn%20nn%20wfwwfwwfw%20%20ffnnn%20fwfdffnnn%0A%20ww%20ww%20w.dfffwfn%20nnn%20w%0A%20%20%20ww%20ww%20ww%20wfnnnn%20fd%0A%20%20%20%20%20%20ww%20ww%20ww)
 
 Instead of putting the two maps on the same level, how about putting
