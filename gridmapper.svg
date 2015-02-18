@@ -1853,6 +1853,10 @@ onload = initialize;
       <a id="export" fill="blue" xlink:href="javascript:textExport()">
 	<tspan>Prepare Link</tspan>
       </a>
+      <tspan> / </tspan>
+      <a fill="blue" xlink:href="https://github.com/kensanata/gridmapper#how-to-save">
+	<tspan>Learn More</tspan>
+      </a>
       <a fill="blue" xlink:href="https://alexschroeder.ch/">
 	<tspan x="30" dy="20">Alex Schroeder</tspan>
       </a>
