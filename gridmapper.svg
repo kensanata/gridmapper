@@ -1242,8 +1242,12 @@ function variant (x, y) {
  * Draws stairs and diagonals on the floor.
  */
 function floorRotate (x, y, type) {
+  var matches = {};
+  for (var next = type; variants[next] !== type; next = variants[next]) {
+    matches[next] = true;
+  }
   var old = Map.data.get(x, y).floor;
-  if (old && old.type === type && old.hasAttribute('rotate')) {
+  if (old && matches[old.type] && old.hasAttribute('rotate')) {
     var angle = parseInt(old.getAttribute('rotate'));
     Commands.do(
       function(){
