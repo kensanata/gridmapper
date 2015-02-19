@@ -76,10 +76,10 @@ var Map = {
     Commands.reset();
     while (Map.levelsElement.lastChild) 
       Map.levelsElement.removeChild(Map.levelsElement.lastChild);
-    levels = [];
+    Map.levels = [];
     createLevel(0);
-    Map.level = 0;
-    Map.show();
+    Map.setLevel(0);
+    Map.showLevelAnimation(0);
     moveElements();
   },
   
@@ -132,7 +132,7 @@ var Map = {
           Map.showLevelAnimation();
         });
       // continue if we haven't reached the target
-      if (to_z !== from_z) {
+      if (Map.level !== to_z) {
         Map.show(to_z);
       }
     }
@@ -142,7 +142,7 @@ var Map = {
    * Switch to the indicated level, quickly. This is what we call when
    * setting the level from code and when jumping back to 0. But
    * here's the special case: when doing and undoing this, we want to
-   * skip the animation.
+   * skip the animation. Then call Map.showLevelAnimation, once.
    */
   jump: function(to_z) {
     var from_z = Map.level;
@@ -502,6 +502,7 @@ var Demo = {
     Map.reset();
     Pen.x = 0;
     Pen.y = 0;
+    Demo.running = true;
     Demo.link('Click to stop demo', 'Demo.stop()', false);
     Map.ui.onmousemove = null;
     Map.ui.onmousedown = null;
