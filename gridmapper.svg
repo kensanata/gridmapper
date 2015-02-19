@@ -1881,10 +1881,6 @@ onload = initialize;
       <line x1="22" y1="78" x2="78" y2="22" stroke="black" stroke-width="10"/>
       <circle cx="50" cy="50" r="10" fill="white" stroke="black" stroke-width="10"/>
     </g>
-    <g id="curved-arrow">
-      <path fill="none" stroke="forestgreen" stroke-width="1" d="M 0,30 C 0,9 9,0 30,0" />
-      <path fill="forestgreen" d="M 23,5 L 30,0 23,-5 Z" />
-    </g>
   </defs>
   <g id="background">
     <rect x="20" y="20" width="0" height="0" fill="lightgrey" stroke="black" stroke-width="1"/>
@@ -1912,41 +1908,25 @@ onload = initialize;
     <use x="290" y="120" xlink:href="#statue"/>
     <use x="30" y="150" xlink:href="#empty"/>
     <use x="30" y="150" xlink:href="#door"/>
-    <use x="30" y="180" xlink:href="#empty"/>
-    <use x="30" y="180" xlink:href="#secret"/>
-    <use x="30" y="210" xlink:href="#empty"/>
-    <use x="30" y="210" xlink:href="#concealed"/>
-    <use x="30" y="240" xlink:href="#empty"/>
-    <use x="30" y="240" xlink:href="#wall"/>
-    <use x="30" y="270" xlink:href="#empty"/>
-    <use x="30" y="290" xlink:href="#empty"/>
-    <use x="30" y="270" xlink:href="#gate"/>
-    <use x="30" y="320" xlink:href="#stair"/>
-    <use x="30" y="370" xlink:href="#diagonal"/>
-    <use x="30" y="400" xlink:href="#empty"/>
-    <use x="20" y="400" xlink:href="#cursor"/>
-    <use x="30" y="530" xlink:href="#empty"/>
-    <g class="labels"><text x="40" y="544" style="text-anchor: middle">123</text></g>
-    <g>
-      <use x="370" y="260" xlink:href="#empty" opacity="0.3"/>
-      <use x="350" y="280" xlink:href="#empty" opacity="0.3"/>
-      <use x="370" y="280" xlink:href="#empty"/>
-      <use x="370" y="280" xlink:href="#cursor"/>
-      <use x="390" y="280" xlink:href="#empty" opacity="0.3"/>
-      <use x="370" y="300" xlink:href="#empty" opacity="0.3"/>
-      <rect x="366" y="288" width="8" height="24" fill="olive" stroke="black" stroke-width="2"/>
-      <use x="370" y="280" transform="rotate(90,380,290)" xlink:href="#gate"/>
-      <use x="370" y="280" transform="rotate(180,380,290)" xlink:href="#gate"/>
-      <use x="370" y="280" transform="rotate(270,380,290)" xlink:href="#gate"/>
-      <text x="335" y="295" style="fill: olive; font-weight: bold;">1</text>
-      <text x="375" y="255" class="key">2</text>
-      <text x="415" y="295" class="key">3</text>
-      <text x="375" y="335" class="key">4</text>
-      <use x="340" y="250" xlink:href="#curved-arrow"/>
-      <use x="340" y="250" xlink:href="#curved-arrow" transform="rotate(90,380,290)"/>
-      <use x="340" y="250" xlink:href="#curved-arrow" transform="rotate(180,380,290)"/>
-      <use x="340" y="250" xlink:href="#curved-arrow" transform="rotate(270,380,290)"/>
-    </g>
+    <use x="350" y="150" xlink:href="#empty"/>
+    <use x="350" y="170" xlink:href="#empty"/>
+    <use x="350" y="150" xlink:href="#gate"/>
+    <use x="30" y="200" xlink:href="#empty"/>
+    <use x="30" y="200" xlink:href="#secret"/>
+    <use x="30" y="230" xlink:href="#empty"/>
+    <use x="30" y="230" xlink:href="#concealed"/>
+    <use x="30" y="260" xlink:href="#empty"/>
+    <use x="30" y="260" xlink:href="#wall"/>
+    <use x="30" y="290" xlink:href="#stair"/>
+    <use x="260" y="320" xlink:href="#stair-small"/>
+    <use x="290" y="320" xlink:href="#stair-spiral"/>
+    <use x="320" y="320" xlink:href="#stair-big-spiral"/>
+    <use x="370" y="320" xlink:href="#stair-big"/>
+    <use x="30" y="380" xlink:href="#diagonal"/>
+    <use x="30" y="410" xlink:href="#empty"/>
+    <use x="20" y="410" xlink:href="#cursor"/>
+    <use x="30" y="540" xlink:href="#empty"/>
+    <g class="labels"><text x="40" y="554" style="text-anchor: middle">123</text></g>
     
     <text y="105">
       <tspan x="60"><tspan class="key">f</tspan> : floor / erase (like using the mouse)</tspan>
@@ -1954,13 +1934,13 @@ onload = initialize;
       <tspan x="180"><tspan class="key">p</tspan> : pillar</tspan>
       <tspan x="320"><tspan class="key">b</tspan> : statue</tspan>
       <tspan x="60" dy="30"><tspan class="key">d</tspan> : a door, repeat to rotate</tspan>
+      <tspan x="60" dy="20">    use <tspan class="key">v</tspan> for the gate variant</tspan>
       <tspan x="60" dy="30"><tspan class="key">$</tspan> : a secret door, repeat to rotate</tspan>
       <tspan x="60" dy="30"><tspan class="key">c</tspan> : a concealed door, repeat to rotate</tspan>
       <tspan x="60" dy="30"><tspan class="key">w</tspan> : wall, repeat to rotate</tspan>
-      <tspan x="60" dy="30"><tspan class="key">g</tspan> : a gate, repeat to rotate</tspan>
-      <tspan x="60" dy="50"><tspan class="key">s</tspan> : stairs, repeat to rotate</tspan>
+      <tspan x="60" dy="30"><tspan class="key">s</tspan> : stairs, repeat to rotate</tspan>
       <tspan x="60" dy="20">    use <tspan class="key">v</tspan> for variants</tspan>
-      <tspan x="60" dy="30"><tspan class="key">n</tspan> : diagonal, repeat to rotate</tspan>
+      <tspan x="60" dy="70"><tspan class="key">n</tspan> : diagonal, repeat to rotate</tspan>
       <tspan x="60" dy="30" class="key">m</tspan><tspan> : enter / leave Wall Mode</tspan>
       <tspan x="60" dy="20" class="key">x</tspan><tspan> : clear wall</tspan>
       <tspan x="60" dy="20" class="key">u</tspan><tspan> : undo</tspan>
@@ -1993,7 +1973,7 @@ onload = initialize;
       </a>
     </text>
 
-    <text x="210" y="435">
+    <text x="210" y="445">
       <tspan x="210" class="key">?</tspan><tspan> : toggle help</tspan>
       <tspan x="210" dy="20" class="key">Space</tspan><tspan> : move right</tspan>
       <tspan x="210" dy="20" class="key">Enter</tspan><tspan> : begin new line</tspan>
@@ -2059,10 +2039,9 @@ onload = initialize;
     to switch layers.</tspan>
     <code class="step10">z(21,11)fff(20,12)ffff(21,13)fff;y</code>
 
-    <tspan class="step11" x="0" y="0">Gates can be also be confusing, but see diagram!</tspan>
-    <tspan class="step11" x="0" dy="20">Use <tspan class="key">g</tspan>
-    to set and rotate them into place.</tspan>
-    <code class="step11">(15,16);g;g</code>
+    <tspan class="step11" x="0" y="0">Place a door and rotate it into place.</tspan>
+    <tspan class="step11" x="0" dy="20">Use <tspan class="key">v</tspan> to select the gate variant.</tspan>
+    <code class="step11">(15,16);d;d;v</code>
 
     <tspan class="step12" x="0" y="0">Use <tspan class="key">n</tspan>
     to place and rotate diagonals.</tspan>
