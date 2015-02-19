@@ -11,4 +11,4 @@ The legal text:
 the Public Domain Dedication (CC0 1.0).
 
 Some context:
-[Public Domain Software](https://en.wikipedia.org/wiki/Public_domain_software)
+[Public Domain Software](https://en.wikipedia.org/wiki/Public_domain_software).
