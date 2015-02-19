@@ -43,11 +43,14 @@ var Map = {
   tileWidth: 20, // tile size in pixels
   ui: null, // the SVG element with the event handlers
   pointer: null, // the SVG element for the current position
-  floorElement: null, // the SVG element for the floor
-  wallsElement: null, // the SVG element for the walls
-  labelElement: null, // the SVG element for the labels
-  data: new Tiles(),
-  below: { data: new Tiles(), }, // the data for the map below
+  levelsElement: null, // the SVG element for levels
+  levels: [], // data array of level data (Tiles)
+  level: 0, // the current level
+  data: null, // the current level data (Tiles)
+  floorElement: null, // the SVG element for the floor of the current level
+  wallsElement: null, // the SVG element for the walls of the current level
+  labelsElement: null, // the SVG element for the labels of the current level
+  hideOthers: false, // are the other levels hidden?
   
   /**
    * Initializes the datastructures if necessary. We only need to run
@@ -56,12 +59,7 @@ var Map = {
    */
   initialize: function() {
     Map.pointer = document.getElementById('pointer');
-    Map.floorElement = document.getElementById('floor');
-    Map.wallsElement = document.getElementById('walls');
-    Map.labelsElement = document.getElementById('labels');
-    Map.below.floorElement = document.getElementById('floor-below');
-    Map.below.wallsElement = document.getElementById('walls-below');
-    Map.below.labelsElement = document.getElementById('labels-below');
+    Map.levelsElement = document.getElementById('levels');
     // http://javascript.info/tutorial/mouse-events#drag-n-drop
     Map.ui = document.getElementById('ui'); // will be moved, too
     Map.ui.ondragstart = function() { return false };
@@ -75,22 +73,14 @@ var Map = {
    * example. There is no undo.
    */
   reset: function() {
-    Map.data = new Tiles();
-    Map.below.data = new Tiles();
-    while (Map.floorElement.lastChild) 
-      Map.floorElement.removeChild(Map.floorElement.lastChild);
-    while (Map.wallsElement.lastChild) 
-      Map.wallsElement.removeChild(Map.wallsElement.lastChild);
-    while (Map.labelsElement.lastChild) 
-      Map.labelsElement.removeChild(Map.labelsElement.lastChild);
-    while (Map.below.floorElement.lastChild) 
-      Map.below.floorElement.removeChild(Map.below.floorElement.lastChild);
-    while (Map.below.wallsElement.lastChild)
-      Map.below.wallsElement.removeChild(Map.below.wallsElement.lastChild);
-    while (Map.below.labelsElement.lastChild) 
-      Map.below.labelsElement.removeChild(Map.below.labelsElement.lastChild);
-    moveElements();
     Commands.reset();
+    while (Map.levelsElement.lastChild) 
+      Map.levelsElement.removeChild(Map.levelsElement.lastChild);
+    Map.levels = [];
+    createLevel(0);
+    Map.setLevel(0);
+    Map.showLevelAnimation(0);
+    moveElements();
   },
   
   /**
@@ -98,7 +88,6 @@ var Map = {
    * Animate the process.
    */
   growWithAnimation: function(to_x) {
-    // show it
     if (to_x >= Map.width) {
       Map.width = to_x + 1;
       moveElements();
@@ -106,62 +95,129 @@ var Map = {
   },
 
   /**
-   * Swaps the current map with the map below. First we move stuff
-   * from the Map to a temp object, then we move the stuff below to
-   * the map, and finally we move the temp stuff below.
+   * Sets the current level. Use this when interpreting code.
    */
-  swap: function() {
-      var temp = {};
-   
-      temp.data = Map.data;
-
-      temp.floorChildren = [];
-      temp.wallsChildren = [];
-      temp.stairsChildren = [];
-      temp.labelsChildren = [];
-
-      while (Map.floorElement.lastChild)
-        temp.floorChildren.push(Map.floorElement.removeChild(Map.floorElement.lastChild));
-      while (Map.wallsElement.lastChild)
-        temp.wallsChildren.push(Map.wallsElement.removeChild(Map.wallsElement.lastChild));
-      while (Map.labelsElement.lastChild)
-        temp.labelsChildren.push(Map.labelsElement.removeChild(Map.labelsElement.lastChild));
-
-      Map.data = Map.below.data;
-
-      while (Map.below.floorElement.lastChild)
-        Map.floorElement.appendChild(Map.below.floorElement.removeChild(Map.below.floorElement.lastChild));
-      while (Map.below.wallsElement.lastChild)
-        Map.wallsElement.appendChild(Map.below.wallsElement.removeChild(Map.below.wallsElement.lastChild));
-      while (Map.below.labelsElement.lastChild)
-        Map.labelsElement.appendChild(Map.below.labelsElement.removeChild(Map.below.labelsElement.lastChild));
-      
-      Map.below.data = temp.data;
-
-      temp.floorChildren.forEach(function(child, i, array) { Map.below.floorElement.appendChild(child); });
-      temp.wallsChildren.forEach(function(child, i, array) { Map.below.wallsElement.appendChild(child); });
-      temp.labelsChildren.forEach(function(child, i, array) { Map.below.labelsElement.appendChild(child); });
+  setLevel: function(z) {
+    if (!Map.levels[z]) {
+      createLevel(z);
+    }
+    Map.level = z;
+    Map.floorElement = document.getElementById('floor' + z);
+    Map.wallsElement = document.getElementById('walls' + z);
+    Map.labelsElement = document.getElementById('labels' + z);
+    Map.data = Map.levels[z];
+    document.getElementById('level').textContent = z < 665 ? z + 1: 'The End';
   },
 
-  swapWithAnimation: function() {
+  /**
+   * Switch to the indicated level, slowly. This is what we call when
+   * the user wants to change level. Usually to_z only differs from
+   * Map.level by 1.
+   */
+  show: function(to_z) {
+    var from_z = Map.level;
+    if (to_z !== from_z) {
+      if (to_z > Map.level) {
+        Map.level++;
+      } else {
+        Map.level--;
+      }
+      Commands.do(
+        function() {
+          Map.setLevel(from_z);
+          Map.showLevelAnimation();
+        },
+        function() {
+          Map.setLevel(Map.level);
+          Map.showLevelAnimation();
+        });
+      // continue if we haven't reached the target
+      if (Map.level !== to_z) {
+        Map.show(to_z);
+      }
+    }
+  },
+
+  /**
+   * Switch to the indicated level, quickly. This is what we call when
+   * setting the level from code and when jumping back to 0. But
+   * here's the special case: when doing and undoing this, we want to
+   * skip the animation. Then call Map.showLevelAnimation, once.
+   */
+  jump: function(to_z) {
+    var from_z = Map.level;
+    if (to_z !== from_z) {
+      // push without doing
+      Commands.push(
+        function() {
+          Map.setLevel(from_z);
+          Map.showLevelAnimation();
+        },
+        function() {
+          Map.setLevel(to_z);
+          Map.showLevelAnimation();
+        });
+      // just do this
+      Map.setLevel(to_z);
+    }
+  },
+
+  /**
+   * Shows all the levels as appropriate, with animation.
+   */
+  showLevelsTs: null,
+  showLevelAnimation: function() {
+    // animate it, smoothing it out
+    var now = new Date();
     var duration = 500;
-    var opacity = Number(Map.below.floorElement.getAttribute('opacity'));
-    fadeElementTo(Map.floorElement, opacity, linear, duration);
-    fadeElementTo(Map.wallsElement, opacity, linear, duration);
-    fadeElementTo(Map.labelsElement, opacity, linear, duration);
-
-    setTimeout(function(){Commands.push(Map.swap, Map.swap)}, duration);
-
-    setTimeout(function(){
-      fadeElementTo(Map.floorElement, 1, linear, duration);
-      fadeElementTo(Map.wallsElement, 1, linear, duration);
-      fadeElementTo(Map.labelsElement, 1, linear, duration);
-    }, duration);
+    if (Map.showLevelsTs !== null && Map.showLevelsTs > now) {
+      setTimeout(Map.showLevelAnimation, Map.showLevelsTs - now);
+    } else {
+      Map.showLevelsTs = now - (- duration);
+      for (var z = 0, map = null; map = document.getElementById('level'+z); z++) {
+        if (z === Map.level + 2) {
+          fadeElementTo(map, 0.1, linear, duration);
+        } else if (z === Map.level + 1) {
+          fadeElementTo(map, 0.2, linear, duration);
+        } else if (z === Map.level) {
+          fadeElementTo(map, 1, linear, duration);
+        } else if (z === Map.level - 1) {
+          fadeElementTo(map, 0.1, linear, duration);
+        } else {
+          var opacity = map.hasAttribute('opacity') ? Number(map.getAttribute('opacity')) : 1;
+          if (opacity !== 0) {
+            fadeElementTo(map, 0, linear, duration);
+          }
+        }
+      }
+    }
   },
 
+  /**
+   * Hide all the other levels.
+   */
+  hideOtherLevels: function() {
+    // animate it
+    var duration = 500;
+    for (var z = 0, map = null; map = document.getElementById('level'+z); z++) {
+      if (z === Map.level) {
+        fadeElementTo(map, 1, linear, duration);
+      } else {
+        var opacity = Number(map.getAttribute('opacity'));
+        if (opacity !== 0) {
+          fadeElementTo(map, 0, linear, duration);
+        }
+      }
+    }
+  },
+  
+  /**
+   * Produces the code necessary to reproduce the map. The mappings
+   * here must match the variants and the characters handled in
+   * interpretCont and keyPressed.
+   */
   code: function() {
     var source = '';
-    // this must match the variants
     var mapping = {door: 'd', secret: '$', concealed: 'c', gate: 'g', wall: 'w',
                    trap: 't', empty: 'f', pillar: 'p', statue: 'b', diagonal: 'n',
                    stair: 's', 'stair-small': 'sv', 'stair-spiral': 'svv',
@@ -209,15 +265,14 @@ var Map = {
     }
     source = source.replace(/ +$/gm,'');
     source = source.replace(/\n+$/,'');
+    source = source.replace(/^(\n*)( *)/, function(match, ys, xs) {
+      if (match.length > 5) {
+        return '(' + xs.length + ',' + ys.length + ')';
+      } else {
+        return match;
+      }
+    });
     return source;
-  },
-
-  hideBelowWithAnimation: function(){
-    var duration = 500;
-    var opacity = 0.2 - Number(Map.below.floorElement.getAttribute('opacity')||0);
-    fadeElementTo(Map.below.floorElement, opacity, linear, duration);
-    fadeElementTo(Map.below.wallsElement, opacity, linear, duration);
-    fadeElementTo(Map.below.labelsElement, opacity, linear, duration);
   },
 };
 
@@ -337,7 +392,7 @@ var Pen = {
 
 /**
  * Maintains an undo and a redo list. Whenever you do something that
- * the user can undo, you need to call Commands.push with two
+ * the user can undo, you need to call Commands.do with two
  * functions, the how-to-undo-it step and the how-to-do-it step.
  * how-to-do-it will be called once on order to do it. When the user
  * undoes something, our index is decremented and we execute the
@@ -353,8 +408,7 @@ var Commands = {
 
   /**
    * Add two closures to the lists. The first one is how to undo a
-   * change, the second one is how to do a change. This automatically
-   * does the change, too.
+   * change, the second one is how to do a change.
    */
   push: function(undoStep, redoStep) {
     // once we're pushing new steps, discard the undone steps
@@ -365,7 +419,15 @@ var Commands = {
     this.undoSteps.push(undoStep);
     this.redoSteps.push(redoStep);
     this.i++;
-    // finally, execute the last step
+  },
+  
+  /**
+   * Add two closures to the lists. The first one is how to undo a
+   * change, the second one is how to do a change. This automatically
+   * does the change, too.
+   */
+  do: function(undoStep, redoStep) {
+    Commands.push(undoStep, redoStep);
     redoStep();
   },
   
@@ -440,6 +502,7 @@ var Demo = {
     Map.reset();
     Pen.x = 0;
     Pen.y = 0;
+    Demo.running = true;
     Demo.link('Click to stop demo', 'Demo.stop()', false);
     Map.ui.onmousemove = null;
     Map.ui.onmousedown = null;
@@ -737,16 +800,17 @@ function download () {
 function textExport () {
   // do we need to export the map below
   var source = '';
-  if (Map.below.floorElement.hasChildNodes()
-      || Map.below.wallsElement.hasChildNodes()
-      || Map.below.labelsElement.hasChildNodes()) {
-    Map.swap();
-    source += Map.code() + 'z';
-    Map.swap()
+  var level = Map.level;
+  for (var z = 0, map = null; map = document.getElementById('level'+z); z++) {
+    if (z > 0)
+      source += 'z';
+    Map.setLevel(z);
     source += Map.code();
-  } else {
-    source = Map.code();
   }
+  Map.level = level; // reset
+  source = source.replace(/zz+/,'z');
+  source = source.replace(/^z+/,'');
+  source = source.replace(/z+$/,'');
   source = encodeURIComponent(source);
   var link = document.getElementById('export');
   var text = link.firstElementChild.firstChild.nodeValue;
@@ -813,7 +877,7 @@ function addToLabel(x, y, s) {
     tile.setAttribute('style', 'text-anchor: middle'); // centered
     text = tile.textContent;
   }
-  Commands.push(
+  Commands.do(
     function(){
       if (text === s) {
         Map.labelsElement.removeChild(tile);
@@ -839,7 +903,7 @@ function deleteFromLabel(x, y) {
   if (tile !== null) {
     var text = tile.textContent;
     if (text !== "") {
-      Commands.push(
+      Commands.do(
         function(){
           if (text.length === 1) {
             Map.labelsElement.appendChild(tile);
@@ -918,7 +982,7 @@ function wallPlacement (x, y, type) {
     var angle = parseInt(tile.getAttribute('rotate'));
     var rotate = getUnusedAngle(x, y, (angle + 90) % 360);
     if (rotate != null) {
-      Commands.push(
+      Commands.do(
         function(){
           rotateTile(tile, type, x, y, angle);
         },
@@ -931,7 +995,7 @@ function wallPlacement (x, y, type) {
     if (rotate != null) {
       var tile = createTile(x, y, type);
       rotateTile(tile, type, x, y, rotate);
-      Commands.push(
+      Commands.do(
         function(){
           walls.pop();
           Map.wallsElement.removeChild(tile);
@@ -969,7 +1033,7 @@ function wallDraw (x, y, type) {
       break;
     }
   }
-  Commands.push(
+  Commands.do(
     function(){
       Map.wallsElement.removeChild(tile);
       if (old) {
@@ -1067,7 +1131,7 @@ function removeWall (x, y) {
   }
   if (i >= 0) {
     var old = walls[i];
-    Commands.push(
+    Commands.do(
       function(){
         Map.wallsElement.appendChild(old);
         walls.push(old);
@@ -1098,7 +1162,7 @@ function draw (x, y, type) {
  * handles both the old tile and the new tile being null.
  */
 function replaceFloor(x, y, old, tile) {
-  Commands.push(
+  Commands.do(
     function(){
       if (tile)
         Map.floorElement.removeChild(tile);
@@ -1143,7 +1207,7 @@ function variant (x, y) {
     var old = tile.type;
     var type = variants[tile.type];
     if (type) {
-      Commands.push(
+      Commands.do(
         function(){
           tile.type = old;
           tile.setAttribute('id', old + '_' + x + '_' + y);
@@ -1164,7 +1228,7 @@ function floorRotate (x, y, type) {
   var old = Map.data.get(x, y).floor;
   if (old && old.type === type && old.hasAttribute('rotate')) {
     var angle = parseInt(old.getAttribute('rotate'));
-    Commands.push(
+    Commands.do(
       function(){
         rotateTile(old, type, x, y, angle);
       },
@@ -1211,9 +1275,9 @@ function drawToCommand (x, y, tile, type) {
     Map.floorElement.appendChild(tile);
   };
   if (type === 'add') {
-    Commands.push(remove, add); // add new tile
+    Commands.do(remove, add); // add new tile
   } else {
-    Commands.push(add, remove); // remove existing tile
+    Commands.do(add, remove); // remove existing tile
   }
 }
 
@@ -1517,11 +1581,24 @@ function keyPressed (evt) {
     break;
 
   case 'z':
-    Map.swapWithAnimation();
+    if (Map.level < 665) {
+      Map.show(Map.level + 1);
+    }
+    break;
+
+  case 'y':
+    if (Map.level > 0) {
+      Map.show(Map.level - 1);
+    }
     break;
 
   case 'Z':
-    Map.hideBelowWithAnimation();
+    if (Map.hideOthers) {
+      Map.showLevelAnimation();
+    } else {
+      Map.hideOtherLevels();
+    }
+    Map.hideOthers = !Map.hideOthers;
     break;
 
   default:
@@ -1564,12 +1641,17 @@ function interpretCont (code, i) {
         // no longer ints!
         x = Number(match[1]);
         y = Number(match[2]);
-        if (Pen.moveTo({x: x, y: y})) {
-          Pen.update(null);
-          setTimeout(function() {
-            interpretCont(code, i);
-          }, 100);
-          return; // end!
+        if (Demo.running) {
+          if (Pen.moveTo({x: x, y: y})) {
+            Pen.update(null);
+            setTimeout(function() {
+              interpretCont(code, i);
+            }, 100);
+            return; // end!
+          }
+        } else {
+          Pen.x = x;
+          Pen.y = y;
         }
         i += match[0].length + 1;
       }
@@ -1578,14 +1660,15 @@ function interpretCont (code, i) {
       advance = 'left';
       break;
     case 'z':
-      // Make sure we can undo this step.
-      Commands.push(Map.swap, Map.swap);
-      // When loading from an URL, we need to reposition the Pen. When
-      // running the Demo, we do not.
-      if (!Demo.running) {
+      // When loading from an URL, we need to reposition the Pen, and
+      // we want to be quick. When running the Demo, we do not.
+      if (Demo.running) {
+        Map.show(Map.level + 1);
+      } else {
         Pen.x = 0;
         Pen.y = 0;
         Pen.type = null;
+        Map.jump(Map.level + 1);
       }
       break;
     case 'f':
@@ -1614,14 +1697,23 @@ function interpretCont (code, i) {
  */
 function recreateModel () {
   var re = /^([-a-z]+)_(\d+)_(\d+)$/;
-  recreateModelFor(re, Map.below.data, Map.below.floorElement);
-  recreateModelFor(re, Map.below.data, Map.below.labelsElement);
-  recreateModelForDoors(re, Map.below.data, Map.below.wallsElement);
-  recreateModelFor(re, Map.data, Map.floorElement);
-  recreateModelFor(re, Map.data, Map.labelsElement);
-  recreateModelForDoors(re, Map.data, Map.wallsElement);
-  // skip initial '?'
+  var z = 0;
+  for (var map; map = document.getElementById('level'+z); z++) {
+    var data = new Tiles();
+    recreateModelFor(re, data, document.getElementById('floor'+z));
+    recreateModelFor(re, data, document.getElementById('labels'+z));
+    recreateModelForDoors(re, data, document.getElementById('walls'+z));
+    Map.levels[z] = data;
+  }
+  if (z === 0) {
+    createLevel(0);
+  }
+  // skip initial '?', start at level 0
+  Map.setLevel(0);
   interpret(decodeURIComponent(window.location.search).substring(1));
+  // at the end, move to the top of the dungeon and show it
+  Map.jump(0);
+  Map.showLevelAnimation();
   moveElements(); // animate grows in the end
 }
 
@@ -1659,6 +1751,26 @@ function recreateModelForDoors (re, data, element) {
       data.get(x, y).walls.push(child);
     }
   }
+}
+
+/**
+ * Creates the SVG elements for a level. This must match the
+ * expectations in recreateModel.
+ */
+function createLevel(z) {
+  var level = document.createElementNS(svgNs, 'g');
+  level.setAttribute('id', 'level' + z);
+  var floor = document.createElementNS(svgNs, 'g');
+  floor.setAttribute('id', 'floor' + z);
+  var labels = document.createElementNS(svgNs, 'g');
+  labels.setAttribute('id', 'labels' + z);
+  var walls = document.createElementNS(svgNs, 'g');
+  walls.setAttribute('id', 'walls' + z);
+  level.appendChild(floor);
+  level.appendChild(labels);
+  level.appendChild(walls);
+  Map.levelsElement.insertBefore(level, Map.levelsElement.firstChild);
+  Map.levels[z] = new Tiles();
 }
 
 /**
@@ -1739,8 +1851,8 @@ onload = initialize;
     <g id="stair-big-spiral" width="50">
       <rect width="100" height="100" fill="white" stroke="black" stroke-width="5"/>
       <circle cx="50" cy="50" r="40" fill="none" stroke="black" stroke-width="5"/>
-      <line x1="10" y1="50" x2="90" y2="50" stroke="black" stroke-width="5"/>
-      <line x1="50" y1="10" x2="50" y2="90" stroke="black" stroke-width="5"/>
+      <line x1="0" y1="50" x2="99" y2="50" stroke="black" stroke-width="5"/>
+      <line x1="50" y1="0" x2="50" y2="100" stroke="black" stroke-width="5"/>
       <line x1="15" y1="30" x2="85" y2="70" stroke="black" stroke-width="5"/>
       <line x1="15" y1="70" x2="85" y2="30" stroke="black" stroke-width="5"/>
       <line x1="30" y1="15" x2="70" y2="85" stroke="black" stroke-width="5"/>
@@ -1764,23 +1876,20 @@ onload = initialize;
   <g id="background">
     <rect x="20" y="20" width="0" height="0" fill="lightgrey" stroke="black" stroke-width="1"/>
   </g>
-  <g id="floor-below" opacity="0.2"/>
-  <g id="walls-below" opacity="0.2"/>
-  <g id="labels-below" class="labels" opacity="0.2"/>
-  <g id="floor"/>
-  <g id="labels" class="labels"/>
+  <g id="levels"/>
   <use id="pointer" xlink:href="#cursor"/>
   <g id="walls"/>
   <rect id="ui" opacity="0"/>
 
   <style><![CDATA[
   text { font: 14px 'Courier New', Courier, monospace; }
-  .labels text { font: 10px 'Arial Narrow', sans-serif; font-weight: bold; }
+  .labels text, #levels text { font: 10px 'Arial Narrow', sans-serif; font-weight: bold; }
   .key { fill: forestgreen; font-weight: bold; }
   ]]></style>
 
   <g id="help">
     <rect x="10" y="80" width="440" height="530" fill="ivory" stroke="black" stroke-width="1"/>
+    <text id="level" x="460" y="220" style="font:30px 'Arial Narrow', sans-serif; font-weight: bold;">1</text>
     <a xlink:href="https://alexschroeder.ch/wiki/Gridmapper">
       <text x="460" y="90" transform="rotate(90,460,90)" style="font-weight: bold;">Gridmapper</text>
     </a>
@@ -1843,8 +1952,9 @@ onload = initialize;
       <tspan x="60" dy="20" class="key">x</tspan><tspan> : clear wall</tspan>
       <tspan x="60" dy="20" class="key">u</tspan><tspan> : undo</tspan>
       <tspan x="60" dy="20" class="key">r</tspan><tspan> : redo</tspan>
-      <tspan x="60" dy="20" class="key">z</tspan><tspan> : switch layer</tspan>
-      <tspan x="60" dy="20" class="key">Z</tspan><tspan> : hide below</tspan>
+      <tspan x="60" dy="20" class="key">y</tspan><tspan> : up / </tspan>
+      <tspan class="key">z</tspan><tspan> : down</tspan>
+      <tspan x="60" dy="20" class="key">Z</tspan><tspan> : hide others</tspan>
       <tspan x="60" dy="30" class="key">0-9</tspan><tspan>, </tspan><tspan class="key">Delete</tspan><tspan> : add / remove labels</tspan>
       <a id="download" fill="blue" xlink:href="javascript:download()">
 	<tspan x="30" dy="30">Prepare Download</tspan>
@@ -1885,83 +1995,75 @@ onload = initialize;
     <code class="step1">(10,10)</code>
 
     <tspan class="step2" x="0" y="0">You can move around the map using your mouse.</tspan>
-    <tspan class="step2" x="0" dy="20">Or you can use the</tspan>
-    <tspan class="step2 key">Arrow keys</tspan>
-    <tspan class="step2">to move around.</tspan>
+    <tspan class="step2" x="0" dy="20">Or you can use the
+    <tspan class="key">Arrow keys</tspan> to move around.</tspan>
     <code class="step2">(20,10)(20,20)(10,20)(10,10)</code>
 
     <tspan class="step3" x="0" y="0">You can draw the floor using your mouse.</tspan>
-    <tspan class="step3" x="0" dy="20">Or you can use</tspan>
-    <tspan class="step3 key">Shift</tspan>
-    <tspan class="step3">and the</tspan>
-    <tspan class="step3 key">Arrow keys</tspan><tspan class="step3">.</tspan>
+    <tspan class="step3" x="0" dy="20">Or you can use
+    <tspan class="key">Shift</tspan> and the
+    <tspan class="key">Arrow keys</tspan>.</tspan>
     <code class="step3">(13,11)ffff(13,12)ffff(13,13)ffff(13,14)ffff(13,15)ffff</code>
 
-    <tspan class="step4" x="0" y="0">In general I recomend using the</tspan>
-    <tspan class="step4 key">Arrow keys</tspan>
-    <tspan class="step4">to move.</tspan>
-    <tspan class="step4" x="0" dy="20">Use</tspan>
-    <tspan class="step4 key">f</tspan>
-    <tspan class="step4">to draw or erase the floor.</tspan>
+    <tspan class="step4" x="0" y="0">In general I recomend using the
+    <tspan class="key">Arrow keys</tspan> to move.</tspan>
+    <tspan class="step4" x="0" dy="20">Use <tspan class="key">f</tspan>
+    to draw or erase the floor.</tspan>
     <code class="step4">(14,16)ff(14,17)ff(11,18)ffffff(11,19)ffffff(11,20)ffffff;ffff-;f--;f--;f--f-</code>
 
     <tspan class="step5" x="0" y="0">Things like traps, statues and pillars are easy.</tspan>
-    <tspan class="step5" x="0" dy="20">Just use the appropriate key:</tspan>
-    <tspan class="step5 key">t</tspan><tspan class="step5">,</tspan>
-    <tspan class="step5 key">b</tspan><tspan class="step5">,</tspan>
-    <tspan class="step5 key">p</tspan><tspan class="step5">.</tspan>
+    <tspan class="step5" x="0" dy="20">Just use the appropriate key:
+    <tspan class="key">t</tspan>,
+    <tspan class="key">b</tspan>,
+    <tspan class="key">p</tspan>.</tspan>
     <code class="step5">(12,19)t;(11,19)b;(11,18)ppp;(11,20)ppp</code>
 
-    <tspan class="step6" x="0" y="0">Doors are trickier. Use</tspan>
-    <tspan class="step6 key">d</tspan>
-    <tspan class="step6">to rotate the door.</tspan>
+    <tspan class="step6" x="0" y="0">Doors are trickier. Use
+    <tspan class="key">d</tspan> to rotate the door.</tspan>
     <tspan class="step6" x="0" dy="20">Watch: left, top, right, bottom, and back to left.</tspan>
     <code class="step6">(17,12);d;d;d;d;d</code>
 
     <tspan class="step7" x="0" y="0">To remove a door you added</tspan>
-    <tspan class="step7" x="0" dy="20">Use</tspan>
-    <tspan class="step7 key">x</tspan><tspan class="step7">.</tspan>
+    <tspan class="step7" x="0" dy="20">Use
+    <tspan class="key">x</tspan>.</tspan>
     <code class="step7">(17,13);d;x;d;x;d;x</code>
 
     <tspan class="step8" x="0" y="0">Secret doors and conceiled doors work just the same.</tspan>
-    <tspan class="step8" x="0" dy="20">Use</tspan>
-    <tspan class="step8 key">$</tspan>
-    <tspan class="step8">and</tspan>
-    <tspan class="step8 key">c</tspan>
-    <tspan class="step8">to set and rotate them into place.</tspan>
+    <tspan class="step8" x="0" dy="20">Use
+    <tspan class="key">$</tspan> and
+    <tspan class="key">c</tspan> to set and rotate them into place.</tspan>
     <code class="step8">(17,14)dff(18,15)fff(19,16)ff;c;fff(21,17)fff(23,17);$;$;$;(21,18)fff</code>
 
-    <tspan class="step9" x="0" y="0">Use </tspan><tspan class="step9 key">s</tspan>
-    <tspan class="step9">to set and rotate them into place.</tspan>
-    <tspan class="step9" x="0" dy="20">Use </tspan><tspan class="step9 key">v</tspan>
-    <tspan class="step9">to use a variant.</tspan>
+    <tspan class="step9" x="0" y="0">Use <tspan class="key">s</tspan>
+    to set and rotate them into place.</tspan>
+    <tspan class="step9" x="0" dy="20">Use <tspan class="key">v</tspan>
+    to use a variant.</tspan>
     <code class="step9">(11,12)s;s;s;s;(17,12)ffs;s;s;s;v </code>
 
     <tspan class="step10" x="0" y="0">You can draw on two layers.</tspan>
-    <tspan class="step10" x="0" dy="20">Use</tspan>
-    <tspan class="step10 key">z</tspan>
-    <tspan class="step10">to switch layers.</tspan>
-    <code class="step10">z(21,11)fff(20,12)ffff(21,13)fff;z</code>
+    <tspan class="step10" x="0" dy="20">Use
+    <tspan class="key">z</tspan> and <tspan class="key">y</tspan>
+    to switch layers.</tspan>
+    <code class="step10">z(21,11)fff(20,12)ffff(21,13)fff;y</code>
 
     <tspan class="step11" x="0" y="0">Gates can be also be confusing, but see diagram!</tspan>
-    <tspan class="step11" x="0" dy="20">Use </tspan><tspan class="step11 key">g</tspan>
-    <tspan class="step11">to set and rotate them into place.</tspan>
+    <tspan class="step11" x="0" dy="20">Use <tspan class="key">g</tspan>
+    to set and rotate them into place.</tspan>
     <code class="step11">(15,16);g;g</code>
 
-    <tspan class="step12" x="0" y="0">Use </tspan><tspan class="step12 key">n</tspan>
-    <tspan class="step12">to place and rotate diagonals.</tspan>
+    <tspan class="step12" x="0" y="0">Use <tspan class="key">n</tspan>
+    to place and rotate diagonals.</tspan>
     <code class="step12">(17,15);n;n;n;n(18,14);n;n</code>
 
-    <tspan class="step13" x="0" y="0">You can draw walls using</tspan>
-    <tspan class="step13 key">w</tspan><tspan class="step13">.</tspan>
+    <tspan class="step13" x="0" y="0">You can draw walls using
+    <tspan class="key">w</tspan>.</tspan>
     <tspan class="step13" x="0" dy="20">Thus, walls work just like doors.</tspan>
     <code class="step13">(16,18);$(16,19);w(16,20);w</code>
 
     <tspan class="step14" x="0" y="0">This gets tedious very fast.</tspan>
-    <tspan class="step14" x="0" dy="20">Use</tspan>
-    <tspan class="step14 key">m</tspan>
-    <tspan class="step14">to enter</tspan>
-    <tspan class="step14" style="font-weight: bold">Wall Mode</tspan><tspan class="step14">.</tspan>
+    <tspan class="step14" x="0" dy="20">Use
+    <tspan class="key">m</tspan>to enter
+    <tspan style="font-weight: bold">Wall Mode</tspan>.</tspan>
     <tspan class="step14" x="0" dy="20">Note the shift by half a square!</tspan>
     <code class="step14">z(21,11);m</code>
 
@@ -1970,23 +2072,22 @@ onload = initialize;
     <tspan class="step15" x="0" dy="20">Doors and walls no longer rotate.</tspan>
     <code class="step15"> w; w;(21.5,13)w; w</code>
 
-    <tspan class="step16" x="0" y="0">Move from wall to wall and use</tspan>
-    <tspan class="step16 key">d</tspan><tspan class="step16">,</tspan>
-    <tspan class="step16 key">$</tspan><tspan class="step16">,</tspan>
-    <tspan class="step16 key">c</tspan><tspan class="step16">,</tspan>
-    <tspan class="step16 key">g</tspan><tspan class="step16">,</tspan>
-    <tspan class="step16 key">w</tspan><tspan class="step16"> or</tspan>
-    <tspan class="step16 key">x</tspan><tspan class="step16">.</tspan>
+    <tspan class="step16" x="0" y="0">Move from wall to wall and use
+    <tspan class="key">d</tspan>,
+    <tspan class="key">$</tspan>,
+    <tspan class="key">c</tspan>,
+    <tspan class="key">g</tspan>,
+    <tspan class="key">w</tspan> or
+    <tspan class="key">x</tspan>.</tspan>
+    <tspan class="step16" x="0" dy="20">Use
+    <tspan class="key">m</tspan> to leave Wall Mode.</tspan>
     <code class="step16">(21,11.5)d; d; d;(21,12.5)d; d; d;(23.5,12)$m</code>
-    <tspan class="step16" x="0" dy="20">Use </tspan>
-    <tspan class="step16 key">m</tspan>
-    <tspan class="step16">to leave Wall Mode.</tspan>
 
-    <tspan class="step17" x="0" y="0">Use the number keys</tspan>
-    <tspan class="step17 key">0-9</tspan><tspan class="step17"> to add labels.</tspan>
-    <tspan class="step17" x="0" dy="20">Use</tspan>
-    <tspan class="step17 key">Delete</tspan><tspan class="step17"> to delete labels.</tspan>
-    <code class="step17">(20,12)6z(15,12)1(14,19)2(19,16)4(22,17)5</code>
+    <tspan class="step17" x="0" y="0">Use the number keys
+    <tspan class="key">0-9</tspan> to add labels.</tspan>
+    <tspan class="step17" x="0" dy="20">Use
+    <tspan class="key">Delete</tspan> to delete labels.</tspan>
+    <code class="step17">(20,12)6y(15,12)1(14,19)2(19,16)4(22,17)5</code>
 
     <tspan class="step18" x="0" y="0">Well, that's it. The rest is up to you.</tspan>
     <tspan class="step18" x="0" dy="20">What lies beyond the secret doors to the east?</tspan>
