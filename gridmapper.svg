@@ -218,7 +218,7 @@ var Map = {
    */
   code: function() {
     var source = '';
-    var mapping = {door: 'd', secret: '$', concealed: 'c', gate: 'g', wall: 'w',
+    var mapping = {door: 'd', secret: '$', concealed: 'c', gate: 'dv', wall: 'w',
                    trap: 't', empty: 'f', pillar: 'p', statue: 'b', diagonal: 'n',
                    stair: 's', 'stair-small': 'sv', 'stair-spiral': 'svv',
 		   'stair-big-spiral': 'svvv', 'stair-big': 'svvvv',
@@ -1190,6 +1190,15 @@ var variants = {
   'stair-spiral': 'stair-big-spiral',
   'stair-big-spiral': 'stair-big',
   'stair-big': 'stair',
+  'door': 'gate',
+  'gate': 'door',
+}
+
+/**
+ * List those Pen types which are wall variants.
+ */
+var wallVariant = {
+  'door': true,
 }
 
 /**
@@ -1198,7 +1207,14 @@ var variants = {
 function variant (x, y) {
   var tile;
   if (Pen.type === 'wallMode') {
-    var walls = Map.data.get(x, y).wall;
+    if (y % 1 === 0) {
+      x = Math.ceil(x);
+    } else {
+      y = Math.ceil(y);
+    }
+  }
+  if (wallVariant[Pen.type]) {
+    var walls = Map.data.get(x, y).walls;
     tile = walls[walls.length - 1];
   } else {
     tile = Map.data.get(x, y).floor;
@@ -1211,6 +1227,7 @@ function variant (x, y) {
         function(){
           tile.type = old;
           tile.setAttribute('id', old + '_' + x + '_' + y);
+          tile.setAttributeNS(xlinkNs, 'href', '#' + old);
         },
         function(){
           tile.type = type;
@@ -1533,10 +1550,6 @@ function keyPressed (evt) {
 
   case 'c':
     wall(Pen.x, Pen.y, 'concealed');
-    break;
-
-  case 'g':
-    wall(Pen.x, Pen.y, 'gate');
     break;
 
   case 'w':
