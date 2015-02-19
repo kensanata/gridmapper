@@ -6,7 +6,9 @@ waiving all of his rights to the work worldwide under copyright law,
 including all related and neighboring rights, to the extent allowed by
 law.
 
-More information:
+The legal text:
 [CC0 1.0 Universal](http://creativecommons.org/publicdomain/zero/1.0/),
-the Public Domain Dedication (CC0 1.0),
+the Public Domain Dedication (CC0 1.0).
+
+Some context:
 [Public Domain Software](https://en.wikipedia.org/wiki/Public_domain_software)
