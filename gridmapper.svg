@@ -867,6 +867,14 @@ function textExport () {
 }
 
 /**
+ * Exports the code in the text area.
+ */
+function textImport () {
+  interpret(Map.exportarea.value);
+  Map.showLevelAnimation();
+}
+
+/**
  * Stores the entire document in a sequence of keystrokes with which
  * to recreate it.
  */
@@ -1536,8 +1544,7 @@ function keyPressed (evt) {
 
   if (evt.originalTarget === Map.exportarea) {
     if (key === 'Enter' && evt.ctrlKey) {
-      interpret(Map.exportarea.value);
-      Map.showLevelAnimation();
+      textImport();
     } else {
       return;
     }
@@ -2065,7 +2072,11 @@ onload = initialize;
       <a fill="blue" xlink:href="javascript:textExport()">
 	<tspan x="30" dy="20">Text Export</tspan>
       </a>
-      <tspan> / <tspan class="key">Ctrl Enter</tspan> to run code below</tspan>
+      <tspan> / </tspan>
+      <a fill="blue" xlink:href="javascript:textImport()">
+	<tspan>Text Import</tspan>
+      </a>
+      <tspan> / <tspan class="key">Ctrl Enter</tspan> below</tspan>
     </text>
 
     <text y="375">
