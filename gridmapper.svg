@@ -1162,7 +1162,7 @@ function removeWall (x, y) {
   } else {
     i = walls.length - 1;
   }
-  if (i >= 0) {
+  if (i != null && i >= 0) {
     var old = walls[i];
     Commands.do(
       function(){
@@ -1574,9 +1574,17 @@ function keyPressed (evt) {
 
   case 'Backspace':
   case 'Del':
+    if (Pen.type === 'wallMode') {
+      if (!removeWall(Pen.x, Pen.y)) {
+        wallModeOff();
+        deleteFromLabel(Pen.x, Pen.y)
+          || removeFloor(Pen.x, Pen.y, null, null);
+      }
+    } else {
     deleteFromLabel(Pen.x, Pen.y)
       || removeWall(Pen.x, Pen.y)
-      || removeFloor(Pen.x, Pen.y, null, null);
+        || removeFloor(Pen.x, Pen.y, null, null);
+    }
     break;
 
   case 'f':
