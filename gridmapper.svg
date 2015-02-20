@@ -927,6 +927,7 @@ function addToLabel(x, y, s) {
 
 /**
  * Remove the last character from the label at (x,y).
+ * Returns true if there was text to delete.
  */
 function deleteFromLabel(x, y) {
   var tile = Map.data.get(x, y).label;
@@ -948,6 +949,7 @@ function deleteFromLabel(x, y) {
             Map.data.get(x, y).label = null;
           }
         });
+      return true;
     }
   }
 }
@@ -1133,6 +1135,7 @@ function findWall (walls, angle) {
 
 /**
  * Removes a tile from the surrounding walls of the give tile.
+ * Returns true if there was a wall.
  */
 function removeWall (x, y) {
   var angle = 0;
@@ -1170,6 +1173,7 @@ function removeWall (x, y) {
         Map.wallsElement.removeChild(old);
         walls.splice(i,1);
       });
+    return true;
   }
 }
 
@@ -1190,24 +1194,27 @@ function draw (x, y, type) {
 /**
  * Replaces the old tile on the floor with a new tile. The code
  * handles both the old tile and the new tile being null.
+ * If both are null, nothing needs to be done.
  */
 function replaceFloor(x, y, old, tile) {
-  Commands.do(
-    function(){
-      if (tile)
-        Map.floorElement.removeChild(tile);
-      if (old)
-        Map.floorElement.appendChild(old);
-      Map.data.get(x, y).floor = old;
-    },
-    function(){
-      if (old) {
-        Map.floorElement.removeChild(old);
-      }
-      if (tile)
-        Map.floorElement.appendChild(tile);
-      Map.data.get(x, y).floor = tile;
-    });
+  if (old !== null || tile !== null) {
+    Commands.do(
+      function(){
+        if (tile)
+          Map.floorElement.removeChild(tile);
+        if (old)
+          Map.floorElement.appendChild(old);
+        Map.data.get(x, y).floor = old;
+      },
+      function(){
+        if (old) {
+          Map.floorElement.removeChild(old);
+        }
+        if (tile)
+          Map.floorElement.appendChild(tile);
+        Map.data.get(x, y).floor = tile;
+      });
+  }
 }
 
 /**
@@ -1302,6 +1309,15 @@ function floor (x, y) {
   } else {
     replaceFloor(x, y, old, null);
   }
+}
+
+/**
+ * Ease floor tile, if any.
+ */
+function removeFloor (x, y) {
+  var old   = Map.data.get(x, y).floor;
+  if (old)
+    replaceFloor(x, y, old, null);
 }
 
 /* This is where we draw (or erase) floor tiles. The key point to
@@ -1558,7 +1574,9 @@ function keyPressed (evt) {
 
   case 'Backspace':
   case 'Del':
-    deleteFromLabel(Pen.x, Pen.y);
+    deleteFromLabel(Pen.x, Pen.y)
+      || removeWall(Pen.x, Pen.y)
+      || removeFloor(Pen.x, Pen.y, null, null);
     break;
 
   case 'f':
