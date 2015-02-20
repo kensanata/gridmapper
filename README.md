@@ -170,6 +170,50 @@ z
 Turn spaces back into ```%20```, newlines into ```%0A```, and this is what you'll get:
 [Stacked Combined Maps](https://campaignwiki.org/gridmapper.svg?%0A%20w.dfwwfwwfw%0A%20wftfw.wfwwfww.dddfw%0A%20wfffwnnnn%20nn%20wfwwfwwfw%0A%20ww%20ww%20w.dfffwfn%20nnn%20w%0A%20%20%20ww%20ww%20ww%20wfnnnn%20fd%0A%20%20%20%20%20%20ww%20ww%20ww%0Az%0A%20%20%20%20%20%20%20%20%20%20%20ffnn%20n%20nn%20ffnn%0A%20%20%20%20%20%20%20%20%20%20%20dfbfdfwfwfbf%0A%20%20%20%20%20%20%20%20%20%20%20ffnnn%20fwfdffnnn)
 
+How to extend Gridmapper
+------------------------
+
+Let's assume you want to add wells as variants of statues to
+Gridmapper. How would you about it?
+
+Step 1: Find the SVG definition of a statue and add the SVG you want
+right next to it. Where to learn about SVG? Personally, I usually just
+look at these sources:
+
+1. [The SVG Specification](http://www.w3.org/TR/SVG/#minitoc)
+2. [The SVG tutorials by Jakob Jenkov](http://tutorials.jenkov.com/svg/index.html)
+3. [The SVG section on the Mozilla Developer Network](https://developer.mozilla.org/de/docs/Web/SVG)
+
+The outermost element needs to have an id attribute that you will be
+referring to later. It also needs a width attribute. This is used to
+scale your element.
+
+Thus, here's a little SVG element containing nothing but a circle
+indicating that you're working on a 100×100 grid:
+
+```
+<g id="well" width="100">
+  <rect width="100" height="100" fill="white" stroke="black" stroke-width="10"/>
+  <circle cx="50" cy="50" r="25" fill="black"/>
+  <circle cx="50" cy="50" r="15" fill="black" stroke="white" stroke-width="10"/>
+</g>
+```
+
+Step 2: Register the variants. What we need to do is tell Gridmapper
+that hitting ```v``` on a statue will turn it into a well and hitting
+```v``` on a well will turn it into a statue. Find the variants in the
+source code and add the following:
+
+```
+variants: {
+  ...,
+  'statue': 'well',
+  'well': 'statue',
+},
+```
+
+Save it, test it, you're done!
+
 Installation on your own Web Server
 -----------------------------------
 

@@ -256,37 +256,43 @@ var Map = {
   
     for (var y = 0; y < Map.height; y++) {
       for (var x = 0; x < Map.width; x++) {
+        if (Map.data.has(x, y)) {
 
-        var walls = Map.data.get(x, y).walls;
-        if (walls) {
-          walls = walls.sort(function(a,b){
-            return parseInt(a.getAttribute('rotate')) - parseInt(b.getAttribute('rotate'));
-          });
-          for (var i = 0; i < walls.length; i++) {
-            var tile = walls[i];
-            var type = Map.symbols[tile.type];
-            if (type) {
-              source += type[0].repeat(1 + tile.getAttribute('rotate') / 90 - i) + type.substr(1);
+          var walls = Map.data.get(x, y).walls;
+          if (walls) {
+            walls = walls.sort(function(a,b){
+              return parseInt(a.getAttribute('rotate')) - parseInt(b.getAttribute('rotate'));
+            });
+            for (var i = 0; i < walls.length; i++) {
+              var tile = walls[i];
+              var type = Map.symbols[tile.type];
+              if (type) {
+                source += type[0].repeat(1 + tile.getAttribute('rotate') / 90 - i) + type.substr(1);
+              }
+              if (i < walls.length - 1)
+                source += '.';
             }
-            if (i < walls.length - 1)
-              source += '.';
           }
-        }
-        
-        // label must precede floor tiles which advance the position
-        var label = Map.data.get(x, y).label;
-        if (label)
-          source += label.textContent;
-        
-        var tile = Map.data.get(x, y).floor;
-        if (tile) {
-          if (tile.hasAttribute('rotate')) {
-            var rotate = tile.getAttribute('rotate') / 90;
-            var type = Map.symbols[tile.type];
-            source += type[0].repeat(1 + rotate) + type.substr(1);
-            source += ' ';
+          
+          // label must precede floor tiles which advance the position
+          var label = Map.data.get(x, y).label;
+          if (label)
+            source += label.textContent;
+          
+          var tile = Map.data.get(x, y).floor;
+          if (tile !== null) {
+            if (tile.hasAttribute('rotate')) {
+              var rotate = tile.getAttribute('rotate') / 90;
+              var type = Map.symbols[tile.type];
+              source += type[0].repeat(1 + rotate) + type.substr(1);
+            } else {
+              source += Map.symbols[tile.type];
+            }
+            // the only floor tile that auto-advances is the empty floor
+            if (tile.type !== 'empty')
+              source += ' ';
           } else {
-            source += Map.symbols[tile.type];
+            source += ' ';
           }
         } else {
           source += ' ';
@@ -313,16 +319,21 @@ var Map = {
  */
 function Tiles() {
   this.data = [];
-  this.get = function(x, y) {
-    if (!this.data[x]) {
-      this.data[x] = [];
-    }
-    if (!this.data[x][y]) {
-      this.data[x][y] = new Tile();
-    }
-    return this.data[x][y];
-  }
 };
+
+Tiles.prototype.get = function(x, y) {
+  if (!this.data[x]) {
+    this.data[x] = [];
+  }
+  if (!this.data[x][y]) {
+    this.data[x][y] = new Tile();
+  }
+  return this.data[x][y];
+}
+
+Tiles.prototype.has = function(x, y) {
+  return this.data[x] && this.data[x][y];
+}
 
 /**
  * Stores everything about a single square and its surrounding walls.
@@ -1257,7 +1268,7 @@ function variant (x, y) {
   tile = Map.data.get(x, y).floor;
   if (Pen.type === 'wallMode'
       || isVariantOf(Pen.type, 'door')
-      || Map.variants[tile] === undefined) {
+      || tile !== null && Map.variants[tile.type] === undefined) {
     var walls = Map.data.get(x, y).walls;
     tile = walls[walls.length - 1];
   }
@@ -1738,9 +1749,6 @@ function interpretCont (code, i) {
       }
       break;
     case 'f':
-    case 't':
-    case 'p':
-    case 'b':
       advance = 'right';
       // fall through to default
     default:
@@ -1927,12 +1935,12 @@ onload = initialize;
     </g>
     <g id="stair-spiral" width="100">
       <rect width="100" height="100" fill="white" stroke="black" stroke-width="10"/>
-      <circle cx="50" cy="50" r="40" fill="none" stroke="black" stroke-width="10"/>
-      <line x1="10" y1="50" x2="90" y2="50" stroke="black" stroke-width="10"/>
-      <line x1="50" y1="10" x2="50" y2="90" stroke="black" stroke-width="10"/>
-      <line x1="22" y1="22" x2="78" y2="78" stroke="black" stroke-width="10"/>
-      <line x1="22" y1="78" x2="78" y2="22" stroke="black" stroke-width="10"/>
-      <circle cx="50" cy="50" r="10" fill="white" stroke="black" stroke-width="10"/>
+      <circle cx="50" cy="50" r="40" fill="none" stroke="black" stroke-width="7"/>
+      <line x1="10" y1="50" x2="90" y2="50" stroke="black" stroke-width="7"/>
+      <line x1="50" y1="10" x2="50" y2="90" stroke="black" stroke-width="7"/>
+      <line x1="22" y1="22" x2="78" y2="78" stroke="black" stroke-width="7"/>
+      <line x1="22" y1="78" x2="78" y2="22" stroke="black" stroke-width="7"/>
+      <circle cx="50" cy="50" r="10" fill="white" stroke="black" stroke-width="7"/>
     </g>
   </defs>
   <g id="background">
@@ -1971,10 +1979,10 @@ onload = initialize;
     <use x="30" y="200" xlink:href="#empty"/>
     <use x="30" y="200" xlink:href="#wall"/>
     <use x="30" y="230" xlink:href="#stair"/>
-    <use x="400" y="230" xlink:href="#stair-small"/>
-    <use x="350" y="230" xlink:href="#stair-spiral"/>
-    <use x="350" y="260" xlink:href="#stair-big-spiral"/>
-    <use x="400" y="260" xlink:href="#stair-big"/>
+    <use x="390" y="230" xlink:href="#stair-small"/>
+    <use x="360" y="230" xlink:href="#stair-spiral"/>
+    <use x="340" y="260" xlink:href="#stair-big-spiral"/>
+    <use x="390" y="260" xlink:href="#stair-big"/>
     <use x="30" y="280" xlink:href="#diagonal"/>
     <use x="30" y="310" xlink:href="#empty"/>
     <g class="labels">
@@ -2063,7 +2071,7 @@ onload = initialize;
     <tspan class="key">t</tspan>,
     <tspan class="key">b</tspan>,
     <tspan class="key">p</tspan>.</tspan>
-    <code class="step5">(12,19)t;(11,19)b;(11,18)ppp;(11,20)ppp</code>
+    <code class="step5">(12,19)t;(11,19)b;(11,18)p p p;(11,20)p p p</code>
 
     <tspan class="step6" x="0" y="0">Doors are trickier. Use
     <tspan class="key">d</tspan> to rotate the door.</tspan>
