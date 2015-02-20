@@ -230,6 +230,10 @@ var Map = {
     'secret': 'concealed',
     'concealed': 'gate',
     'gate': 'door',
+    'diagonal': 'arc',
+    'arc': 'arc2',
+    'arc2': 'arc3',
+    'arc3': 'diagonal',
   },
 
   symbols: null,
@@ -1940,7 +1944,25 @@ onload = initialize;
     </g>
     <g id="diagonal" width="10">
       <rect width="10" height="10" fill="white" stroke="black" stroke-width="1"/>
-      <path fill="black" d="M 0,0 H 10 L 0,10 Z"/>
+      <path fill="black" d="M0,10 V0 H10 Z"/>
+    </g>
+    <g id="arc" width="10">
+      <rect width="10" height="10" fill="white" stroke="black" stroke-width="1"/>
+      <path fill="black" d="M0,10 V0 H10 A10,10 0 0,0 0,10"/>
+    </g>
+    <g id="arc2" width="10">
+      <rect width="20" height="20" fill="white" stroke="black" stroke-width="1"/>
+      <path fill="black" d="M0,20 V0 H20 A20,20 0 0,0 0,20"/>
+      <line x1="0" y1="10" x2="20" y2="10" stroke="black" stroke-width="1"/>
+      <line x1="10" y1="0" x2="10" y2="20" stroke="black" stroke-width="1"/>
+    </g>
+    <g id="arc3" width="10">
+      <rect width="30" height="30" fill="white" stroke="black" stroke-width="1"/>
+      <path fill="black" d="M0,30 V0 H30 A30,30 0 0,0 0,30"/>
+      <line x1="0" y1="10" x2="30" y2="10" stroke="black" stroke-width="1"/>
+      <line x1="0" y1="20" x2="30" y2="20" stroke="black" stroke-width="1"/>
+      <line x1="10" y1="0" x2="10" y2="30" stroke="black" stroke-width="1"/>
+      <line x1="20" y1="0" x2="20" y2="30" stroke="black" stroke-width="1"/>
     </g>
     <g id="stair" width="10">
       <rect width="10" height="20" fill="white" stroke="black" stroke-width="1"/>
