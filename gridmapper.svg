@@ -65,6 +65,7 @@ var Map = {
     Map.ui.ondragstart = function() { return false };
     Map.ui.onmousedown = penDown;
     Map.ui.onmousemove = Pen.update;
+    Map.symbolInit();
   },
 
   /**
@@ -210,19 +211,48 @@ var Map = {
       }
     }
   },
+
+  /**
+   * Lists the replacement for a particular tile type.
+   * This mapping must match the functionality of Map.code.
+   */
+  variants: {
+    'stair': 'stair-small',
+    'stair-small': 'stair-spiral',
+    'stair-spiral': 'stair-big-spiral',
+    'stair-big-spiral': 'stair-big',
+    'stair-big': 'stair',
+    'door': 'gate',
+    'gate': 'door',
+  },
+
+  symbols: null,
+
+  symbolInit: function(){
+    var map = {
+      door: 'd', secret: '$', concealed: 'c', wall: 'w',
+      trap: 't', empty: 'f', pillar: 'p', statue: 'b', diagonal: 'n',
+      stair: 's',
+    };
+    var keys = Object.keys(map);
+    for (var i = 0; i < keys.length; i++) {
+      var first = keys[i];
+      var sym = map[first];
+      for (var next = Map.variants[first]; next !== undefined && next !== first; next = Map.variants[next]) {
+        sym += 'v';
+        map[next] = sym;
+      }
+    }
+    Map.symbols = map;
+  },
   
   /**
-   * Produces the code necessary to reproduce the map. The mappings
-   * here must match the variants and the characters handled in
-   * interpretCont and keyPressed.
+   * Produces the code necessary to reproduce the map. The characters
+   * must be handled by interpretCont and keyPressed.
    */
   code: function() {
     var source = '';
-    var mapping = {door: 'd', secret: '$', concealed: 'c', gate: 'dv', wall: 'w',
-                   trap: 't', empty: 'f', pillar: 'p', statue: 'b', diagonal: 'n',
-                   stair: 's', 'stair-small': 'sv', 'stair-spiral': 'svv',
-		   'stair-big-spiral': 'svvv', 'stair-big': 'svvvv',
-                   };
+  
     for (var y = 0; y < Map.height; y++) {
       for (var x = 0; x < Map.width; x++) {
 
@@ -233,7 +263,7 @@ var Map = {
           });
           for (var i = 0; i < walls.length; i++) {
             var tile = walls[i];
-            var type = mapping[tile.type];
+            var type = Map.symbols[tile.type];
             if (type) {
               source += type[0].repeat(1 + tile.getAttribute('rotate') / 90 - i) + type.substr(1);
             }
@@ -251,11 +281,11 @@ var Map = {
         if (tile) {
           if (tile.hasAttribute('rotate')) {
             var rotate = tile.getAttribute('rotate') / 90;
-            var type = mapping[tile.type];
+            var type = Map.symbols[tile.type];
             source += type[0].repeat(1 + rotate) + type.substr(1);
             source += ' ';
           } else {
-            source += mapping[tile.type];
+            source += Map.symbols[tile.type];
           }
         } else {
           source += ' ';
@@ -1181,24 +1211,27 @@ function replaceFloor(x, y, old, tile) {
 }
 
 /**
- * Lists the replacement for a particular tile type.
- * This mapping must match the functionality of Map.code.
+ * Returns the number of steps required to turn b into variant a. If a
+ * is not a variant of b, returns undefined. From stairs to stairs is
+ * 0, so this is not truthy! Use isVariantOf if you need that.
  */
-var variants = {
-  'stair': 'stair-small',
-  'stair-small': 'stair-spiral',
-  'stair-spiral': 'stair-big-spiral',
-  'stair-big-spiral': 'stair-big',
-  'stair-big': 'stair',
-  'door': 'gate',
-  'gate': 'door',
+function variantOf(a, b) {
+  if (a === b)
+    return 0;
+  var matches = {};
+  for (var next = b, i = 1; next !== undefined && Map.variants[next] !== b; next = Map.variants[next], i++) {
+    matches[next] = i;
+  }
+  return matches[a];
 }
 
 /**
- * List those Pen types which are wall variants.
+ * Returns whether a is a variant of b.
  */
-var wallVariant = {
-  'door': true,
+function isVariantOf(a, b) {
+  if (a === b)
+    return true;
+  return variantOf(a, b) !== undefined;
 }
 
 /**
@@ -1213,7 +1246,7 @@ function variant (x, y) {
       y = Math.ceil(y);
     }
   }
-  if (wallVariant[Pen.type]) {
+  if (isVariantOf(Pen.type, 'door')) {
     var walls = Map.data.get(x, y).walls;
     tile = walls[walls.length - 1];
   } else {
@@ -1221,7 +1254,7 @@ function variant (x, y) {
   }
   if (tile) {
     var old = tile.type;
-    var type = variants[tile.type];
+    var type = Map.variants[tile.type];
     if (type) {
       Commands.do(
         function(){
@@ -1242,12 +1275,8 @@ function variant (x, y) {
  * Draws stairs and diagonals on the floor.
  */
 function floorRotate (x, y, type) {
-  var matches = {};
-  for (var next = type; variants[next] !== type; next = variants[next]) {
-    matches[next] = true;
-  }
   var old = Map.data.get(x, y).floor;
-  if (old && matches[old.type] && old.hasAttribute('rotate')) {
+  if (old && isVariantOf(old.type, type) !== null && old.hasAttribute('rotate')) {
     var angle = parseInt(old.getAttribute('rotate'));
     Commands.do(
       function(){
