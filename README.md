@@ -173,7 +173,7 @@ Turn spaces back into ```%20```, newlines into ```%0A```, and this is what you'l
 How to extend Gridmapper
 ------------------------
 
-Let's assume you want to add wells as variants of statues to
+Let's assume you want to add *wells* as variants of *statues* to
 Gridmapper. How would you about it?
 
 Step 1: Find the SVG definition of a statue and add the SVG you want
@@ -184,12 +184,13 @@ look at these sources:
 2. [The SVG tutorials by Jakob Jenkov](http://tutorials.jenkov.com/svg/index.html)
 3. [The SVG section on the Mozilla Developer Network](https://developer.mozilla.org/de/docs/Web/SVG)
 
-The outermost element needs to have an id attribute that you will be
-referring to later. It also needs a width attribute. This is used to
+The outermost element needs to have an *id* attribute that you will be
+referring to later. It also needs a *width* attribute. This is used to
 scale your element.
 
-Thus, here's a little SVG element containing nothing but a circle
-indicating that you're working on a 100×100 grid:
+Thus, here's a little SVG element containing the white floor rectangle
+and two circles. The outermost element has both an *id* and a *width*
+attribute.
 
 ```
 <g id="well" width="100">
