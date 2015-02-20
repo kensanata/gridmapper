@@ -1999,6 +1999,7 @@ onload = initialize;
   text { font: 14px 'Courier New', Courier, monospace; }
   .labels text, #levels text { font: 10px 'Arial Narrow', sans-serif; font-weight: bold; }
   .key { fill: forestgreen; font-weight: bold; }
+  #ui { -webkit-tap-highlight-color: rgba(0,0,0,0); }
   ]]></style>
 
   <g id="help">
