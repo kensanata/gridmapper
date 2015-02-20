@@ -76,8 +76,8 @@ and **Text Import**.
 
 6. Click on **Text Import**
 
-7. Click on **Prepare Download** and the click on the resulting
-   *Download*; follow the link and save the file
+7. Click on **Prepare Download**, click on the resulting **Download**
+   link and save the file
 
 Check that everything works before deleting your old copy. :)
 
