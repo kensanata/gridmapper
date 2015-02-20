@@ -872,6 +872,7 @@ function textExport () {
 function textImport () {
   interpret(Map.exportarea.value);
   Map.showLevelAnimation();
+  Pen.update(null);
 }
 
 /**
@@ -1545,9 +1546,8 @@ function keyPressed (evt) {
   if (evt.originalTarget === Map.exportarea) {
     if (key === 'Enter' && evt.ctrlKey) {
       textImport();
-    } else {
-      return;
     }
+    return;
   }
 
   switch (key) {
@@ -1641,9 +1641,13 @@ function keyPressed (evt) {
 
   case '\n':
   case 'Enter':
-    wallModeOff();
-    Pen.x = 0;
-    move('down');
+    if (evt.ctrlKey) {
+      textImport();
+    } else {
+      wallModeOff();
+      Pen.x = 0;
+      move('down');
+    }
     break;
 
   case 'd':
@@ -1747,7 +1751,7 @@ function interpretCont (code, i) {
       }, 500);
       return; // end!
     case '(':
-      var match = code.substr(i).match(/(\d+(?:\.\d+)?),(\d+(?:\.\d+)?)/);
+      var match = code.substr(i).match(/(\d+(?:\.\d+)?),(\d+(?:\.\d+)?)\)/);
       if (match) {
         // no longer ints!
         var x = Number(match[1]);
@@ -1764,7 +1768,15 @@ function interpretCont (code, i) {
           Pen.x = x;
           Pen.y = y;
         }
-        i += match[0].length + 1;
+        i += match[0].length;
+      }
+      break;
+    case '[':
+      var match = code.substr(i).match(/(-?\d+),(-?\d+)\]/);
+      if (match) {
+        Pen.x += Number(match[1]);
+        Pen.y += Number(match[2]);
+        i += match[0].length;
       }
       break;
     case '-':
@@ -1789,7 +1801,7 @@ function interpretCont (code, i) {
       keyPressed(code[i]);
     }
     // advance unless we're going to move elsewhere (peek ahead)
-    if (advance && code[i+1] !== '\n' && code[i] !== '(')
+    if (advance && code[i+1] !== '\n' && code[i] !== '(' && code[i] !== '[')
       move(advance);
   }
 }
