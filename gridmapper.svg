@@ -1685,8 +1685,8 @@ function interpretCont (code, i) {
       var match = code.substr(i).match(/(\d+(?:\.\d+)?),(\d+(?:\.\d+)?)/);
       if (match) {
         // no longer ints!
-        x = Number(match[1]);
-        y = Number(match[2]);
+        var x = Number(match[1]);
+        var y = Number(match[2]);
         if (Demo.running) {
           if (Pen.moveTo({x: x, y: y})) {
             Pen.update(null);
