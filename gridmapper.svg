@@ -65,6 +65,10 @@ var Map = {
     Map.ui.ondragstart = function() { return false };
     Map.ui.onmousedown = penDown;
     Map.ui.onmousemove = Pen.update;
+    // http://javascript.info/tutorial/keyboard-events
+    Map.exportarea = document.getElementById('exportarea');
+    document.onkeydown = keyPressed; // capture arrow keys
+    document.onkeypress = keyPressed; // capture character keys
     Map.symbolInit();
   },
 
@@ -554,7 +558,7 @@ var Demo = {
                 Demo.element.getBBox().x,
                 Demo.element.getBBox().y,
                 (Map.width + 2) * Map.tileWidth,
-                parseInt(help.getAttribute('height')) + 2 * Map.tileWidth,
+                parseInt(help.getAttribute('height')) + 1.8 * Map.tileWidth,
                 bounceEaseOut);
     Demo.step(1);
   },
@@ -836,10 +840,37 @@ function download () {
 }
 
 /**
+ * Stores the entire document in a link for the user to click.
+ */
+function prepareLink () {
+  var link = document.getElementById('export');
+  var text = link.firstElementChild.firstChild.nodeValue;
+  link.firstElementChild.firstChild.nodeValue = 'Link';
+  var href = link.getAttributeNS(xlinkNs, 'href');
+  var location = window.location.href.substr(
+    0, window.location.href.length - window.location.search.length)
+  link.setAttributeNS(xlinkNs, 'href', location
+                      + '?' + encodeURIComponent(getSource()));
+  // reset after 10s
+  var t = setInterval(function() {
+    link.setAttributeNS(xlinkNs, 'href', href);
+    link.firstElementChild.firstChild.nodeValue = text;
+    clearInterval(t);
+  }, 10000);
+}
+
+/**
+ * Exports the entire document in the text area.
+ */
+function textExport () {
+  Map.exportarea.value = getSource();
+}
+
+/**
  * Stores the entire document in a sequence of keystrokes with which
  * to recreate it.
  */
-function textExport () {
+function getSource () {
   // do we need to export the map below
   var source = '';
   var level = Map.level;
@@ -852,21 +883,8 @@ function textExport () {
   Map.level = level; // reset
   source = source.replace(/zz+/,'z');
   source = source.replace(/^z+/,'');
-  source = source.replace(/z+$/,'');
-  source = encodeURIComponent(source);
-  var link = document.getElementById('export');
-  var text = link.firstElementChild.firstChild.nodeValue;
-  link.firstElementChild.firstChild.nodeValue = 'Link';
-  var href = link.getAttributeNS(xlinkNs, 'href');
-  var location = window.location.href.substr(
-    0, window.location.href.length - window.location.search.length)
-  link.setAttributeNS(xlinkNs, 'href', location + '?' + source);
-  // reset after 10s
-  var t = setInterval(function() {
-    link.setAttributeNS(xlinkNs, 'href', href);
-    link.firstElementChild.firstChild.nodeValue = text;
-    clearInterval(t);
-  }, 10000);
+  source = source.replace(/z+\w*$/,'');
+  return source;
 }
 
 /**
@@ -1516,6 +1534,15 @@ function keyPressed (evt) {
     if(key === null) return; // ignore one of onkeydown or onkeypress event
   }
 
+  if (evt.originalTarget === Map.exportarea) {
+    if (key === 'Enter' && evt.ctrlKey) {
+      interpret(Map.exportarea.value);
+      Map.showLevelAnimation();
+    } else {
+      return;
+    }
+  }
+
   switch (key) {
 
   case '?':
@@ -1852,8 +1879,6 @@ function createLevel(z) {
  */
 function initialize () {
   scaleTiles();
-  document.onkeydown = keyPressed; // capture arrow keys
-  document.onkeypress = keyPressed; // capture character keys
   Map.initialize(); // don't reset the Map so we can load from a file
   Pen.update(null); // show it
   recreateModel(); // create model
@@ -1958,7 +1983,7 @@ onload = initialize;
   ]]></style>
 
   <g id="help">
-    <rect x="10" y="80" width="440" height="530" fill="ivory" stroke="black" stroke-width="1"/>
+    <rect x="10" y="80" width="440" height="550" fill="ivory" stroke="black" stroke-width="1"/>
     <text id="level" x="460" y="220" style="font:30px 'Arial Narrow', sans-serif; font-weight: bold;">1</text>
     <a xlink:href="https://alexschroeder.ch/wiki/Gridmapper">
       <text x="460" y="90" transform="rotate(90,460,90)" style="font-weight: bold;">Gridmapper</text>
@@ -1990,6 +2015,10 @@ onload = initialize;
     </g>
     <use x="20" y="340" xlink:href="#cursor"/>
     <use x="30" y="340" xlink:href="#empty"/>
+
+    <foreignObject x="30" y="560" width="1000" height="2000">
+        <textarea xmlns="http://www.w3.org/1999/xhtml" style="background: white; width: 390px; height: 50px; font: 10px 'Courier New', Courier, monospace; " id="exportarea"/>
+    </foreignObject>
     
     <text y="105">
       <tspan x="60"><tspan class="key">f</tspan> : floor / erase (like using the mouse)</tspan>
@@ -2015,7 +2044,7 @@ onload = initialize;
 	<tspan x="30" dy="30">Prepare Download</tspan>
       </a>
       <tspan> / </tspan>
-      <a id="export" fill="blue" xlink:href="javascript:textExport()">
+      <a id="export" fill="blue" xlink:href="javascript:prepareLink()">
 	<tspan>Prepare Link</tspan>
       </a>
       <tspan> / </tspan>
@@ -2033,6 +2062,10 @@ onload = initialize;
       <a id="demo" fill="blue" xlink:href="javascript:Demo.start()">
 	<tspan>Demo</tspan>
       </a>
+      <a fill="blue" xlink:href="javascript:textExport()">
+	<tspan x="30" dy="20">Text Export</tspan>
+      </a>
+      <tspan> / <tspan class="key">Ctrl Enter</tspan> to run code below</tspan>
     </text>
 
     <text y="375">
