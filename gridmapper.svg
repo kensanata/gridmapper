@@ -2007,27 +2007,55 @@ onload = initialize;
     <a xlink:href="https://alexschroeder.ch/wiki/Gridmapper">
       <text x="460" y="90" transform="rotate(90,460,90)" style="font-weight: bold;">Gridmapper</text>
     </a>
-    <use x="30" y="90" xlink:href="#empty"/>
-    <use x="30" y="120" xlink:href="#trap"/>
-    <use x="150" y="120" xlink:href="#pillar"/>
-    <use x="290" y="120" xlink:href="#statue"/>
-    <use x="30" y="150" xlink:href="#empty"/>
-    <use x="30" y="150" xlink:href="#door"/>
-    <use x="410" y="150" xlink:href="#empty"/>
-    <use x="410" y="170" xlink:href="#empty"/>
-    <use x="410" y="150" xlink:href="#gate"/>
-    <use x="350" y="150" xlink:href="#empty"/>
-    <use x="350" y="150" xlink:href="#secret"/>
-    <use x="380" y="150" xlink:href="#empty"/>
-    <use x="380" y="150" xlink:href="#concealed"/>
-    <use x="30" y="200" xlink:href="#empty"/>
-    <use x="30" y="200" xlink:href="#wall"/>
-    <use x="30" y="230" xlink:href="#stair"/>
-    <use x="390" y="230" xlink:href="#stair-small"/>
-    <use x="360" y="230" xlink:href="#stair-spiral"/>
-    <use x="340" y="260" xlink:href="#stair-big-spiral"/>
-    <use x="390" y="260" xlink:href="#stair-big"/>
-    <use x="30" y="280" xlink:href="#diagonal"/>
+    <a xlink:href="javascript:keyPressed('t')">
+      <use x="30" y="90" xlink:href="#empty"/>
+      <use x="30" y="120" xlink:href="#trap"/>
+    </a>
+    <a xlink:href="javascript:keyPressed('p')">
+      <use x="150" y="120" xlink:href="#pillar"/>
+    </a>
+    <a xlink:href="javascript:keyPressed('b')">
+      <use x="290" y="120" xlink:href="#statue"/>
+    </a>
+    <a xlink:href="javascript:keyPressed('d')">
+      <use x="30" y="150" xlink:href="#empty"/>
+      <use x="30" y="150" xlink:href="#door"/>
+    </a>
+    <a xlink:href="javascript:keyPressed('dvvv')">
+      <use x="410" y="150" xlink:href="#empty"/>
+      <use x="410" y="170" xlink:href="#empty"/>
+      <use x="410" y="150" xlink:href="#gate"/>
+    </a>
+    <a xlink:href="javascript:keyPressed('dv')">
+      <use x="350" y="150" xlink:href="#empty"/>
+      <use x="350" y="150" xlink:href="#secret"/>
+    </a>
+    <a xlink:href="javascript:keyPressed('dvv')">
+      <use x="380" y="150" xlink:href="#empty"/>
+      <use x="380" y="150" xlink:href="#concealed"/>
+    </a>
+    <a xlink:href="javascript:keyPressed('w')">
+      <use x="30" y="200" xlink:href="#empty"/>
+      <use x="30" y="200" xlink:href="#wall"/>
+    </a>
+    <a xlink:href="javascript:keyPressed('s')">
+      <use x="30" y="230" xlink:href="#stair"/>
+    </a>
+    <a xlink:href="javascript:keyPressed('sv')">
+      <use x="390" y="230" xlink:href="#stair-small"/>
+    </a>
+    <a xlink:href="javascript:keyPressed('svv')">
+      <use x="360" y="230" xlink:href="#stair-spiral"/>
+    </a>
+    <a xlink:href="javascript:keyPressed('svvv')">
+      <use x="340" y="260" xlink:href="#stair-big-spiral"/>
+    </a>
+    <a xlink:href="javascript:keyPressed('svvvv')">
+      <use x="390" y="260" xlink:href="#stair-big"/>
+    </a>
+    <a xlink:href="javascript:keyPressed('n')">
+      <use x="30" y="280" xlink:href="#diagonal"/>
+    </a>
     <use x="30" y="310" xlink:href="#empty"/>
     <g class="labels">
       <text x="40" y="324" style="text-anchor: middle">123</text>
@@ -2041,24 +2069,58 @@ onload = initialize;
     
     <text y="105">
       <tspan x="60"><tspan class="key">f</tspan> : floor / erase (like using the mouse)</tspan>
-      <tspan x="60" dy="30"><tspan class="key">t</tspan> : trap</tspan>
-      <tspan x="180"><tspan class="key">p</tspan> : pillar</tspan>
-      <tspan x="320"><tspan class="key">b</tspan> : statue</tspan>
-      <tspan x="60" dy="30"><tspan class="key">d</tspan> : a door, repeat to rotate</tspan>
-      <tspan x="60" dy="20">    use <tspan class="key">v</tspan> for variants</tspan>
-      <tspan x="60" dy="30"><tspan class="key">w</tspan> : wall, repeat to rotate</tspan>
-      <tspan x="60" dy="30"><tspan class="key">s</tspan> : stairs, repeat to rotate</tspan>
-      <tspan x="60" dy="20">    use <tspan class="key">v</tspan> for variants</tspan>
-      <tspan x="60" dy="30"><tspan class="key">n</tspan> : diagonal, repeat to rotate</tspan>
+      <a xlink:href="javascript:keyPressed('t')">
+	<tspan x="60" dy="30"><tspan class="key">t</tspan> : trap</tspan>
+      </a>
+      <a xlink:href="javascript:keyPressed('p')">
+	<tspan x="180"><tspan class="key">p</tspan> : pillar</tspan>
+      </a>
+      <a xlink:href="javascript:keyPressed('b')">
+	<tspan x="320"><tspan class="key">b</tspan> : statue</tspan>
+      </a>
+      <a xlink:href="javascript:keyPressed('d')">
+	<tspan x="60" dy="30"><tspan class="key">d</tspan> : a door, repeat to rotate</tspan>
+      </a>
+      <a xlink:href="javascript:keyPressed('v')">
+	<tspan x="60" dy="20">    use <tspan class="key">v</tspan> for variants</tspan>
+      </a>
+      <a xlink:href="javascript:keyPressed('w')">
+	<tspan x="60" dy="30"><tspan class="key">w</tspan> : wall, repeat to rotate</tspan>
+      </a>
+      <a xlink:href="javascript:keyPressed('s')">
+	<tspan x="60" dy="30"><tspan class="key">s</tspan> : stairs, repeat to rotate</tspan>
+      </a>
+      <a xlink:href="javascript:keyPressed('v')">
+	<tspan x="60" dy="20">    use <tspan class="key">v</tspan> for variants</tspan>
+      </a>
+      <a xlink:href="javascript:keyPressed('n')">
+	<tspan x="60" dy="30"><tspan class="key">n</tspan> : diagonal, repeat to rotate</tspan>
+      </a>
       <tspan x="60" dy="30" class="key">0-9</tspan><tspan> : add labels</tspan>
-      <tspan x="60" dy="30" class="key">m</tspan><tspan> : enter / leave Wall Mode</tspan>
-      <tspan x="60" dy="20" class="key">x</tspan><tspan> : clear wall</tspan>
-      <tspan x="60" dy="20" class="key">u</tspan><tspan> : undo</tspan>
-      <tspan x="60" dy="20" class="key">r</tspan><tspan> : redo</tspan>
-      <tspan x="60" dy="20" class="key">y</tspan><tspan> : up / </tspan>
-      <tspan class="key">z</tspan><tspan> : down</tspan>
-      <tspan x="60" dy="20" class="key">Z</tspan><tspan> : hide other levels</tspan>
-      <tspan x="60" dy="20" class="key">Delete</tspan><tspan> : delete</tspan>
+      <a xlink:href="javascript:keyPressed('m')">
+	<tspan x="60" dy="30" class="key">m</tspan><tspan> : enter / leave Wall Mode</tspan>
+      </a>
+      <a xlink:href="javascript:keyPressed('x')">
+	<tspan x="60" dy="20" class="key">x</tspan><tspan> : clear wall</tspan>
+      </a>
+      <a xlink:href="javascript:keyPressed('u')">
+	<tspan x="60" dy="20" class="key">u</tspan><tspan> : undo</tspan>
+      </a>
+      <a xlink:href="javascript:keyPressed('r')">
+	<tspan x="60" dy="20" class="key">r</tspan><tspan> : redo</tspan>
+      </a>
+      <a xlink:href="javascript:keyPressed('y')">
+	<tspan x="60" dy="20" class="key">y</tspan><tspan> : up / </tspan>
+      </a>
+      <a xlink:href="javascript:keyPressed('z')">
+	<tspan class="key">z</tspan><tspan> : down</tspan>
+      </a>
+      <a xlink:href="javascript:keyPressed('Z')">
+	<tspan x="60" dy="20" class="key">Z</tspan><tspan> : hide other levels</tspan>
+      </a>
+      <a xlink:href="javascript:keyPressed('Del')">
+	<tspan x="60" dy="20" class="key">Delete</tspan><tspan> : delete</tspan>
+      </a>
       <a id="download" fill="blue" xlink:href="javascript:download()">
 	<tspan x="30" dy="30">Prepare Download</tspan>
       </a>
@@ -2093,8 +2155,12 @@ onload = initialize;
 
     <text y="375">
       <tspan x="250" class="key">?</tspan><tspan> : toggle help</tspan>
-      <tspan x="250" dy="20" class="key">Space</tspan><tspan> : move right</tspan>
-      <tspan x="250" dy="20" class="key">Enter</tspan><tspan> : begin new line</tspan>
+      <a xlink:href="javascript:keyPressed('Space')">
+	<tspan x="250" dy="20" class="key">Space</tspan><tspan> : move right</tspan>
+      </a>
+      <a xlink:href="javascript:keyPressed('Enter')">
+	<tspan x="250" dy="20" class="key">Enter</tspan><tspan> : begin new line</tspan>
+      </a>
       <tspan x="250" dy="20" class="key">Arrows</tspan><tspan> : move around</tspan>
       <tspan x="250" dy="20" class="key">Shift Arr.</tspan><tspan> : floor</tspan>
     </text>
