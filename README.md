@@ -37,11 +37,17 @@ This being a very simple web application, it has no access to your
 file system. And worse: If you use "Save As..." in your browser you'll
 save a copy *without* any of the changes you made!
 
-There are two ways to save your creation:
+There are your options:
+
+1. Click on **Text Export** and copy the content of the text area into
+   a text file. When you come back later, paste the text file into the
+   text area and click **Text Import**. This is usually your best bet.
 
 1. Click on **Prepare Link** and then click on the resulting *Link*.
    Bookmark this page. The link now basically contains a little script
-   recreating your dungeon.
+   recreating your dungeon. This is ideal for sharing while chatting
+   with people. As browsers and web sites have size limitations on the
+   length of a link, this will not work for *big* dungeons.
 
 2. Click on **Prepare Download** and the click on the resulting
    *Download*. On **Firefox**, this will *download* a copy of Gridmapper
@@ -80,6 +86,41 @@ upgraded, local copy of your dungeon!
 
 Open it in your browser and check that everything works before
 deleting your old copy. :)
+
+Scripting
+---------
+
+It's possible to use the text area for some simple scripting. Paste
+the following in the text area, for example, and use **Ctrl Enter** as
+you move around on the map. It will surround your current square with
+walls.
+
+```
+[-1,-1]fff[-3,1]f f[-3,1]fff[-2,-1]
+```
+
+Scripting works by typing the commands you would need to type, with
+the following additions:
+
+1. ```f``` will place a floor *and automatically advance* (like a
+   right arrow)
+
+1. ```-``` will move left by one (like a left arrow)
+
+1. ```.``` is used to stop rotations; thus ```ddd``` will place a door
+   and rotate it three times where as ```d.dd``` will place one door
+   and a second door, and rotate it once
+
+1. ```;``` is used to pause for half a second; it might be useful if
+   you're writing a demo for somebody else
+
+2. ```(x,y)``` will automatically move to the new position (be sure to
+   add 0.5 to either x or y in Wall Mode); note that ```(0,0)``` is
+   the top left corner and positive y is *down*
+
+3. ```[dx,dy]``` will move the current position relative to the
+   current position; given that positive y is *down*, ```[0,1]``` is
+   the equivalent of moving one down
 
 Editing Maps using a Text Editor
 --------------------------------
