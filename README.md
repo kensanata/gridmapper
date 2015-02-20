@@ -119,12 +119,10 @@ the following additions:
 Editing Maps using a Text Editor
 --------------------------------
 
-You can use the **query string** to make edits to your map.
-
 Assume you have these two maps:
-[One](https://campaignwiki.org/gridmapper.svg?%0A%20w.dfwwfwwfw%0A%20wftfw.wfwwfww.dddfw%0A%20wfffwnnnn%20nn%20wfwwfwwfw%0A%20ww%20ww%20w.dfffwfn%20nnn%20w%0A%20%20%20ww%20ww%20ww%20wfnnnn%20fd%0A%20%20%20%20%20%20ww%20ww%20ww)
+[One](https://campaignwiki.org/gridmapper.svg?%0A%20w.dfwwfwwfw%0A%20wft%20fw.wfwwfww.dddfw%0A%20wfffwnnnn%20nn%20wfwwfwwfw%0A%20ww%20ww%20w.dfffwfn%20nnn%20w%0A%20%20%20ww%20ww%20ww%20wfnnnn%20fd%0A%20%20%20%20%20%20ww%20ww%20ww)
 and
-[Two](https://campaignwiki.org/gridmapper.svg?%0A%20ffnn%20n%20nn%20ffnn%0A%20dfbfdfwfwfbf%0A%20ffnnn%20fwfdffnnn).
+[Two](https://campaignwiki.org/gridmapper.svg?%0A%20ffnn%20n%20nn%20ffnn%0A%20dfb%20fdfwfwfb%20f%0A%20ffnnn%20fwfdffnnn).
 The first thing to realize is that you can take those two maps and
 turn them into strings. Replace ```%20``` with a space and ```%0A```
 with a newline.
@@ -133,7 +131,7 @@ One:
 
 ```
  w.dfwwfwwfw
- wftfw.wfwwfww.dddfw
+ wft fw.wfwwfww.dddfw
  wfffwnnnn nn wfwwfwwfw
  ww ww w.dfffwfn nnn w
    ww ww ww wfnnnn fd
@@ -143,19 +141,17 @@ One:
 Two:
 
 ```
-
  ffnn n nn ffnn
- dfbfdfwfwfbf
+ dfb fdfwfwfb f
  ffnnn fwfdffnnn
 ```
 
 First, we need to shift it over by 10 spaces:
 
 ```
-
-           ffnn n nn ffnn
-           dfbfdfwfwfbf
-           ffnnn fwfdffnnn
+		   ffnn n nn ffnn
+		   dfb fdfwfwfb f
+		   ffnnn fwfdffnnn
 ```
 
 Then we combine them, and we add a little extra: we can tell
@@ -163,47 +159,20 @@ Gridmapper to return to the top left corner by providing ```(0,0)```.
 Here's the combined map.
 
 ```
-
  w.dfwwfwwfw
- wftfw.wfwwfww.dddfw
+ wft fw.wfwwfww.dddfw
  wfffwnnnn nn wfwwfwwfw
  ww ww w.dfffwfn nnn w
    ww ww ww wfnnnn fd
       ww ww ww
 (0,0)
            ffnn n nn ffnn
-           dfbfdfwfwfbf
+           dfb fdfwfwfb f
            ffnnn fwfdffnnn
 ```
 
-Turn spaces back into ```%20```, newlines into ```%0A```, and append it to
-the Gridmapper URL: [Combined Map](https://campaignwiki.org/gridmapper.svg?%0A%20w.dfwwfwwfw%0A%20wftfw.wfwwfww.dddfw%0A%20wfffwnnnn%20nn%20wfwwfwwfw%0A%20ww%20ww%20w.dfffwfn%20nnn%20w%0A%20%20%20ww%20ww%20ww%20wfnnnn%20fd%0A%20%20%20%20%20%20ww%20ww%20ww%0A(0,0)%0A%20%20%20%20%20%20%20%20%20%20%20ffnn%20n%20nn%20ffnn%0A%20%20%20%20%20%20%20%20%20%20%20dfbfdfwfwfbf%0A%20%20%20%20%20%20%20%20%20%20%20ffnnn%20fwfdffnnn)
-
-You could now go back to your map and move the second map around in
-relation to the first map by adding or removing newlines and spaces.
-And when you're good to go, click on *Prepare Link* and on the
-resulting *Link*. You should get a "simplified" link that results in
-the same map: [Simplified Combined Map](https://campaignwiki.org/gridmapper.svg?%0A%20w.dfwwfwwfw%20%20%20%20%20%20%20ffnn%20n%20nn%20ffnn%0A%20wftfw.wfwwfww.dddfw%20%20%20%20dfbfdfwfwfbf%0A%20wfffwnnnn%20nn%20wfwwfwwfw%20%20ffnnn%20fwfdffnnn%0A%20ww%20ww%20w.dfffwfn%20nnn%20w%0A%20%20%20ww%20ww%20ww%20wfnnnn%20fd%0A%20%20%20%20%20%20ww%20ww%20ww)
-
-Instead of putting the two maps on the same level, how about putting
-one on the map below? Use ```z``` instead of ```(0,0)```:
-
-```
-
- w.dfwwfwwfw
- wftfw.wfwwfww.dddfw
- wfffwnnnn nn wfwwfwwfw
- ww ww w.dfffwfn nnn w
-   ww ww ww wfnnnn fd
-      ww ww ww
-z
-           ffnn n nn ffnn
-           dfbfdfwfwfbf
-           ffnnn fwfdffnnn
-```
-
-Turn spaces back into ```%20```, newlines into ```%0A```, and this is what you'll get:
-[Stacked Combined Maps](https://campaignwiki.org/gridmapper.svg?%0A%20w.dfwwfwwfw%0A%20wftfw.wfwwfww.dddfw%0A%20wfffwnnnn%20nn%20wfwwfwwfw%0A%20ww%20ww%20w.dfffwfn%20nnn%20w%0A%20%20%20ww%20ww%20ww%20wfnnnn%20fd%0A%20%20%20%20%20%20ww%20ww%20ww%0Az%0A%20%20%20%20%20%20%20%20%20%20%20ffnn%20n%20nn%20ffnn%0A%20%20%20%20%20%20%20%20%20%20%20dfbfdfwfwfbf%0A%20%20%20%20%20%20%20%20%20%20%20ffnnn%20fwfdffnnn)
+Paste it into the text area and click **Import Text**. That's it.
+Result: [Combined Map](https://campaignwiki.org/gridmapper.svg?%0A%20w.dfwwfwwfw%20%20%20%20%20%20%20ffnn%20n%20nn%20ffnn%0A%20wft%20fw.wfwwfww.dddfw%20%20%20%20dfb%20fdfwfwfb%20f%0A%20wfffwnnnn%20nn%20wfwwfwwfw%20%20ffnnn%20fwfdffnnn%0A%20ww%20ww%20w.dfffwfn%20nnn%20w%0A%20%20%20ww%20ww%20ww%20wfnnnn%20fd%0A%20%20%20%20%20%20ww%20ww%20ww)
 
 How to extend Gridmapper
 ------------------------
