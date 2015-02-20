@@ -61,31 +61,25 @@ Upgrading your local copy of Gridmapper
 
 Let's assume you downloaded a copy of Gridmapper and started creating
 your dungeon. Then you discovered that there's a new release out
-there. How can you upgrade your local file? The **query string** is key!
+there. How can you upgrade your local file? Easy: use **Text Export**
+and **Text Import**.
 
-You can get this query string by loading your local copy, clicking on
-*Prepare Link* and then clicking on the resulting *Link*. Here's a
-simple example: ```file:///Users/alex/Documents/awesome.svg?%0A%20s%0A%0A%20ff%0A%20ff```.
+1. Open your local copy
 
-The query string is everything after the questionmark: ```%0A%20s%0A%0A%20ff%0A%20ff```.
+2. Click on **Text Export**
 
-You can take the query string of an existing link and use it with a
-newer copy of Gridmapper! Download a new copy, load it, and append the
-stuff starting with the question mark. Here I've downloaded a new copy
-of Gridmapper and I'm appending the query string from the example
-above: ```file:///Users/alex/Download/gridmapper.svg?%0A%20s%0A%0A%20ff%0A%20ff```
+3. Copy the text and save it somewhere
 
-This also works with the Campaign Wiki's Gridmapper. Here I'm
-appending the same query string to the current release of Gridmapper: ```https://campaignwiki.org/gridmapper.svg?%0A%20s%0A%0A%20ff%0A%20ff```.
-[Verify
-it](https://campaignwiki.org/gridmapper.svg?%0A%20s%0A%0A%20ff%0A%20ff).
+4. Download a new copy of Gridmapper and open it
 
-Once you have your map in the new copy of Gridmapper, click on
-**Prepare Download** and then click on **Download** – and you have an
-upgraded, local copy of your dungeon!
+5. Paste the text
 
-Open it in your browser and check that everything works before
-deleting your old copy. :)
+6. Click on **Text Import**
+
+7. Click on **Prepare Download** and the click on the resulting
+   *Download*; follow the link and save the file
+
+Check that everything works before deleting your old copy. :)
 
 Scripting
 ---------
