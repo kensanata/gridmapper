@@ -2088,7 +2088,7 @@ onload = initialize;
       <a fill="blue" xlink:href="javascript:textImport()">
 	<tspan>Text Import</tspan>
       </a>
-      <tspan> / <tspan class="key">Ctrl Enter</tspan> below</tspan>
+      <tspan> / </tspan><tspan class="key">Ctrl Enter</tspan>
     </text>
 
     <text y="375">
