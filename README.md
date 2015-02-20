@@ -123,9 +123,7 @@ Assume you have these two maps:
 [One](https://campaignwiki.org/gridmapper.svg?%0A%20w.dfwwfwwfw%0A%20wft%20fw.wfwwfww.dddfw%0A%20wfffwnnnn%20nn%20wfwwfwwfw%0A%20ww%20ww%20w.dfffwfn%20nnn%20w%0A%20%20%20ww%20ww%20ww%20wfnnnn%20fd%0A%20%20%20%20%20%20ww%20ww%20ww)
 and
 [Two](https://campaignwiki.org/gridmapper.svg?%0A%20ffnn%20n%20nn%20ffnn%0A%20dfb%20fdfwfwfb%20f%0A%20ffnnn%20fwfdffnnn).
-The first thing to realize is that you can take those two maps and
-turn them into strings. Replace ```%20``` with a space and ```%0A```
-with a newline.
+Use **Text Export** to get at their code.
 
 One:
 
