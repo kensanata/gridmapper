@@ -235,6 +235,11 @@ var Map = {
     'arc': 'arc2',
     'arc2': 'arc3',
     'arc3': 'diagonal',
+    'trap': 'pit',
+    'pit': 'trap-door-ceiling',
+    'trap-door-ceiling': 'trap-door-floor',
+    'trap-door-floor': 'trap-door-secret',
+    'trap-door-secret': 'trap',
   },
 
   symbols: null,
@@ -977,7 +982,6 @@ function addToLabel(x, y, s) {
     tile.setAttribute('id', 'label' + '_' + x + '_' + y);
     tile.setAttribute('x', (x + 1.5) * Map.tileWidth); // empty column to the left
     tile.setAttribute('y', (y + 1.7) * Map.tileWidth); // empty row at the top, + lineheight
-    tile.setAttribute('style', 'text-anchor: middle'); // centered
     text = tile.textContent;
   }
   Commands.do(
@@ -1972,6 +1976,28 @@ onload = initialize;
       <line x1="2" y1="2" x2="8" y2="8" stroke="black" stroke-width="0.8"/>
       <line x1="2" y1="8" x2="8" y2="2" stroke="black" stroke-width="0.8"/>
     </g>
+    <g id="pit" width="10">
+      <rect width="10" height="10" fill="white" stroke="black" stroke-width="1"/>
+      <rect x="2" y="2" width="6" height="6" fill="white" stroke="black" stroke-width="1"/>
+      <line x1="2" y1="2" x2="8" y2="8" stroke="black" stroke-width="0.5"/>
+      <line x1="2" y1="8" x2="8" y2="2" stroke="black" stroke-width="0.5"/>
+      <rect x="3.2" y="3.2" width="3.6" height="3.6" fill="black"/>
+    </g>
+    <g id="trap-door-ceiling" width="10" class="labels">
+      <rect width="10" height="10" fill="white" stroke="black" stroke-width="1"/>
+      <circle cx="5" cy="5" r="3.5" fill="none" stroke="black" stroke-width="0.5"/>
+      <text x="8.3" y="12" transform="scale(0.6,0.6)">C</text>
+    </g>
+    <g id="trap-door-floor" width="10">
+      <rect width="10" height="10" fill="white" stroke="black" stroke-width="1"/>
+      <circle cx="5" cy="5" r="3.5" fill="none" stroke="black" stroke-width="0.5"/>
+      <text x="8.3" y="12" transform="scale(0.6,0.6)">F</text>
+    </g>
+    <g id="trap-door-secret" width="10">
+      <rect width="10" height="10" fill="white" stroke="black" stroke-width="1"/>
+      <circle cx="5" cy="5" r="3.5" fill="none" stroke="black" stroke-width="0.5"/>
+      <text x="8.3" y="12" transform="scale(0.6,0.6)">S</text>
+    </g>
     <g id="diagonal" width="10">
       <rect width="10" height="10" fill="white" stroke="black" stroke-width="1"/>
       <path fill="black" d="M0,10 V0 H10 Z"/>
@@ -2046,7 +2072,7 @@ onload = initialize;
 
   <style><![CDATA[
   text { font: 14px 'Courier New', Courier, monospace; }
-  .labels text, #levels text { font: 10px 'Arial Narrow', sans-serif; font-weight: bold; }
+  .labels text, #levels text { text-anchor: middle; font: 10px 'Arial Narrow', sans-serif; font-weight: bold; }
   .key { fill: forestgreen; font-weight: bold; }
   #ui { -webkit-tap-highlight-color: rgba(0,0,0,0); }
   ]]></style>
@@ -2117,7 +2143,7 @@ onload = initialize;
     </a>
     <use x="30" y="310" xlink:href="#empty"/>
     <g class="labels">
-      <text x="40" y="324" style="text-anchor: middle">123</text>
+      <text x="40" y="324">123</text>
     </g>
     <use x="20" y="340" xlink:href="#cursor"/>
     <use x="30" y="340" xlink:href="#empty"/>
