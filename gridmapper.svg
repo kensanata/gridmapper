@@ -1947,22 +1947,19 @@ onload = initialize;
       <path fill="black" d="M0,10 V0 H10 Z"/>
     </g>
     <g id="arc" width="10">
-      <rect width="10" height="10" fill="white" stroke="black" stroke-width="1"/>
-      <path fill="black" d="M0,10 V0 H10 A10,10 0 0,0 0,10"/>
+      <path fill="white" d="M0,10 A10,10 0 0,1 10,0 V10 Z" stroke="black" stroke-width="1"/>
     </g>
     <g id="arc2" width="10">
-      <rect width="20" height="20" fill="white" stroke="black" stroke-width="1"/>
-      <path fill="black" d="M0,20 V0 H20 A20,20 0 0,0 0,20"/>
-      <line x1="0" y1="10" x2="20" y2="10" stroke="black" stroke-width="1"/>
-      <line x1="10" y1="0" x2="10" y2="20" stroke="black" stroke-width="1"/>
+      <path fill="white" d="M-10,10 A20,20 0 0,1 10,-10 V10 Z" stroke="black" stroke-width="1"/>
+      <line x1="-7.3" y1="0" x2="10" y2="0" stroke="black" stroke-width="1"/>
+      <line x1="0" y1="-7.3" x2="0" y2="10" stroke="black" stroke-width="1"/>
     </g>
     <g id="arc3" width="10">
-      <rect width="30" height="30" fill="white" stroke="black" stroke-width="1"/>
-      <path fill="black" d="M0,30 V0 H30 A30,30 0 0,0 0,30"/>
-      <line x1="0" y1="10" x2="30" y2="10" stroke="black" stroke-width="1"/>
-      <line x1="0" y1="20" x2="30" y2="20" stroke="black" stroke-width="1"/>
-      <line x1="10" y1="0" x2="10" y2="30" stroke="black" stroke-width="1"/>
-      <line x1="20" y1="0" x2="20" y2="30" stroke="black" stroke-width="1"/>
+      <path fill="white" d="M-20,10 A30,30 0 0,1 10,-20 V10 Z" stroke="black" stroke-width="1"/>
+      <line x1="-12.4" y1="-10" x2="10" y2="-10" stroke="black" stroke-width="1"/>
+      <line x1="-18.3" y1="0" x2="10" y2="0" stroke="black" stroke-width="1"/>
+      <line x1="-10" y1="-12.4" x2="-10" y2="10" stroke="black" stroke-width="1"/>
+      <line x1="0" y1="-18.3" x2="0" y2="10" stroke="black" stroke-width="1"/>
     </g>
     <g id="stair" width="10">
       <rect width="10" height="20" fill="white" stroke="black" stroke-width="1"/>
@@ -2065,19 +2062,28 @@ onload = initialize;
       <use x="30" y="230" xlink:href="#stair"/>
     </a>
     <a xlink:href="javascript:keyPressed('sv')">
-      <use x="390" y="230" xlink:href="#stair-small"/>
+      <use x="350" y="180" xlink:href="#stair-small"/>
     </a>
     <a xlink:href="javascript:keyPressed('svv')">
-      <use x="360" y="230" xlink:href="#stair-spiral"/>
+      <use x="380" y="180" xlink:href="#stair-spiral"/>
     </a>
     <a xlink:href="javascript:keyPressed('svvv')">
-      <use x="340" y="260" xlink:href="#stair-big-spiral"/>
+      <use x="330" y="210" xlink:href="#stair-big-spiral"/>
     </a>
     <a xlink:href="javascript:keyPressed('svvvv')">
-      <use x="390" y="260" xlink:href="#stair-big"/>
+      <use x="380" y="210" xlink:href="#stair-big"/>
     </a>
     <a xlink:href="javascript:keyPressed('n')">
       <use x="30" y="280" xlink:href="#diagonal"/>
+    </a>
+    <a xlink:href="javascript:keyPressed('nv')">
+      <use x="330" y="310" xlink:href="#arc"/>
+    </a>
+    <a xlink:href="javascript:keyPressed('nvv')">
+      <use x="350" y="280" xlink:href="#arc2"/>
+    </a>
+    <a xlink:href="javascript:keyPressed('nvvv')">
+      <use x="410" y="310" xlink:href="#arc3"/>
     </a>
     <use x="30" y="310" xlink:href="#empty"/>
     <g class="labels">
