@@ -112,6 +112,7 @@ var Map = {
     Map.labelsElement = document.getElementById('labels' + z);
     Map.data = Map.levels[z];
     document.getElementById('level').textContent = z < 665 ? z + 1: 'The End';
+    resizeSVG ();
   },
 
   /**
@@ -775,7 +776,36 @@ function fadeElementTo (element, opacity, delta, duration) {
   });
 };
 
+/**
+ * Updates the SVG width and height.
+ * This allows browsers to scroll the image.
+ */
+function resizeSVG () {
+  var help = document.getElementById('help').firstElementChild;
+  var level = document.getElementById('level');
+  document.rootElement.setAttribute(
+    "width", (Map.width + 2) * Map.tileWidth // map with + two empty columns
+      + Number(help.getAttribute("width"))
+      + Number(level.getAttribute("x"))    // distance between help
+      - Number(help.getAttribute("x"))     // rectangle and level
+      - Number(help.getAttribute("width")) // indicator
+      + level.getBBox().width // width of level indicator
+  );
+  document.rootElement.setAttribute(
+    "height", Math.max((Map.width + 2) * Map.tileWidth,
+                       2 * Map.tileWidth
+                       + Number(help.getAttribute("height"))));
+}
+
+/**
+ * Moves the elements around if the map dimensions change.
+ * Makes sure the UI element covers it all.
+ * Moves and resizes the grey background.
+ * Scales the help pane and moves it, too.
+ * This should work for a different Map.tileWidth as well!
+ */
 function moveElements () {
+  resizeSVG();
   Map.ui.setAttribute('x', Map.tileWidth);
   Map.ui.setAttribute('y', Map.tileWidth);
   Map.ui.setAttribute('width',  Map.width * Map.tileWidth);
