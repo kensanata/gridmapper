@@ -242,6 +242,10 @@ var Map = {
     'statue': 'well',
     'well': 'fountain',
     'fountain': 'statue',
+    'pillar': 'altar',
+    'altar': 'dais',
+    'dais': 'dais-round',
+    'dais-round': 'pillar',
   },
 
   symbols: null,
@@ -1953,6 +1957,24 @@ onload = initialize;
       <rect width="10" height="10" fill="white" stroke="black" stroke-width="1"/>
       <circle cx="5" cy="5" r="2" fill="black"/>
     </g>
+    <g id="altar" width="10">
+      <rect width="10" height="10" fill="white" stroke="black" stroke-width="1"/>
+      <rect x="2" y="3" width="6" height="4" fill="none" stroke="black" stroke-width="0.5"/>
+      <circle cx="3.5" cy="5" r="0.5"/>
+      <circle cx="6.5" cy="5" r="0.5"/>
+    </g>
+    <g id="dais" width="10">
+      <rect width="10" height="10" fill="white" stroke="black" stroke-width="1"/>
+      <rect x="2" y="2" width="6" height="6" fill="none" stroke="black" stroke-width="0.5"/>
+      <rect x="3" y="3" width="4" height="4" fill="none" stroke="black" stroke-width="0.5"/>
+      <rect x="4" y="4" width="2" height="2" fill="none" stroke="black" stroke-width="0.5"/>
+    </g>
+    <g id="dais-round" width="10">
+      <rect width="10" height="10" fill="white" stroke="black" stroke-width="1"/>
+      <circle cx="5" cy="5" r="3" fill="none" stroke="black" stroke-width="0.5"/>
+      <circle cx="5" cy="5" r="2" fill="none" stroke="black" stroke-width="0.5"/>
+      <circle cx="5" cy="5" r="1" fill="none" stroke="black" stroke-width="0.5"/>
+    </g>
     <g id="statue" width="10">
       <rect width="10" height="10" fill="white" stroke="black" stroke-width="1"/>
       <circle cx="5" cy="5" r="3.5" fill="none" stroke="black" stroke-width="0.5"/>
@@ -2087,27 +2109,27 @@ onload = initialize;
 	<p>
 	  Use the mouse to draw and erase floor tiles.
 	  Use the following keys to place or rotate tiles.
-	  Use <span class="key">v</span> to access the variants.
+	  Use <span class="key">v</span> to use variants.<br/>
 	</p>
 	<p class="line">
-	  <a href="javascript:keyPressed('f')"><span class="key">f</span> :</a>
+	  <a href="javascript:interpret('f')"><span class="key">f</span> :</a>
 	  <svg xmlns="http://www.w3.org/2000/svg" width="180" height="22">
-	    <a xlink:href="javascript:keyPressed('f')" title="floor">
+	    <a xlink:href="javascript:interpret('f')" title="floor">
 	      <use x="10" y="1" xlink:href="#empty"/>
 	    </a>
 	  </svg>
-	  <a href="javascript:keyPressed('w')"><span class="key">w</span> :</a>
+	  <a href="javascript:interpret('w')"><span class="key">w</span> :</a>
 	  <svg xmlns="http://www.w3.org/2000/svg" width="150" height="26">
-	    <a xlink:href="javascript:keyPressed('w')" title="wall">
+	    <a xlink:href="javascript:interpret('w')" title="wall">
 	      <use x="10" y="3" xlink:href="#empty"/>
 	      <use x="10" y="3" xlink:href="#wall"/>
 	    </a>
 	  </svg>
 	</p>
 	<p class="line">
-	  <a href="javascript:keyPressed('t')"><span class="key">t</span> :</a>
+	  <a href="javascript:interpret('t')"><span class="key">t</span> :</a>
 	  <svg xmlns="http://www.w3.org/2000/svg" width="180" height="22">
-	    <a xlink:href="javascript:keyPressed('t')" title="covered pit">
+	    <a xlink:href="javascript:interpret('t')" title="covered pit">
 	      <use x="10" y="1" xlink:href="#empty"/>
 	      <use x="10" y="1" xlink:href="#trap"/>
 	    </a>
@@ -2128,18 +2150,30 @@ onload = initialize;
 	      <use x="130" y="1" xlink:href="#trap-door-secret"/>
 	    </a>
 	  </svg>
-	  <a href="javascript:keyPressed('p')"><span class="key">p</span> :</a>
+	  <a href="javascript:interpret('p')"><span class="key">p</span> :</a>
 	  <svg xmlns="http://www.w3.org/2000/svg" width="150" height="22">
-	      <a xlink:href="javascript:keyPressed('p')" title="pillar">
+	      <a xlink:href="javascript:interpret('p')" title="pillar">
 		<use x="10" y="1" xlink:href="#empty"/>
 		<use x="10" y="1" xlink:href="#pillar"/>
+	      </a>
+	      <a xlink:href="javascript:interpret('pv')" title="altar">
+		<use x="40" y="1" xlink:href="#empty"/>
+		<use x="40" y="1" xlink:href="#altar"/>
+	      </a>
+	      <a xlink:href="javascript:interpret('pvv')" title="dais">
+		<use x="70" y="1" xlink:href="#empty"/>
+		<use x="70" y="1" xlink:href="#dais"/>
+	      </a>
+	      <a xlink:href="javascript:interpret('pvvv')" title="round dais">
+		<use x="100" y="1" xlink:href="#empty"/>
+		<use x="100" y="1" xlink:href="#dais-round"/>
 	      </a>
 	  </svg>
 	</p>
 	<p class="line">
-	  <a href="javascript:keyPressed('b')"><span class="key">b</span> :</a>
+	  <a href="javascript:interpret('b')"><span class="key">b</span> :</a>
 	  <svg xmlns="http://www.w3.org/2000/svg" width="163" height="22">
-	    <a xlink:href="javascript:keyPressed('b')" title="statue">
+	    <a xlink:href="javascript:interpret('b')" title="statue">
 	      <use x="10" y="1" xlink:href="#empty"/>
 	      <use x="10" y="1" xlink:href="#statue"/>
 	    </a>
@@ -2161,9 +2195,9 @@ onload = initialize;
 	  </svg>
 	</p>
 	<p class="line" style="margin-top: -10px; margin-bottom: 0">
-	  <a href="javascript:keyPressed('d')"><span class="key">d</span> :</a>
+	  <a href="javascript:interpret('d')"><span class="key">d</span> :</a>
 	  <svg xmlns="http://www.w3.org/2000/svg" width="100" height="22">
-	    <a xlink:href="javascript:keyPressed('d')" title="door">
+	    <a xlink:href="javascript:interpret('d')" title="door">
 	      <use x="10" y="1" xlink:href="#empty"/>
 	      <use x="10" y="1" xlink:href="#door"/>
 	    </a>
@@ -2183,7 +2217,7 @@ onload = initialize;
 	      <use x="5" y="1" xlink:href="#gate"/>
 	    </a>
 	  </svg>
-	  <a href="javascript:keyPressed('m')"><span class="key">m</span> :</a>
+	  <a href="javascript:interpret('m')"><span class="key">m</span> :</a>
 	  <svg xmlns="http://www.w3.org/2000/svg" width="50" height="22">
 	    <a xlink:href="javascript:interpret('m')" title="Wall Mode">
 	      <use x="10" y="1" xlink:href="#empty"/>
@@ -2192,9 +2226,9 @@ onload = initialize;
 	  </svg>
 	</p>
 	<p class="line" style="margin: 0">
-	  <a href="javascript:keyPressed('s')"><span class="key">s</span> :</a>
+	  <a href="javascript:interpret('s')"><span class="key">s</span> :</a>
 	  <svg xmlns="http://www.w3.org/2000/svg" width="200" height="52">
-	    <a xlink:href="javascript:keyPressed('s')" title="stairs">
+	    <a xlink:href="javascript:interpret('s')" title="stairs">
 	      <use x="10" y="1" xlink:href="#stair"/>
 	    </a>
 	    <a xlink:href="javascript:interpret('sv')" title="small stairs">
@@ -2212,9 +2246,9 @@ onload = initialize;
 	  </svg>
 	</p>
 	<p class="line">
-	  <a href="javascript:keyPressed('n')"><span class="key">n</span> :</a>
+	  <a href="javascript:interpret('n')"><span class="key">n</span> :</a>
 	  <svg xmlns="http://www.w3.org/2000/svg" width="200" height="62">
-	    <a xlink:href="javascript:keyPressed('n')" title="diagonal">
+	    <a xlink:href="javascript:interpret('n')" title="diagonal">
 	      <use x="10" y="11" xlink:href="#diagonal"/>
 	    </a>
 	    <a xlink:href="javascript:interpret('nv')" title="arc">
@@ -2228,41 +2262,42 @@ onload = initialize;
 	    </a>
 	  </svg>
 	</p>
-	<p class="line">
+	<p>
 	  <a href="javascript:keyPressed('u')"><span class="key">u</span> : undo</a>  
 	  <a href="javascript:keyPressed('r')"><span class="key">r</span> : redo</a>  
 	  <a href="javascript:keyPressed('x')">
   	    <span class="key">x</span>, <span class="key">Delete</span> : delete
 	  </a>
 	</p>
-	<p class="line">
+	<p>
 	  <a href="javascript:keyPressed('y')"><span class="key">y</span> : up</a>  
 	  <a href="javascript:keyPressed('z')"><span class="key">z</span> : down</a>  
 	  <a href="javascript:keyPressed('Z')">
   	    <span class="key">Z</span> : hide other levels
 	  </a>
 	</p>
-      <p class="line">
+      <p>
 	<a href="javascript:keyPressed(' ')"><span class="key">Space</span> : move right</a>  
 	<a href="javascript:keyPressed('Enter')"><span class="key">Enter</span> : new line</a>  
       </p>
-      <p class="line">
+      <p>
 	<span class="key">Arrows</span> : move  
 	<span class="key">Shift Arrows</span> : toggle floor  
       </p>
-      <p class="line" style="margin: 0">
-	<a class="blue" href="https://github.com/kensanata/gridmapper">Source</a>  
-	<a id="demo" class="blue" href="javascript:Demo.start()">Demo</a>  
-	<br/>
-	<a id="download" class="blue" href="javascript:download()">Prepare Download</a>  
-	<a id="export" class="blue" href="javascript:prepareLink()">Prepare Link</a>  
-	<a class="blue" href="https://github.com/kensanata/gridmapper#how-to-save">Learn More</a>
-	<br/>
+      <p style="margin:0">
 	<a class="blue" href="javascript:textExport()">Text Export</a>  
 	<a class="blue" href="javascript:textImport()">Text Import</a> or
 	<span class="key">Ctrl Enter</span>
       </p>
       <textarea xmlns="http://www.w3.org/1999/xhtml" style="background: white; width: 390px; height: 50px; font: 10px 'Courier New', Courier, monospace; " id="exportarea"/>
+      <p style="margin-top:10px">
+	<a id="download" class="blue" href="javascript:download()">Prepare Download</a>  
+	<a id="export" class="blue" href="javascript:prepareLink()">Prepare Link</a>  
+	<a class="blue" href="https://github.com/kensanata/gridmapper#how-to-save">Learn More</a>
+	<br/>
+	<a class="blue" href="https://github.com/kensanata/gridmapper">Source</a>  
+	<a id="demo" class="blue" href="javascript:Demo.start()">Demo</a>
+      </p>
       </body>
     </foreignObject>
 
