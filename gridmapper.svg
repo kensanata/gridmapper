@@ -2115,7 +2115,7 @@ onload = initialize;
 	<p>
 	  Use the mouse to draw and erase floor tiles.
 	  Use the following keys to place or rotate tiles.
-	  Use <span class="key">v</span> to use variants.<br/>
+	  <a href="javascript:interpret('v')">Use <span class="key">v</span> to use variants</a>.
 	</p>
 	<p class="line">
 	  <a href="javascript:interpret('f')"><span class="key">f</span> :</a>
