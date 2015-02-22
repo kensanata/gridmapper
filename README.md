@@ -176,7 +176,8 @@ How to extend Gridmapper
 ------------------------
 
 Let's assume you want to add *wells* as variants of *statues* to
-Gridmapper. How would you about it?
+Gridmapper – and let's assume this had not yet been implemented. How
+would you do it?
 
 Step 1: Find the SVG definition of a statue and add the SVG you want
 right next to it. Where to learn about SVG? Personally, I usually just
@@ -213,6 +214,17 @@ variants: {
   'statue': 'well',
   'well': 'statue',
 },
+```
+
+Step 3: Document it. Find the section at the end where all the tiles
+are documented. Search for ```#statue```. Then, append something like
+the following:
+
+```
+<a xlink:href="javascript:interpret('bv')" title="well">
+  <use x="40" y="1" xlink:href="#empty"/>
+  <use x="40" y="1" xlink:href="#well"/>
+</a>
 ```
 
 Save it, test it, you're done!

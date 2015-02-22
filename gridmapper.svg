@@ -239,6 +239,8 @@ var Map = {
     'trap-door-ceiling': 'trap-door-floor',
     'trap-door-floor': 'trap-door-secret',
     'trap-door-secret': 'trap',
+    'statue': 'well',
+    'well': 'statue',
   },
 
   symbols: null,
@@ -1955,6 +1957,11 @@ onload = initialize;
       <circle cx="5" cy="5" r="3.5" fill="none" stroke="black" stroke-width="0.5"/>
       <path fill="black" d="M 2,4 H 8 L 3,7.5 5,2 7,7.5 Z"/>
     </g>
+    <g id="well" width="10">
+      <rect width="10" height="10" fill="white" stroke="black" stroke-width="1"/>
+      <circle cx="5" cy="5" r="2.5" fill="black"/>
+      <circle cx="5" cy="5" r="1.5" fill="black" stroke="white" stroke-width="1"/>
+    </g>
     <g id="trap" width="10">
       <rect width="10" height="10" fill="white" stroke="black" stroke-width="1"/>
       <rect x="2" y="2" width="6" height="6" fill="white" stroke="black" stroke-width="1"/>
@@ -2129,6 +2136,10 @@ onload = initialize;
 	    <a xlink:href="javascript:keyPressed('b')" title="statue">
 	      <use x="10" y="1" xlink:href="#empty"/>
 	      <use x="10" y="1" xlink:href="#statue"/>
+	    </a>
+	    <a xlink:href="javascript:interpret('bv')" title="well">
+	      <use x="40" y="1" xlink:href="#empty"/>
+	      <use x="40" y="1" xlink:href="#well"/>
 	    </a>
 	  </svg>
 	  <span><span class="key">0-9</span> :</span>
