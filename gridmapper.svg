@@ -34,8 +34,7 @@ var xlinkNs = 'http://www.w3.org/1999/xlink';
  * If you want to change the size of the map, simply change width and
  * height. 30x30 was the template for the first One Page Dungeon
  * Contest. The tileWidth is the size of one square, in pixels. You
- * can change that as well. Everything shold be scaled accordingly
- * (including the help screen).
+ * can change that as well.
  */
 var Map = {
   width: 30, // how many columns
@@ -536,16 +535,16 @@ var Demo = {
    */
   link: function (text, js, revert) {
     var link = document.getElementById('demo');
-    var oldText = link.firstElementChild.firstChild.nodeValue;
-    link.firstElementChild.firstChild.nodeValue = text;
-    var href = link.getAttributeNS(xlinkNs, 'href');
-    link.setAttributeNS(xlinkNs, 'href', 'javascript:' + js);
+    var oldText = link.firstChild.nodeValue;
+    link.firstChild.nodeValue = text;
+    var href = link.getAttribute('href');
+    link.setAttribute('href', 'javascript:' + js);
     // reset after 2s
     if (revert)
       var t = setInterval(function() {
         if (!Demo.running) {
-          link.setAttributeNS(xlinkNs, 'href', href);
-          link.firstElementChild.firstChild.nodeValue = oldText;
+          link.setAttribute('href', href);
+          link.firstChild.nodeValue = oldText;
           clearInterval(t);
         }
       }, 2000);
@@ -563,12 +562,11 @@ var Demo = {
     Map.ui.onmousemove = null;
     Map.ui.onmousedown = null;
     Demo.element = document.getElementById('messages');
-    var help = document.getElementById('help').firstElementChild;
     moveElement(Demo.element,
                 Demo.element.getBBox().x,
                 Demo.element.getBBox().y,
-                (Map.width + 2) * Map.tileWidth,
-                parseInt(help.getAttribute('height')) + 1.8 * Map.tileWidth,
+                3 * Map.tileWidth,
+                3 * Map.tileWidth,
                 bounceEaseOut);
     Demo.step(1);
   },
@@ -806,7 +804,6 @@ function resizeSVG () {
  * Moves the elements around if the map dimensions change.
  * Makes sure the UI element covers it all.
  * Moves and resizes the grey background.
- * Scales the help pane and moves it, too.
  * This should work for a different Map.tileWidth as well!
  */
 function moveElements () {
@@ -828,23 +825,14 @@ function moveElements () {
                 Map.tileWidth, // an empty column at the top
                 linear, 500);
   }
-  var scale = Map.tileWidth / 20;
   var help = document.getElementById('help');
-  if (scale != 1) {
-    // from now on, we need to scale all coordinates!
-    if (help.hasAttribute('transform')) {
-      help.setAttribute('transform', help.getAttribute('transform').replace(/scale\(.*?\)/, 'scale('+scale+','+scale+')'));
-    } else {
-      help.setAttribute('transform', 'scale('+scale+','+scale+')');
-    }
-  }
   moveElement(help,
               help.getBBox().x,
               help.getBBox().y,
               // an empty column, the background, and another empty column to the left
-              (Map.width + 2) * Map.tileWidth / scale,
+              (Map.width + 2) * Map.tileWidth,
               // an empty column at the top
-              Map.tileWidth / scale,
+              Map.tileWidth,
               linear, 500);
 }
 
@@ -865,15 +853,15 @@ function download () {
                     unescape(encodeURIComponent(document.documentElement.innerHTML)) +
                     '</svg>');
   var link = document.getElementById('download');
-  var text = link.firstElementChild.firstChild.nodeValue;
-  link.firstElementChild.firstChild.nodeValue = 'Download';
-  var href = link.getAttributeNS(xlinkNs, 'href');
+  var text = link.firstChild.nodeValue;
+  link.firstChild.nodeValue = 'Download';
+  var href = link.getAttribute('href');
   link.setAttribute('download', 'gridmapper.svg');
-  link.setAttributeNS(xlinkNs, 'href', 'data:image/svg+xml;base64,' + source);
+  link.setAttribute('href', 'data:image/svg+xml;base64,' + source);
   // reset after 10s
   var t = setInterval(function() {
-    link.setAttributeNS(xlinkNs, 'href', href);
-    link.firstElementChild.firstChild.nodeValue = text;
+    link.setAttribute('href', href);
+    link.firstChild.nodeValue = text;
     clearInterval(t);
   }, 10000);
 }
@@ -883,17 +871,17 @@ function download () {
  */
 function prepareLink () {
   var link = document.getElementById('export');
-  var text = link.firstElementChild.firstChild.nodeValue;
-  link.firstElementChild.firstChild.nodeValue = 'Link';
-  var href = link.getAttributeNS(xlinkNs, 'href');
+  var text = link.firstChild.nodeValue;
+  link.firstChild.nodeValue = 'Link';
+  var href = link.getAttribute('href');
   var location = window.location.href.substr(
     0, window.location.href.length - window.location.search.length)
-  link.setAttributeNS(xlinkNs, 'href', location
-                      + '?' + encodeURIComponent(getSource()));
+  link.setAttribute('href', location
+                    + '?' + encodeURIComponent(getSource()));
   // reset after 10s
   var t = setInterval(function() {
-    link.setAttributeNS(xlinkNs, 'href', href);
-    link.firstElementChild.firstChild.nodeValue = text;
+    link.setAttribute('href', href);
+    link.firstChild.nodeValue = text;
     clearInterval(t);
   }, 10000);
 }
@@ -1657,6 +1645,7 @@ function keyPressed (evt) {
     addToLabel(Pen.x, Pen.y, key);
     break;
 
+  case 'x':
   case 'Backspace':
   case 'Del':
     if (Pen.type === 'wallMode') {
@@ -1698,10 +1687,6 @@ function keyPressed (evt) {
 
   case 'm':
     wallMode(Pen.x, Pen.y);
-    break;
-
-  case 'x':
-    removeWall(Pen.x, Pen.y);
     break;
 
   case 'p':
@@ -1988,12 +1973,12 @@ onload = initialize;
       <circle cx="5" cy="5" r="3.5" fill="none" stroke="black" stroke-width="0.5"/>
       <text x="8.3" y="12" transform="scale(0.6,0.6)">C</text>
     </g>
-    <g id="trap-door-floor" width="10">
+    <g id="trap-door-floor" width="10" class="labels">
       <rect width="10" height="10" fill="white" stroke="black" stroke-width="1"/>
       <circle cx="5" cy="5" r="3.5" fill="none" stroke="black" stroke-width="0.5"/>
       <text x="8.3" y="12" transform="scale(0.6,0.6)">F</text>
     </g>
-    <g id="trap-door-secret" width="10">
+    <g id="trap-door-secret" width="10" class="labels">
       <rect width="10" height="10" fill="white" stroke="black" stroke-width="1"/>
       <circle cx="5" cy="5" r="3.5" fill="none" stroke="black" stroke-width="0.5"/>
       <text x="8.3" y="12" transform="scale(0.6,0.6)">S</text>
@@ -2071,183 +2056,204 @@ onload = initialize;
   <rect id="ui" opacity="0"/>
 
   <style><![CDATA[
+  body { font: 14px 'Courier New', Courier, monospace; background: ivory; width: 398px; height: 560px; border: 1px solid black; margin: 0; padding: 20px; }
+  p { margin: 0 0 10px 0; padding: 0; }
+  .line { display: table; }
+  .line svg { display: table-cell; vertical-align: middle; }
   text { font: 14px 'Courier New', Courier, monospace; }
   .labels text, #levels text { text-anchor: middle; font: 10px 'Arial Narrow', sans-serif; font-weight: bold; }
-  .key { fill: forestgreen; font-weight: bold; }
+  a { color: black; text-decoration: none; }
+  .blue { color: blue; }
+  .key { color: forestgreen; fill: forestgreen; font-weight: bold; }
   #ui { -webkit-tap-highlight-color: rgba(0,0,0,0); }
   ]]></style>
 
   <g id="help">
-    <rect x="10" y="80" width="440" height="550" fill="ivory" stroke="black" stroke-width="1"/>
-    <text id="level" x="460" y="220" style="font:30px 'Arial Narrow', sans-serif; font-weight: bold;">1</text>
-    <a xlink:href="https://alexschroeder.ch/wiki/Gridmapper">
-      <text x="460" y="90" transform="rotate(90,460,90)" style="font-weight: bold;">Gridmapper</text>
-    </a>
-    <a xlink:href="javascript:keyPressed('t')">
-      <use x="30" y="90" xlink:href="#empty"/>
-      <use x="30" y="120" xlink:href="#trap"/>
-    </a>
-    <a xlink:href="javascript:keyPressed('p')">
-      <use x="150" y="120" xlink:href="#pillar"/>
-    </a>
-    <a xlink:href="javascript:keyPressed('b')">
-      <use x="290" y="120" xlink:href="#statue"/>
-    </a>
-    <a xlink:href="javascript:keyPressed('d')">
-      <use x="30" y="150" xlink:href="#empty"/>
-      <use x="30" y="150" xlink:href="#door"/>
-    </a>
-    <a xlink:href="javascript:keyPressed('dvvv')">
-      <use x="410" y="150" xlink:href="#empty"/>
-      <use x="410" y="170" xlink:href="#empty"/>
-      <use x="410" y="150" xlink:href="#gate"/>
-    </a>
-    <a xlink:href="javascript:keyPressed('dv')">
-      <use x="350" y="150" xlink:href="#empty"/>
-      <use x="350" y="150" xlink:href="#secret"/>
-    </a>
-    <a xlink:href="javascript:keyPressed('dvv')">
-      <use x="380" y="150" xlink:href="#empty"/>
-      <use x="380" y="150" xlink:href="#concealed"/>
-    </a>
-    <a xlink:href="javascript:keyPressed('w')">
-      <use x="30" y="200" xlink:href="#empty"/>
-      <use x="30" y="200" xlink:href="#wall"/>
-    </a>
-    <a xlink:href="javascript:keyPressed('s')">
-      <use x="30" y="230" xlink:href="#stair"/>
-    </a>
-    <a xlink:href="javascript:keyPressed('sv')">
-      <use x="350" y="180" xlink:href="#stair-small"/>
-    </a>
-    <a xlink:href="javascript:keyPressed('svv')">
-      <use x="380" y="180" xlink:href="#stair-spiral"/>
-    </a>
-    <a xlink:href="javascript:keyPressed('svvv')">
-      <use x="330" y="210" xlink:href="#stair-big-spiral"/>
-    </a>
-    <a xlink:href="javascript:keyPressed('svvvv')">
-      <use x="380" y="210" xlink:href="#stair-big"/>
-    </a>
-    <a xlink:href="javascript:keyPressed('n')">
-      <use x="30" y="280" xlink:href="#diagonal"/>
-    </a>
-    <a xlink:href="javascript:keyPressed('nv')">
-      <use x="330" y="310" xlink:href="#arc"/>
-    </a>
-    <a xlink:href="javascript:keyPressed('nvv')">
-      <use x="350" y="280" xlink:href="#arc2"/>
-    </a>
-    <a xlink:href="javascript:keyPressed('nvvv')">
-      <use x="410" y="310" xlink:href="#arc3"/>
-    </a>
-    <use x="30" y="310" xlink:href="#empty"/>
-    <g class="labels">
-      <text x="40" y="324">123</text>
-    </g>
-    <use x="20" y="340" xlink:href="#cursor"/>
-    <use x="30" y="340" xlink:href="#empty"/>
-
-    <foreignObject x="30" y="560" width="1000" height="2000">
-        <textarea xmlns="http://www.w3.org/1999/xhtml" style="background: white; width: 390px; height: 50px; font: 10px 'Courier New', Courier, monospace; " id="exportarea"/>
+    <foreignObject x="10" y="80" width="440" height="610">
+      <body xmlns="http://www.w3.org/1999/xhtml">
+	<p>
+	  Use the mouse to draw and erase floor tiles.
+	  Use the following keys to place or rotate tiles.
+	  Use <span class="key">v</span> to access the variants.
+	</p>
+	<p class="line">
+	  <a href="javascript:keyPressed('f')"><span class="key">f</span> :</a>
+	  <svg xmlns="http://www.w3.org/2000/svg" width="180" height="22">
+	    <a xlink:href="javascript:keyPressed('f')" title="floor">
+	      <use x="10" y="1" xlink:href="#empty"/>
+	    </a>
+	  </svg>
+	  <a href="javascript:keyPressed('w')"><span class="key">w</span> :</a>
+	  <svg xmlns="http://www.w3.org/2000/svg" width="150" height="26">
+	    <a xlink:href="javascript:keyPressed('w')" title="wall">
+	      <use x="10" y="3" xlink:href="#empty"/>
+	      <use x="10" y="3" xlink:href="#wall"/>
+	    </a>
+	  </svg>
+	</p>
+	<p class="line">
+	  <a href="javascript:keyPressed('t')"><span class="key">t</span> :</a>
+	  <svg xmlns="http://www.w3.org/2000/svg" width="180" height="22">
+	    <a xlink:href="javascript:keyPressed('t')" title="covered pit">
+	      <use x="10" y="1" xlink:href="#empty"/>
+	      <use x="10" y="1" xlink:href="#trap"/>
+	    </a>
+	    <a xlink:href="javascript:interpret('tv')" title="open pit">
+	      <use x="40" y="1" xlink:href="#empty"/>
+	      <use x="40" y="1" xlink:href="#pit"/>
+	    </a>
+	    <a xlink:href="javascript:interpret('tvv')" title="trap door in the ceiling">
+	      <use x="70" y="1" xlink:href="#empty"/>
+	      <use x="70" y="1" xlink:href="#trap-door-ceiling"/>
+	    </a>
+	    <a xlink:href="javascript:interpret('tvvv')" title="trap door in the floor">
+	      <use x="100" y="1" xlink:href="#empty"/>
+	      <use x="100" y="1" xlink:href="#trap-door-floor"/>
+	    </a>
+	    <a xlink:href="javascript:interpret('tvvvv')" title="secret trap door">
+	      <use x="130" y="1" xlink:href="#empty"/>
+	      <use x="130" y="1" xlink:href="#trap-door-secret"/>
+	    </a>
+	  </svg>
+	  <a href="javascript:keyPressed('p')"><span class="key">p</span> :</a>
+	  <svg xmlns="http://www.w3.org/2000/svg" width="150" height="22">
+	      <a xlink:href="javascript:keyPressed('p')" title="pillar">
+		<use x="10" y="1" xlink:href="#empty"/>
+		<use x="10" y="1" xlink:href="#pillar"/>
+	      </a>
+	  </svg>
+	</p>
+	<p class="line">
+	  <a href="javascript:keyPressed('b')"><span class="key">b</span> :</a>
+	  <svg xmlns="http://www.w3.org/2000/svg" width="163" height="22">
+	    <a xlink:href="javascript:keyPressed('b')" title="statue">
+	      <use x="10" y="1" xlink:href="#empty"/>
+	      <use x="10" y="1" xlink:href="#statue"/>
+	    </a>
+	  </svg>
+	  <span><span class="key">0-9</span> :</span>
+	  <svg xmlns="http://www.w3.org/2000/svg" width="150" height="22">
+	    <use x="10" y="1" xlink:href="#empty"/>
+	    <g class="labels" title="labels">
+	      <text x="20" y="15">123</text>
+	    </g>
+	  </svg>
+	</p>
+	<p class="line" style="margin-top: -10px; margin-bottom: 0">
+	  <a href="javascript:keyPressed('d')"><span class="key">d</span> :</a>
+	  <svg xmlns="http://www.w3.org/2000/svg" width="100" height="22">
+	    <a xlink:href="javascript:keyPressed('d')" title="door">
+	      <use x="10" y="1" xlink:href="#empty"/>
+	      <use x="10" y="1" xlink:href="#door"/>
+	    </a>
+	    <a xlink:href="javascript:interpret('dv')" title="secret door">
+	      <use x="40" y="1" xlink:href="#empty"/>
+	      <use x="40" y="1" xlink:href="#secret"/>
+	    </a>
+	    <a xlink:href="javascript:interpret('dvv')" title="concealed door">
+	      <use x="70" y="1" xlink:href="#empty"/>
+	      <use x="70" y="1" xlink:href="#concealed"/>
+	    </a>
+	  </svg>
+	  <svg xmlns="http://www.w3.org/2000/svg" width="80" height="42" style="position: relative; top: -10px; ">
+	    <a xlink:href="javascript:interpret('dvvv')" title="double door, gate">
+	      <use x="5" y="1" xlink:href="#empty"/>
+	      <use x="5" y="21" xlink:href="#empty"/>
+	      <use x="5" y="1" xlink:href="#gate"/>
+	    </a>
+	  </svg>
+	  <a href="javascript:keyPressed('m')"><span class="key">m</span> :</a>
+	  <svg xmlns="http://www.w3.org/2000/svg" width="50" height="22">
+	    <a xlink:href="javascript:interpret('m')" title="Wall Mode">
+	      <use x="10" y="1" xlink:href="#empty"/>
+	      <use x="0" y="1" xlink:href="#cursor"/>
+	    </a>
+	  </svg>
+	</p>
+	<p class="line" style="margin: 0">
+	  <a href="javascript:keyPressed('s')"><span class="key">s</span> :</a>
+	  <svg xmlns="http://www.w3.org/2000/svg" width="200" height="52">
+	    <a xlink:href="javascript:keyPressed('s')" title="stairs">
+	      <use x="10" y="1" xlink:href="#stair"/>
+	    </a>
+	    <a xlink:href="javascript:interpret('sv')" title="small stairs">
+	      <use x="40" y="1" xlink:href="#stair-small"/>
+	    </a>
+	    <a xlink:href="javascript:interpret('svv')" title="spiral stairs">
+	      <use x="40" y="31" xlink:href="#stair-spiral"/>
+	    </a>
+	    <a xlink:href="javascript:interpret('svvv')" title="big spiral stairs">
+	      <use x="70" y="1" xlink:href="#stair-big-spiral"/>
+	    </a>
+	    <a xlink:href="javascript:interpret('svvvv')" title="bit stairs">
+	      <use x="120" y="1" xlink:href="#stair-big"/>
+	    </a>
+	  </svg>
+	</p>
+	<p class="line">
+	  <a href="javascript:keyPressed('n')"><span class="key">n</span> :</a>
+	  <svg xmlns="http://www.w3.org/2000/svg" width="200" height="62">
+	    <a xlink:href="javascript:keyPressed('n')" title="diagonal">
+	      <use x="10" y="11" xlink:href="#diagonal"/>
+	    </a>
+	    <a xlink:href="javascript:interpret('nv')" title="arc">
+	      <use x="20" y="41" xlink:href="#arc"/>
+	    </a>
+	    <a xlink:href="javascript:interpret('nvv')" title="big arc">
+	      <use x="70" y="41" xlink:href="#arc2"/>
+	    </a>
+	    <a xlink:href="javascript:interpret('nvvv')" title="huge arc">
+	      <use x="140" y="41" xlink:href="#arc3"/>
+	    </a>
+	  </svg>
+	</p>
+	<p class="line">
+	  <a href="javascript:keyPressed('u')"><span class="key">u</span> : undo</a>  
+	  <a href="javascript:keyPressed('r')"><span class="key">r</span> : redo</a>  
+	  <a href="javascript:keyPressed('x')">
+  	    <span class="key">x</span>, <span class="key">Delete</span> : delete
+	  </a>
+	</p>
+	<p class="line">
+	  <a href="javascript:keyPressed('y')"><span class="key">y</span> : up</a>  
+	  <a href="javascript:keyPressed('z')"><span class="key">z</span> : down</a>  
+	  <a href="javascript:keyPressed('Z')">
+  	    <span class="key">Z</span> : hide other levels
+	  </a>
+	</p>
+      <p class="line">
+	<a href="javascript:keyPressed(' ')"><span class="key">Space</span> : move right</a>  
+	<a href="javascript:keyPressed('Enter')"><span class="key">Enter</span> : new line</a>  
+      </p>
+      <p class="line">
+	<span class="key">Arrows</span> : move  
+	<span class="key">Shift Arrows</span> : toggle floor  
+      </p>
+      <p class="line" style="margin: 0">
+	<a class="blue" href="https://github.com/kensanata/gridmapper">Source</a>  
+	<a id="demo" class="blue" href="javascript:Demo.start()">Demo</a>  
+	<br/>
+	<a id="download" class="blue" href="javascript:download()">Prepare Download</a>  
+	<a id="export" class="blue" href="javascript:prepareLink()">Prepare Link</a>  
+	<a class="blue" href="https://github.com/kensanata/gridmapper#how-to-save">Learn More</a>
+	<br/>
+	<a class="blue" href="javascript:textExport()">Text Export</a>  
+	<a class="blue" href="javascript:textImport()">Text Import</a> or
+	<span class="key">Ctrl Enter</span>
+      </p>
+      <textarea xmlns="http://www.w3.org/1999/xhtml" style="background: white; width: 390px; height: 50px; font: 10px 'Courier New', Courier, monospace; " id="exportarea"/>
+      </body>
     </foreignObject>
-    
-    <text y="105">
-      <tspan x="60"><tspan class="key">f</tspan> : floor / erase (like using the mouse)</tspan>
-      <a xlink:href="javascript:keyPressed('t')">
-	<tspan x="60" dy="30"><tspan class="key">t</tspan> : trap</tspan>
-      </a>
-      <a xlink:href="javascript:keyPressed('p')">
-	<tspan x="180"><tspan class="key">p</tspan> : pillar</tspan>
-      </a>
-      <a xlink:href="javascript:keyPressed('b')">
-	<tspan x="320"><tspan class="key">b</tspan> : statue</tspan>
-      </a>
-      <a xlink:href="javascript:keyPressed('d')">
-	<tspan x="60" dy="30"><tspan class="key">d</tspan> : a door, repeat to rotate</tspan>
-      </a>
-      <a xlink:href="javascript:keyPressed('v')">
-	<tspan x="60" dy="20">    use <tspan class="key">v</tspan> for variants</tspan>
-      </a>
-      <a xlink:href="javascript:keyPressed('w')">
-	<tspan x="60" dy="30"><tspan class="key">w</tspan> : wall, repeat to rotate</tspan>
-      </a>
-      <a xlink:href="javascript:keyPressed('s')">
-	<tspan x="60" dy="30"><tspan class="key">s</tspan> : stairs, repeat to rotate</tspan>
-      </a>
-      <a xlink:href="javascript:keyPressed('v')">
-	<tspan x="60" dy="20">    use <tspan class="key">v</tspan> for variants</tspan>
-      </a>
-      <a xlink:href="javascript:keyPressed('n')">
-	<tspan x="60" dy="30"><tspan class="key">n</tspan> : diagonal, repeat to rotate</tspan>
-      </a>
-      <tspan x="60" dy="30" class="key">0-9</tspan><tspan> : add labels</tspan>
-      <a xlink:href="javascript:keyPressed('m')">
-	<tspan x="60" dy="30" class="key">m</tspan><tspan> : enter / leave Wall Mode</tspan>
-      </a>
-      <a xlink:href="javascript:keyPressed('x')">
-	<tspan x="60" dy="20" class="key">x</tspan><tspan> : clear wall</tspan>
-      </a>
-      <a xlink:href="javascript:keyPressed('u')">
-	<tspan x="60" dy="20" class="key">u</tspan><tspan> : undo</tspan>
-      </a>
-      <a xlink:href="javascript:keyPressed('r')">
-	<tspan x="60" dy="20" class="key">r</tspan><tspan> : redo</tspan>
-      </a>
-      <a xlink:href="javascript:keyPressed('y')">
-	<tspan x="60" dy="20" class="key">y</tspan><tspan> : up / </tspan>
-      </a>
-      <a xlink:href="javascript:keyPressed('z')">
-	<tspan class="key">z</tspan><tspan> : down</tspan>
-      </a>
-      <a xlink:href="javascript:keyPressed('Z')">
-	<tspan x="60" dy="20" class="key">Z</tspan><tspan> : hide other levels</tspan>
-      </a>
-      <a xlink:href="javascript:keyPressed('Del')">
-	<tspan x="60" dy="20" class="key">Delete</tspan><tspan> : delete</tspan>
-      </a>
-      <a id="download" fill="blue" xlink:href="javascript:download()">
-	<tspan x="30" dy="30">Prepare Download</tspan>
-      </a>
-      <tspan> / </tspan>
-      <a id="export" fill="blue" xlink:href="javascript:prepareLink()">
-	<tspan>Prepare Link</tspan>
-      </a>
-      <tspan> / </tspan>
-      <a fill="blue" xlink:href="https://github.com/kensanata/gridmapper#how-to-save">
-	<tspan>Learn More</tspan>
-      </a>
-      <a fill="blue" xlink:href="https://alexschroeder.ch/">
-	<tspan x="30" dy="20">Alex Schroeder</tspan>
-      </a>
-      <tspan> / </tspan>
-      <a fill="blue" xlink:href="https://github.com/kensanata/gridmapper">
-	<tspan>Source</tspan>
-      </a>
-      <tspan> / </tspan>
-      <a id="demo" fill="blue" xlink:href="javascript:Demo.start()">
-	<tspan>Demo</tspan>
-      </a>
-      <a fill="blue" xlink:href="javascript:textExport()">
-	<tspan x="30" dy="20">Text Export</tspan>
-      </a>
-      <tspan> / </tspan>
-      <a fill="blue" xlink:href="javascript:textImport()">
-	<tspan>Text Import</tspan>
-      </a>
-      <tspan> / </tspan><tspan class="key">Ctrl Enter</tspan>
-    </text>
 
-    <text y="375">
-      <tspan x="250" class="key">?</tspan><tspan> : toggle help</tspan>
-      <a xlink:href="javascript:keyPressed('Space')">
-	<tspan x="250" dy="20" class="key">Space</tspan><tspan> : move right</tspan>
+    <text id="level" x="460" y="110" style="font:30px 'Arial Narrow', sans-serif; font-weight: bold;">1</text>
+    <text x="460" y="140" transform="rotate(90,460,140)">
+      <a xlink:href="https://alexschroeder.ch/wiki/Gridmapper">
+	<tspan style="font-weight: bold;">Gridmapper</tspan>
       </a>
-      <a xlink:href="javascript:keyPressed('Enter')">
-	<tspan x="250" dy="20" class="key">Enter</tspan><tspan> : begin new line</tspan>
+      <tspan>by</tspan>
+      <a xlink:href="https://alexschroeder.ch/">
+	<tspan style="font-weight: bold;">Alex Schroeder</tspan>
       </a>
-      <tspan x="250" dy="20" class="key">Arrows</tspan><tspan> : move around</tspan>
-      <tspan x="250" dy="20" class="key">Shift Arr.</tspan><tspan> : floor</tspan>
     </text>
   </g>
 
@@ -2285,69 +2291,64 @@ onload = initialize;
     <tspan class="step6" x="0" dy="20">Watch: left, top, right, bottom, and back to left.</tspan>
     <code class="step6">(17,12);d;d;d;d;d</code>
 
-    <tspan class="step7" x="0" y="0">Use
-    <tspan class="key">x</tspan> to remove a door you added.</tspan>
-    <code class="step7">(17,13);d;x;d;x;d;x</code>
-
-    <tspan class="step8" x="0" y="0">Secret and concealed doors are variants of doors.</tspan>
-    <tspan class="step8" x="0" dy="20">Use
+    <tspan class="step7" x="0" y="0">Secret and concealed doors are variants of doors.</tspan>
+    <tspan class="step7" x="0" dy="20">Use
     <tspan class="key">v</tspan> to switch between variants.</tspan>
-    <code class="step8">(17,14)dff(18,15)fff(19,16)ff;d;v;v;fff(21,17)fff(23,17);d;d;d;v;(21,18)fff</code>
+    <code class="step7">(17,14)dff(18,15)fff(19,16)ff;d;v;v;fff(21,17)fff(23,17);d;d;d;v;(21,18)fff</code>
 
-    <tspan class="step9" x="0" y="0">Use <tspan class="key">s</tspan>
+    <tspan class="step8" x="0" y="0">Use <tspan class="key">s</tspan>
     to set stairs and rotate them into place.</tspan>
-    <tspan class="step9" x="0" dy="20">Use <tspan class="key">v</tspan>
+    <tspan class="step8" x="0" dy="20">Use <tspan class="key">v</tspan>
     to use a variant.</tspan>
-    <code class="step9">(11,12)s;s;s;s;(17,12)ffs;s;s;s;v </code>
+    <code class="step8">(11,12)s;s;s;s;(17,12)ffs;s;s;s;v </code>
 
-    <tspan class="step10" x="0" y="0">You can draw on multiple layers.</tspan>
-    <tspan class="step10" x="0" dy="20">Use
+    <tspan class="step9" x="0" y="0">You can draw on multiple layers.</tspan>
+    <tspan class="step9" x="0" dy="20">Use
     <tspan class="key">z</tspan> and <tspan class="key">y</tspan>
     to move up and down.</tspan>
-    <code class="step10">z(21,11)fff(20,12)ffff(21,13)fff;y</code>
+    <code class="step9">z(21,11)fff(20,12)ffff(21,13)fff;y</code>
 
-    <tspan class="step11" x="0" y="0">Place a door and rotate it into place.</tspan>
-    <tspan class="step11" x="0" dy="20">Use <tspan class="key">v</tspan> to select the gate variant.</tspan>
-    <code class="step11">(15,16);d;d;v;v;v</code>
+    <tspan class="step10" x="0" y="0">Place a door and rotate it into place.</tspan>
+    <tspan class="step10" x="0" dy="20">Use <tspan class="key">v</tspan> to select the gate variant.</tspan>
+    <code class="step10">(15,16);d;d;v;v;v</code>
 
-    <tspan class="step12" x="0" y="0">Use <tspan class="key">n</tspan>
+    <tspan class="step11" x="0" y="0">Use <tspan class="key">n</tspan>
     to place and rotate diagonals.</tspan>
-    <code class="step12">(17,15);n;n;n;n(18,14);n;n</code>
+    <code class="step11">(17,15);n;n;n;n(18,14);n;n</code>
 
-    <tspan class="step13" x="0" y="0">You can draw walls using
+    <tspan class="step12" x="0" y="0">You can draw walls using
     <tspan class="key">w</tspan>.</tspan>
-    <tspan class="step13" x="0" dy="20">Thus, walls work just like doors.</tspan>
-    <code class="step13">(16,18);dv(16,19);w(16,20);w</code>
+    <tspan class="step12" x="0" dy="20">Thus, walls work just like doors.</tspan>
+    <code class="step12">(16,18);dv(16,19);w(16,20);w</code>
 
-    <tspan class="step14" x="0" y="0">This gets tedious very fast.</tspan>
-    <tspan class="step14" x="0" dy="20">Use
+    <tspan class="step13" x="0" y="0">This gets tedious very fast.</tspan>
+    <tspan class="step13" x="0" dy="20">Use
     <tspan class="key">m</tspan> to enter
     <tspan style="font-weight: bold">Wall Mode</tspan>.</tspan>
-    <tspan class="step14" x="0" dy="20">Note the shift by half a square!</tspan>
-    <code class="step14">z(21,11);m</code>
+    <tspan class="step13" x="0" dy="20">Note the shift by half a square!</tspan>
+    <code class="step13">z(21,11);m</code>
 
-    <tspan class="step15" x="0" y="0" style="font-weight: bold">Wall Mode</tspan>
-    <tspan class="step15">keeps the cursor on the walls.</tspan>
-    <tspan class="step15" x="0" dy="20">Doors and walls no longer rotate.</tspan>
-    <code class="step15"> w; w;(21.5,13)w; w</code>
+    <tspan class="step14" x="0" y="0" style="font-weight: bold">Wall Mode</tspan>
+    <tspan class="step14">keeps the cursor on the walls.</tspan>
+    <tspan class="step14" x="0" dy="20">Doors and walls no longer rotate.</tspan>
+    <code class="step14"> w; w;(21.5,13)w; w</code>
 
-    <tspan class="step16" x="0" y="0">Move from wall to wall and use
+    <tspan class="step15" x="0" y="0">Move from wall to wall and use
     <tspan class="key">d</tspan>,
-    <tspan class="key">v</tspan>,
-    <tspan class="key">w</tspan> or
-    <tspan class="key">x</tspan>.</tspan>
-    <tspan class="step16" x="0" dy="20">Use
+    <tspan class="key">v</tspan> or
+    <tspan class="key">w</tspan>.</tspan>
+    <tspan class="step15" x="0" dy="20">Use
     <tspan class="key">m</tspan> to leave Wall Mode.</tspan>
-    <code class="step16">(21,11.5)d; d; d;(21,12.5)d; d; d;(23.5,12)dvm</code>
+    <code class="step15">(21,11.5)d; d; d;(21,12.5)d; d; d;(23.5,12)dvm</code>
 
-    <tspan class="step17" x="0" y="0">Use the number keys
+    <tspan class="step16" x="0" y="0">Use the number keys
     <tspan class="key">0-9</tspan> to add labels.</tspan>
-    <tspan class="step17" x="0" dy="20">Use
+    <tspan class="step16" x="0" dy="20">Use
     <tspan class="key">Delete</tspan> to delete labels.</tspan>
-    <code class="step17">(20,12)6y(15,12)1(14,19)2(19,16)4(22,17)5</code>
+    <code class="step16">(20,12)6y(15,12)1(14,19)2(19,16)4(22,17)5</code>
 
-    <tspan class="step18" x="0" y="0">Well, that's it. The rest is up to you.</tspan>
-    <tspan class="step18" x="0" dy="20">What lies beyond the secret doors to the east?</tspan>
+    <tspan class="step17" x="0" y="0">Well, that's it. The rest is up to you.</tspan>
+    <tspan class="step17" x="0" dy="20">What lies beyond the secret doors to the east?</tspan>
 
   </text>
 </svg>
