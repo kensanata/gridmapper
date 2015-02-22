@@ -2105,9 +2105,9 @@ onload = initialize;
   <style><![CDATA[
   body { font: 14px 'Courier New', Courier, monospace; background: ivory; width: 398px; height: 560px; border: 1px solid black; margin: 0; padding: 20px; }
   p { margin: 0 0 10px 0; padding: 0; }
-  .line { display: table; }
-  .line svg { display: table-cell; vertical-align: middle; }
   text { font: 14px 'Courier New', Courier, monospace; }
+  .line {  }
+  .line svg { display: inline; vertical-align: middle }
   .labels text, #levels text { text-anchor: middle; font: 10px 'Arial Narrow', sans-serif; font-weight: bold; }
   a { color: black; text-decoration: none; }
   .blue { color: blue; }
@@ -2131,7 +2131,7 @@ onload = initialize;
 	    </a>
 	  </svg>
 	  <a href="javascript:interpret('w')"><span class="key">w</span> :</a>
-	  <svg xmlns="http://www.w3.org/2000/svg" width="150" height="26">
+	  <svg xmlns="http://www.w3.org/2000/svg" width="100" height="26">
 	    <a xlink:href="javascript:interpret('w')" title="wall">
 	      <use x="10" y="3" xlink:href="#empty"/>
 	      <use x="10" y="3" xlink:href="#wall"/>
@@ -2171,7 +2171,7 @@ onload = initialize;
 	    </a>
 	  </svg>
 	  <a href="javascript:interpret('p')"><span class="key">p</span> :</a>
-	  <svg xmlns="http://www.w3.org/2000/svg" width="150" height="22">
+	  <svg xmlns="http://www.w3.org/2000/svg" width="130" height="22">
 	      <a xlink:href="javascript:interpret('p')" title="pillar">
 		<use x="10" y="1" xlink:href="#empty"/>
 		<use x="10" y="1" xlink:href="#pillar"/>
@@ -2207,16 +2207,16 @@ onload = initialize;
 	    </a>
 	  </svg>
 	  <span><span class="key">0-9</span> :</span>
-	  <svg xmlns="http://www.w3.org/2000/svg" width="150" height="22">
+	  <svg xmlns="http://www.w3.org/2000/svg" width="130" height="22">
 	    <use x="10" y="1" xlink:href="#empty"/>
 	    <g class="labels" title="labels">
 	      <text x="20" y="15">123</text>
 	    </g>
 	  </svg>
 	</p>
-	<p class="line" style="margin-top: -10px; margin-bottom: 0">
+	<p class="line">
 	  <a href="javascript:interpret('d')"><span class="key">d</span> :</a>
-	  <svg xmlns="http://www.w3.org/2000/svg" width="100" height="22">
+	  <svg xmlns="http://www.w3.org/2000/svg" width="91" height="22">
 	    <a xlink:href="javascript:interpret('d')" title="door">
 	      <use x="10" y="1" xlink:href="#empty"/>
 	      <use x="10" y="1" xlink:href="#door"/>
@@ -2230,7 +2230,7 @@ onload = initialize;
 	      <use x="70" y="1" xlink:href="#concealed"/>
 	    </a>
 	  </svg>
-	  <svg xmlns="http://www.w3.org/2000/svg" width="80" height="42" style="position: relative; top: -10px; ">
+	  <svg xmlns="http://www.w3.org/2000/svg" width="80" height="42" style="vertical-align:bottom; margin-top: -20px">
 	    <a xlink:href="javascript:interpret('dvvv')" title="double door, gate">
 	      <use x="5" y="1" xlink:href="#empty"/>
 	      <use x="5" y="21" xlink:href="#empty"/>
