@@ -1061,9 +1061,8 @@ function getUnusedAngle (x, y, rotate) {
  */
 function rotateTile (tile, type, x, y, angle) {
   tile.setAttribute('rotate', angle);
-  if (angle === 180 && type === 'concealed') {
-    tile.setAttribute('transform', 'translate('+Map.tileWidth+',0)');
-  } else if (angle > 0) {
+  console.log('Type: ' + type + ' rot: ' + angle + '°');
+  if (angle > 0) {
     var cx = (x + 1.5) * Map.tileWidth; // empty column to the left
     var cy = (y + 1.5) * Map.tileWidth; // empty row at the top
     tile.setAttribute('transform', 'rotate('+angle+','+cx+','+cy+')');
@@ -1088,6 +1087,7 @@ function wallPlacement (x, y, type) {
     var angle = parseInt(tile.getAttribute('rotate'));
     var rotate = getUnusedAngle(x, y, (angle + 90) % 360);
     if (rotate != null) {
+      type = tile.type; // use 'concealed' instead of 'door' for example
       Commands.do(
         function(){
           rotateTile(tile, type, x, y, angle);
@@ -1132,7 +1132,7 @@ function wallDraw (x, y, type) {
   var i, old;
   var tile = createTile(x, y, type);
   var walls = Map.data.get(x, y).walls;
-  rotateTile(tile, type, x, y, angle)
+  rotateTile(tile, type, x, y, angle);
   for (i = 0; i < walls.length; i++) {
     if (parseInt(walls[i].getAttribute('rotate')) == angle) {
       old = walls[i];
