@@ -246,6 +246,8 @@ var Map = {
     'altar': 'dais',
     'dais': 'dais-round',
     'dais-round': 'pillar',
+    'wall': 'curtain',
+    'curtain': 'wall',
   },
 
   symbols: null,
@@ -1328,6 +1330,7 @@ function variant (x, y) {
   tile = Map.data.get(x, y).floor;
   if (Pen.type === 'wallMode'
       || isVariantOf(Pen.type, 'door')
+      || isVariantOf(Pen.type, 'wall')
       || tile !== null && Map.variants[tile.type] === undefined) {
     var walls = Map.data.get(x, y).walls;
     tile = walls[walls.length - 1];
@@ -1941,6 +1944,9 @@ onload = initialize;
     <g id="wall" width="10">
       <line x1="0" y1="0" x2="0" y2="10" stroke="black" stroke-width="3" stroke-linecap="round"/>
     </g>
+    <g id="curtain" width="20">
+      <path fill="none" stroke="black" stroke-width="1" d="M5,3 h-1 A1,1 0 0,0 4,5 A1,1 0 0,1 4,7 A1,1 0 0,0 4,9 A1,1 0 0,1 4,11 A1,1 0 0,0 4,13 A1,1 0 0,1 4,15 A1,1 0 0,0 4,17 h1" />
+    </g>
     <g id="door" width="10">
       <rect x="-1.5" y="2" width="3" height="6" fill="white" stroke="black" stroke-width="1"/>
     </g>
@@ -2123,6 +2129,10 @@ onload = initialize;
 	    <a xlink:href="javascript:interpret('w')" title="wall">
 	      <use x="10" y="3" xlink:href="#empty"/>
 	      <use x="10" y="3" xlink:href="#wall"/>
+	    </a>
+	    <a xlink:href="javascript:interpret('wv')" title="curtain">
+	      <use x="40" y="3" xlink:href="#empty"/>
+	      <use x="40" y="3" xlink:href="#curtain"/>
 	    </a>
 	  </svg>
 	</p>
