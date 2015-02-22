@@ -240,7 +240,8 @@ var Map = {
     'trap-door-floor': 'trap-door-secret',
     'trap-door-secret': 'trap',
     'statue': 'well',
-    'well': 'statue',
+    'well': 'fountain',
+    'fountain': 'statue',
   },
 
   symbols: null,
@@ -1962,6 +1963,11 @@ onload = initialize;
       <circle cx="5" cy="5" r="2.5" fill="black"/>
       <circle cx="5" cy="5" r="1.5" fill="black" stroke="white" stroke-width="1"/>
     </g>
+    <g id="fountain" width="10">
+      <rect width="10" height="10" fill="white" stroke="black" stroke-width="1"/>
+      <circle cx="5" cy="5" r="2.5" fill="none" stroke="black" stroke-width="0.5"/>
+      <circle cx="5" cy="4" r="1.5" fill="none" stroke="black" stroke-width="0.5"/>
+    </g>
     <g id="trap" width="10">
       <rect width="10" height="10" fill="white" stroke="black" stroke-width="1"/>
       <rect x="2" y="2" width="6" height="6" fill="white" stroke="black" stroke-width="1"/>
@@ -2140,6 +2146,10 @@ onload = initialize;
 	    <a xlink:href="javascript:interpret('bv')" title="well">
 	      <use x="40" y="1" xlink:href="#empty"/>
 	      <use x="40" y="1" xlink:href="#well"/>
+	    </a>
+	    <a xlink:href="javascript:interpret('bvv')" title="fountain">
+	      <use x="70" y="1" xlink:href="#empty"/>
+	      <use x="70" y="1" xlink:href="#fountain"/>
 	    </a>
 	  </svg>
 	  <span><span class="key">0-9</span> :</span>
