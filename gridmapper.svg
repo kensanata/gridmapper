@@ -385,8 +385,8 @@ var Pen = {
    * axis changes, "jump a corner".
    */
   position: function(evt) {
-    var x = evt.clientX / Map.tileWidth - 1; // empty column on the left
-    var y = evt.clientY / Map.tileWidth - 1; // empty row at the top
+    var x = evt.pageX / Map.tileWidth - 1; // empty column on the left
+    var y = evt.pageY / Map.tileWidth - 1; // empty row at the top
     if (Pen.type === 'wallMode') {
       var dx = x % 1;
       var dy = y % 1;
