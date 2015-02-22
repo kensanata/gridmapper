@@ -247,7 +247,8 @@ var Map = {
     'dais': 'dais-round',
     'dais-round': 'pillar',
     'wall': 'curtain',
-    'curtain': 'wall',
+    'curtain': 'portcullis',
+    'portcullis': 'wall',
   },
 
   symbols: null,
@@ -1947,6 +1948,11 @@ onload = initialize;
     <g id="curtain" width="20">
       <path fill="none" stroke="black" stroke-width="1" d="M5,3 h-1 A1,1 0 0,0 4,5 A1,1 0 0,1 4,7 A1,1 0 0,0 4,9 A1,1 0 0,1 4,11 A1,1 0 0,0 4,13 A1,1 0 0,1 4,15 A1,1 0 0,0 4,17 h1" />
     </g>
+    <g id="portcullis" width="10">
+      <circle cx="2" cy="2" r="1" fill="black"/>
+      <circle cx="2" cy="5" r="1" fill="black"/>
+      <circle cx="2" cy="8" r="1" fill="black"/>
+    </g>
     <g id="door" width="10">
       <rect x="-1.5" y="2" width="3" height="6" fill="white" stroke="black" stroke-width="1"/>
     </g>
@@ -2133,6 +2139,10 @@ onload = initialize;
 	    <a xlink:href="javascript:interpret('wv')" title="curtain">
 	      <use x="40" y="3" xlink:href="#empty"/>
 	      <use x="40" y="3" xlink:href="#curtain"/>
+	    </a>
+	    <a xlink:href="javascript:interpret('wvv')" title="portcullis">
+	      <use x="70" y="3" xlink:href="#empty"/>
+	      <use x="70" y="3" xlink:href="#portcullis"/>
 	    </a>
 	  </svg>
 	</p>
