@@ -66,6 +66,7 @@ var Map = {
     Map.ui.onmousemove = Pen.update;
     // http://javascript.info/tutorial/keyboard-events
     Map.exportarea = document.getElementById('exportarea');
+    Map.labelfield = document.getElementById('label');
     document.onkeydown = keyPressed; // capture arrow keys
     document.onkeypress = keyPressed; // capture character keys
     Map.symbolInit();
@@ -302,9 +303,10 @@ var Map = {
           
           // label must precede floor tiles which advance the position
           var label = Map.data.get(x, y).label;
-          if (label)
+          if (label && /^[0-9]*$/.matches(label.textContent)) 
             source += label.textContent;
-          
+          else
+            source += '"' + label.textContent + '"';
           var tile = Map.data.get(x, y).floor;
           if (tile !== null) {
             if (tile.hasAttribute('rotate')) {
@@ -976,6 +978,13 @@ function createTile (x, y, type) {
  * Add s to the label at (x,y).
  */
 function addToLabel(x, y, s) {
+  setLabel(x, y, s, true); // append
+}
+
+/**
+ * Sets the label at (x, y) to s, or appends to the existing label.
+ */
+function setLabel (x, y, s, append) {
   var tile = Map.data.get(x, y).label;
   var text = null;
   if (tile === null) {
@@ -987,11 +996,11 @@ function addToLabel(x, y, s) {
   }
   Commands.do(
     function(){
-      if (text === s) {
+      if (append && text !== s) {
+        tile.textContent = tile.textContent.substr(0, tile.textContent.length - 1);
+      } else {
         Map.labelsElement.removeChild(tile);
         Map.data.get(x, y).label = null;
-      } else {
-        tile.textContent = tile.textContent.substr(0, tile.textContent.length - 1);
       }
     },
     function(){
@@ -999,10 +1008,39 @@ function addToLabel(x, y, s) {
         Map.labelsElement.appendChild(tile);
         Map.data.get(x, y).label = tile;
       }
-      tile.textContent += s;
+      if (append) {
+        tile.textContent += s;
+      } else {
+        tile.textContent = s;
+      }
     });
 }
 
+/**
+ * Shows the input field at (x,y).
+ */
+function showLabelField (x, y) {
+  fadeElementTo(Map.labelfield, 1, linear, 500);
+  Map.labelfield.setAttribute('x', (x + 1) * Map.tileWidth);
+  Map.labelfield.setAttribute('y', (y + 1) * Map.tileWidth);
+  var tile = Map.data.get(x, y).label;
+  Map.labelfield.firstElementChild.value = tile ? tile.textContent : "";
+  Map.labelfield.firstElementChild.focus();
+}
+
+function hideLabelField () {
+  fadeElementTo(Map.labelfield, 0, linear, 500);
+  Map.labelfield.firstElementChild.blur();
+}
+
+/**
+ * Saves the text in the input field at (x, y).
+ */
+function saveLabel () {
+  hideLabelField();
+  setLabel(Pen.x, Pen.y, Map.labelfield.firstElementChild.value, false);
+}
+  
 /**
  * Remove the last character from the label at (x,y).
  * Returns true if there was text to delete.
@@ -1065,7 +1103,6 @@ function getUnusedAngle (x, y, rotate) {
  */
 function rotateTile (tile, type, x, y, angle) {
   tile.setAttribute('rotate', angle);
-  console.log('Type: ' + type + ' rot: ' + angle + '°');
   if (angle > 0) {
     var cx = (x + 1.5) * Map.tileWidth; // empty column to the left
     var cy = (y + 1.5) * Map.tileWidth; // empty row at the top
@@ -1588,6 +1625,14 @@ function keyPressed (evt) {
       textImport();
     }
     return;
+  } else if (evt.originalTarget != undefined
+             && evt.originalTarget.parentNode === Map.labelfield) {
+    if (key === 'Enter') {
+      saveLabel();
+    } else if (key === 'Esc') {
+      hideLabelField();
+    }
+    return;
   }
 
   switch (key) {
@@ -1758,6 +1803,11 @@ function keyPressed (evt) {
     Map.hideOthers = !Map.hideOthers;
     break;
 
+  case '"':
+  case 'l':
+    showLabelField(Pen.x, Pen.y);
+    break;
+
   default:
     console.log('Gridmapper does not know how to handle "'+ key
                 + '" (keyIdentifier: '+evt.keyIdentifier+', keyCode: '+ evt.keyCode+')');
@@ -1793,7 +1843,7 @@ function interpretCont (code, i) {
       }, 500);
       return; // end!
     case '(':
-      var match = code.substr(i).match(/(\d+(?:\.\d+)?),(\d+(?:\.\d+)?)\)/);
+      var match = code.substr(i).match(/^\((\d+(?:\.\d+)?),(\d+(?:\.\d+)?)\)/);
       if (match) {
         // no longer ints!
         var x = Number(match[1]);
@@ -1810,15 +1860,22 @@ function interpretCont (code, i) {
           Pen.x = x;
           Pen.y = y;
         }
-        i += match[0].length;
+        i += match[0].length - 1; // will get incremented above
       }
       break;
     case '[':
-      var match = code.substr(i).match(/(-?\d+),(-?\d+)\]/);
+      var match = code.substr(i).match(/^\[(-?\d+),(-?\d+)\]/);
       if (match) {
         Pen.x += Number(match[1]);
         Pen.y += Number(match[2]);
-        i += match[0].length;
+        i += match[0].length - 1; // will get incremented above
+      }
+      break;
+    case '"':
+      var match = code.substr(i).match(/^"(.*?)"/);
+      if (match) {
+        setLabel(Pen.x, Pen.y, match[1], false); // replace label
+        i += match[0].length - 1; // will get incremented above
       }
       break;
     case '-':
@@ -2135,7 +2192,7 @@ onload = initialize;
   text { font: 14px 'Courier New', Courier, monospace; }
   .line {  }
   .line svg { display: inline; vertical-align: middle }
-  .labels text, #levels text { text-anchor: middle; font: 10px 'Arial Narrow', sans-serif; font-weight: bold; }
+  .labels text, #levels text, #label { text-anchor: middle; font: 10px 'Arial Narrow', sans-serif; font-weight: bold; }
   a { color: black; text-decoration: none; }
   .blue { color: blue; }
   .key { color: forestgreen; fill: forestgreen; font-weight: bold; }
@@ -2265,24 +2322,26 @@ onload = initialize;
 	      <use x="70" y="1" xlink:href="#concealed"/>
 	    </a>
 	  </svg>
-	  <svg xmlns="http://www.w3.org/2000/svg" width="64" height="42" style="vertical-align:bottom; margin-top: -20px">
+	  <svg xmlns="http://www.w3.org/2000/svg" width="47" height="42" style="vertical-align:bottom; margin-top: -20px">
 	    <a xlink:href="javascript:interpret('dvvv')" title="double door, gate">
 	      <use x="5" y="1" xlink:href="#empty"/>
 	      <use x="5" y="21" xlink:href="#empty"/>
 	      <use x="5" y="1" xlink:href="#gate"/>
 	    </a>
 	  </svg>
-	  <span><span class="key">0-9</span> :</span>
-	  <svg xmlns="http://www.w3.org/2000/svg" width="130" height="22">
-	    <use x="10" y="1" xlink:href="#empty"/>
-	    <g class="labels" title="labels">
-	      <text x="20" y="15">123</text>
-	    </g>
-	  </svg>
+	  <span>
+	    <span class="key">"abc"</span> :
+	    <svg xmlns="http://www.w3.org/2000/svg" width="41" height="22">
+	      <use x="10" y="1" xlink:href="#empty"/>
+	      <g class="labels" title="labels">
+		<text x="20" y="15">abc</text>
+	      </g>
+	    </svg>
+	  </span>
 	</p>
 	<p class="line" style="margin: 0">
 	  <a href="javascript:interpret('s')"><span class="key">s</span> :</a>
-	  <svg xmlns="http://www.w3.org/2000/svg" width="180" height="52">
+	  <svg xmlns="http://www.w3.org/2000/svg" width="161" height="52">
 	    <a xlink:href="javascript:interpret('s')" title="stairs">
 	      <use x="10" y="1" xlink:href="#stair"/>
 	    </a>
@@ -2299,14 +2358,21 @@ onload = initialize;
 	      <use x="120" y="1" xlink:href="#stair-big"/>
 	    </a>
 	  </svg>
-	  <a href="javascript:interpret('m')"><span class="key">m</span> :</a>
-	  <svg xmlns="http://www.w3.org/2000/svg" width="40" height="22">
+	  <svg xmlns="http://www.w3.org/2000/svg" width="170" height="56">
+	    <text x="3" y="15"><tspan class="key">0-9</tspan><tspan> :</tspan></text>
+	    <use x="63" y="1" xlink:href="#empty"/>
+	    <g class="labels" title="labels">
+	      <text x="72.5" y="15">123</text>
+	    </g>
+	    <a xlink:href="javascript:interpret('m')">
+	      <text x="20" y="48"><tspan class="key">m</tspan><tspan> :</tspan></text>
+	    </a>
 	    <a xlink:href="javascript:interpret('m')" title="Wall Mode">
-	      <use x="10" y="1" xlink:href="#empty"/>
-	      <use x="0" y="1" xlink:href="#cursor"/>
+	      <use x="63" y="35" xlink:href="#empty"/>
+	      <use x="53" y="35" xlink:href="#cursor"/>
+	      <text x="93" y="48">Wall Mode</text>
 	    </a>
 	  </svg>
-	  Wall Mode
 	</p>
 	<p class="line">
 	  <a href="javascript:interpret('n')"><span class="key">n</span> :</a>
@@ -2375,6 +2441,10 @@ onload = initialize;
       </a>
     </text>
   </g>
+
+  <foreignObject id="label" x="10" y="10" width="40em" height="20" opacity="0">
+    <input xmlns="http://www.w3.org/1999/xhtml" type="text" width="30"/>
+  </foreignObject>
 
   <text id="messages" visibility="hidden">
     <tspan class="step1" x="0" y="0">Hello! This is the demo!</tspan>
