@@ -249,13 +249,16 @@ var Map = {
     'wall': 'curtain',
     'curtain': 'portcullis',
     'portcullis': 'wall',
+    'chest': 'bed',
+    'bed': 'table',
+    'table': 'chest',
   },
 
   symbols: null,
 
   symbolInit: function(){
     var map = {
-      door: 'd', wall: 'w', stair: 's',
+      door: 'd', wall: 'w', stair: 's', chest: 'c',
       trap: 't', empty: 'f', pillar: 'p', statue: 'b', diagonal: 'n',
     };
     var keys = Object.keys(map);
@@ -1715,6 +1718,11 @@ function keyPressed (evt) {
     draw(Pen.x, Pen.y, 'statue');
     break;
 
+  case 'c':
+    wallModeOff();
+    draw(Pen.x, Pen.y, 'chest');
+    break;
+
   case 's':
     wallModeOff();
     floorRotate(Pen.x, Pen.y, 'stair');
@@ -2030,6 +2038,25 @@ onload = initialize;
       <circle cx="5" cy="5" r="3.5" fill="none" stroke="black" stroke-width="0.5"/>
       <text x="8.3" y="12" transform="scale(0.6,0.6)">S</text>
     </g>
+    <g id="chest" width="10">
+      <rect width="10" height="10" fill="white" stroke="black" stroke-width="1"/>
+      <rect x="2" y="3" width="6" height="4" fill="none" stroke="black" stroke-width="0.5"/>
+      <rect x="3" y="2.5" width="1" height="5" fill="white" stroke="black" stroke-width="0.2"/>
+      <rect x="6" y="2.5" width="1" height="5" fill="white" stroke="black" stroke-width="0.2"/>
+    </g>
+    <g id="bed" width="10">
+      <rect width="10" height="10" fill="white" stroke="black" stroke-width="1"/>
+      <rect x="2" y="3" width="6" height="4" fill="none" stroke="black" stroke-width="0.5"/>
+      <line x1="4" y1="3" x2="4" y2="7" stroke="black" stroke-width="0.5"/>
+    </g>
+    <g id="table" width="10">
+      <rect width="10" height="10" fill="white" stroke="black" stroke-width="1"/>
+      <rect x="2" y="3" width="6" height="4" fill="none" stroke="black" stroke-width="0.5"/>
+      <circle cx="3.5" cy="4" r="0.5"/>
+      <circle cx="3.5" cy="6" r="0.5"/>
+      <circle cx="6.5" cy="4" r="0.5"/>
+      <circle cx="6.5" cy="6" r="0.5"/>
+    </g>
     <g id="diagonal" width="10">
       <rect width="10" height="10" fill="white" stroke="black" stroke-width="1"/>
       <path fill="black" d="M0,10 V0 H10 Z"/>
@@ -2192,7 +2219,7 @@ onload = initialize;
 	</p>
 	<p class="line">
 	  <a href="javascript:interpret('b')"><span class="key">b</span> :</a>
-	  <svg xmlns="http://www.w3.org/2000/svg" width="163" height="22">
+	  <svg xmlns="http://www.w3.org/2000/svg" width="180" height="22">
 	    <a xlink:href="javascript:interpret('b')" title="statue">
 	      <use x="10" y="1" xlink:href="#empty"/>
 	      <use x="10" y="1" xlink:href="#statue"/>
@@ -2206,12 +2233,20 @@ onload = initialize;
 	      <use x="70" y="1" xlink:href="#fountain"/>
 	    </a>
 	  </svg>
-	  <span><span class="key">0-9</span> :</span>
+	  <a href="javascript:interpret('c')"><span class="key">c</span> :</a>
 	  <svg xmlns="http://www.w3.org/2000/svg" width="130" height="22">
-	    <use x="10" y="1" xlink:href="#empty"/>
-	    <g class="labels" title="labels">
-	      <text x="20" y="15">123</text>
-	    </g>
+	    <a xlink:href="javascript:interpret('c')" title="chest">
+	      <use x="10" y="1" xlink:href="#empty"/>
+	      <use x="10" y="1" xlink:href="#chest"/>
+	    </a>
+	    <a xlink:href="javascript:interpret('cv')" title="bed">
+	      <use x="40" y="1" xlink:href="#empty"/>
+	      <use x="40" y="1" xlink:href="#bed"/>
+	    </a>
+	    <a xlink:href="javascript:interpret('cvv')" title="table">
+	      <use x="70" y="1" xlink:href="#empty"/>
+	      <use x="70" y="1" xlink:href="#table"/>
+	    </a>
 	  </svg>
 	</p>
 	<p class="line">
@@ -2230,24 +2265,24 @@ onload = initialize;
 	      <use x="70" y="1" xlink:href="#concealed"/>
 	    </a>
 	  </svg>
-	  <svg xmlns="http://www.w3.org/2000/svg" width="80" height="42" style="vertical-align:bottom; margin-top: -20px">
+	  <svg xmlns="http://www.w3.org/2000/svg" width="64" height="42" style="vertical-align:bottom; margin-top: -20px">
 	    <a xlink:href="javascript:interpret('dvvv')" title="double door, gate">
 	      <use x="5" y="1" xlink:href="#empty"/>
 	      <use x="5" y="21" xlink:href="#empty"/>
 	      <use x="5" y="1" xlink:href="#gate"/>
 	    </a>
 	  </svg>
-	  <a href="javascript:interpret('m')"><span class="key">m</span> :</a>
-	  <svg xmlns="http://www.w3.org/2000/svg" width="50" height="22">
-	    <a xlink:href="javascript:interpret('m')" title="Wall Mode">
-	      <use x="10" y="1" xlink:href="#empty"/>
-	      <use x="0" y="1" xlink:href="#cursor"/>
-	    </a>
+	  <span><span class="key">0-9</span> :</span>
+	  <svg xmlns="http://www.w3.org/2000/svg" width="130" height="22">
+	    <use x="10" y="1" xlink:href="#empty"/>
+	    <g class="labels" title="labels">
+	      <text x="20" y="15">123</text>
+	    </g>
 	  </svg>
 	</p>
 	<p class="line" style="margin: 0">
 	  <a href="javascript:interpret('s')"><span class="key">s</span> :</a>
-	  <svg xmlns="http://www.w3.org/2000/svg" width="200" height="52">
+	  <svg xmlns="http://www.w3.org/2000/svg" width="180" height="52">
 	    <a xlink:href="javascript:interpret('s')" title="stairs">
 	      <use x="10" y="1" xlink:href="#stair"/>
 	    </a>
@@ -2264,6 +2299,14 @@ onload = initialize;
 	      <use x="120" y="1" xlink:href="#stair-big"/>
 	    </a>
 	  </svg>
+	  <a href="javascript:interpret('m')"><span class="key">m</span> :</a>
+	  <svg xmlns="http://www.w3.org/2000/svg" width="40" height="22">
+	    <a xlink:href="javascript:interpret('m')" title="Wall Mode">
+	      <use x="10" y="1" xlink:href="#empty"/>
+	      <use x="0" y="1" xlink:href="#cursor"/>
+	    </a>
+	  </svg>
+	  Wall Mode
 	</p>
 	<p class="line">
 	  <a href="javascript:interpret('n')"><span class="key">n</span> :</a>
