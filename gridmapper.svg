@@ -987,18 +987,20 @@ function addToLabel(x, y, s) {
 function setLabel (x, y, s, append) {
   var tile = Map.data.get(x, y).label;
   var text = null;
+  var old = null;
   if (tile === null) {
     tile = document.createElementNS(svgNs, 'text');
     tile.setAttribute('id', 'label' + '_' + x + '_' + y);
     tile.setAttribute('x', (x + 1.5) * Map.tileWidth); // empty column to the left
     tile.setAttribute('y', (y + 1.7) * Map.tileWidth); // empty row at the top, + lineheight
     text = tile.textContent;
+  } else {
+    old = tile.textContent;
   }
   Commands.do(
     function(){
-      if (append && text !== s) {
-        tile.textContent = tile.textContent.substr(0, tile.textContent.length - 1);
-      } else {
+      tile.textContent = old;
+      if (old === null) {
         Map.labelsElement.removeChild(tile);
         Map.data.get(x, y).label = null;
       }
