@@ -2,6 +2,7 @@
 <!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN" "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
 <svg version="1.1"
      xmlns="http://www.w3.org/2000/svg"
+     xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
      xmlns:xlink="http://www.w3.org/1999/xlink">
   <desc>Gridmapper, a simple tool to create dungeon maps</desc>
 
@@ -21,8 +22,9 @@
  * href attribute linking them to each other.
  */
 
-var svgNs   = 'http://www.w3.org/2000/svg';
-var xlinkNs = 'http://www.w3.org/1999/xlink';
+var svgNs      = 'http://www.w3.org/2000/svg';
+var xlinkNs    = 'http://www.w3.org/1999/xlink';
+var inkscapeNs = 'http://www.inkscape.org/namespaces/inkscape';
 
 /**
  * Stores everything about the map. The element members point to the
@@ -865,8 +867,9 @@ function download () {
   var source = btoa('<?xml version="1.0" standalone="no"?>\n' +
                     '<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN" "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">\n' +
                     '<svg version="1.1"\n' +
-                    '     xmlns="http://www.w3.org/2000/svg"\n' +
-                    '     xmlns:xlink="http://www.w3.org/1999/xlink">' +
+                    '     xmlns="' + svgNs + '"\n' +
+                    '     xmlns:inkscape="' + inkscapeNs + '"\n' +
+                    '     xmlns:xlink="' + xlinkNs + '">' +
                     // handle Unicode characters
                     unescape(encodeURIComponent(document.documentElement.innerHTML)) +
                     '</svg>');
@@ -1988,9 +1991,11 @@ function recreateModelForDoors (re, data, element) {
  * Creates the SVG elements for a level. This must match the
  * expectations in recreateModel.
  */
-function createLevel(z) {
+function createLevel (z) {
   var level = document.createElementNS(svgNs, 'g');
   level.setAttribute('id', 'level' + z);
+  level.setAttributeNS(inkscapeNs, 'groupmode', 'layer');
+  level.setAttributeNS(inkscapeNs, 'label', 'Level ' + (z + 1));
   var floor = document.createElementNS(svgNs, 'g');
   floor.setAttribute('id', 'floor' + z);
   var labels = document.createElementNS(svgNs, 'g');
@@ -2190,12 +2195,11 @@ onload = initialize;
       <circle cx="50" cy="50" r="10" fill="white" stroke="black" stroke-width="7"/>
     </g>
   </defs>
-  <g id="background">
+  <g id="background" inkscape:groupmode="layer" inkscape:label="Background">
     <rect x="20" y="20" width="0" height="0" fill="lightgrey" stroke="black" stroke-width="1"/>
   </g>
-  <g id="levels"/>
+  <g id="levels" inkscape:groupmode="layer" inkscape:label="Levels"/>
   <use id="pointer" xlink:href="#cursor"/>
-  <g id="walls"/>
   <rect id="ui" opacity="0"/>
 
   <style><![CDATA[
