@@ -303,7 +303,7 @@ var Map = {
           
           // label must precede floor tiles which advance the position
           var label = Map.data.get(x, y).label;
-          if (label && /^[0-9]*$/.matches(label.textContent)) 
+          if (label != undefined && /^[0-9]*$/.matches(label.textContent)) 
             source += label.textContent;
           else
             source += '"' + label.textContent + '"';
@@ -1024,13 +1024,21 @@ function showLabelField (x, y) {
   Map.labelfield.setAttribute('x', (x + 1) * Map.tileWidth);
   Map.labelfield.setAttribute('y', (y + 1) * Map.tileWidth);
   var tile = Map.data.get(x, y).label;
-  Map.labelfield.firstElementChild.value = tile ? tile.textContent : "";
+  setTimeout(function(){
+    // on Chrome, the text field will start with " or l from the second event
+    Map.labelfield.firstElementChild.value = tile ? tile.textContent : "";
+  }, 1);
   Map.labelfield.firstElementChild.focus();
 }
 
 function hideLabelField () {
   fadeElementTo(Map.labelfield, 0, linear, 500);
   Map.labelfield.firstElementChild.blur();
+  // move it out of the way after waiting for it to fade
+  setTimeout(function(){
+    Map.labelfield.setAttribute('x', 0);
+    Map.labelfield.setAttribute('y', 0);
+  }, 500);
 }
 
 /**
@@ -1069,7 +1077,6 @@ function deleteFromLabel(x, y) {
     }
   }
 }
-
 
 /**
  * Returns an unused angle for wall tiles. Provide a preferred angle.
@@ -1620,13 +1627,13 @@ function keyPressed (evt) {
     if(key === null) return; // ignore one of onkeydown or onkeypress event
   }
 
-  if (evt.originalTarget === Map.exportarea) {
+  var target = evt.originalTarget || evt.srcElement; // Chrome
+  if (target === Map.exportarea) {
     if (key === 'Enter' && evt.ctrlKey) {
       textImport();
     }
     return;
-  } else if (evt.originalTarget != undefined
-             && evt.originalTarget.parentNode === Map.labelfield) {
+  } else if (target != undefined && target.parentNode === Map.labelfield) {
     if (key === 'Enter') {
       saveLabel();
     } else if (key === 'Esc') {
