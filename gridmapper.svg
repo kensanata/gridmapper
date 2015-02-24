@@ -303,10 +303,13 @@ var Map = {
           
           // label must precede floor tiles which advance the position
           var label = Map.data.get(x, y).label;
-          if (label != undefined && /^[0-9]*$/.matches(label.textContent)) 
-            source += label.textContent;
-          else
-            source += '"' + label.textContent + '"';
+	  if (label != undefined) {
+	    if (label.textContent.search(/^[0-9]*$/) === 0) {
+              source += label.textContent;
+            } else {
+              source += '"' + label.textContent + '"';
+            }
+          }
           var tile = Map.data.get(x, y).floor;
           if (tile !== null) {
             if (tile.hasAttribute('rotate')) {
