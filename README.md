@@ -56,6 +56,22 @@ There are your options:
    dungeon. *Now* you can use "Save As..." On **IE** this won't work.
    Yikes!
 
+3. Click on **Save to Wiki**. This will make your wiki public, which nice.
+   It may also not be what you want if your players are watching the wiki.
+   In order for this to work, you need to
+   provide some information in the text area: put the dungeon name on
+   the first line, your name on the second line, and a description on
+   the third line. Example:
+
+```
+Demo Dungeon
+Alex Schroeder
+This is the Demo Dungeon
+```
+
+If you choose to save your dungeon to the wiki, it will appear on the
+[Gridmapper Campaign Wiki](https://campaignwiki.org/wiki/Gridmapper/HomePage).
+
 Upgrading your local copy of Gridmapper
 ---------------------------------------
 
