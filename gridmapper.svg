@@ -972,8 +972,9 @@ function message (str) {
   rect.setAttribute('width', (2 + len / 2.5) * Map.tileWidth);
   rect.setAttribute('height', (0.5 + lines.length) * Map.tileWidth);
   document.rootElement.appendChild(element);
-  fadeElementTo(element, 0, linear, 2000);
-  setTimeout(function(){document.rootElement.removeChild(element);}, 2000);
+  var ms = 2000 + 500 * lines.length;
+  fadeElementTo(element, 0, linear, ms);
+  setTimeout(function(){document.rootElement.removeChild(element);}, ms);
 }
 
 /**
@@ -983,7 +984,8 @@ function message (str) {
  */
 function save () {
   if (window.location.hostname !== 'campaignwiki.org') {
-    Map.exportarea.value = 'Unfortunately, this will only work when loading Gridmapper from campaignwiki.org';
+    message('Unfortunately, this will only work when loading\n'
+            + 'Gridmapper from campaignwiki.org');
     return;
   } 
   var input = Map.exportarea.value;
