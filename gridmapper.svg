@@ -951,8 +951,16 @@ function getSource () {
  */
 function save () {
   var title = Map.exportarea.value;
-  if (title === undefined || !title.match(/^([-,.()'%&?;<> _1-9A-Za-z\u0080-\ufffd]|[-,.()'%&?;<> _0-9A-Za-z\u0080-\ufffd][-,.()'%&?;<> _0-9A-Za-z\u0080-\ufffd]+)$/)) {
+  if (window.location.hostname !== 'campaignwiki.org') {
+    Map.exportarea.value = 'Unfortunately, this will only work when loading Gridmapper from campaignwiki.org';
+    return;
+  } 
+  if (title === undefined) {
     Map.exportarea.value = "Please provide a name for your wiki in this text area!";
+    return;
+  }
+  if (title.search(/^([-,.()'%&?;<> _1-9A-Za-z\u0080-\ufffd]|[-,.()'%&?;<> _0-9A-Za-z\u0080-\ufffd][-,.()'%&?;<> _0-9A-Za-z\u0080-\ufffd]+)$/) !== 0) {
+    Map.exportarea.value = 'Unfortunately, this name is not a valid wiki page name:\n' + Map.exportarea.value;
     return;
   }
   var data = {
