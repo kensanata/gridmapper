@@ -949,7 +949,12 @@ function getSource () {
  * Based on
  * https://developer.mozilla.org/en-US/docs/Web/Guide/HTML/Forms/Sending_forms_through_JavaScript#Building_an_XMLHttpRequest_manually
  */
-function save (title) {
+function save () {
+  var title = Map.exportarea.value;
+  if (title === undefined || !title.match(/^([-,.()'%&?;<> _1-9A-Za-z\u0080-\ufffd]|[-,.()'%&?;<> _0-9A-Za-z\u0080-\ufffd][-,.()'%&?;<> _0-9A-Za-z\u0080-\ufffd]+)$/)) {
+    Map.exportarea.value = "Please provide a name for your wiki in this text area!";
+    return;
+  }
   var data = {
     title: title,
     text: '{{{\n' + getSource() + '}}}\n',
@@ -960,35 +965,23 @@ function save (title) {
   var urlEncodedData = "";
   var urlEncodedDataPairs = [];
   var name;
-
-  // We turn the data object into an array of URL encoded key value pairs.
   for(name in data) {
     urlEncodedDataPairs.push(encodeURIComponent(name) + '=' + encodeURIComponent(data[name]));
   }
-
-  // We combine the pairs into a single string and replace all encoded spaces to 
-  // the plus character to match the behaviour of the web browser form submit.
   urlEncodedData = urlEncodedDataPairs.join('&').replace(/%20/g, '+');
-
-  // We define what will happen if the data is successfully sent
-  XHR.addEventListener('load', function(event) {
-    alert('Yeah! Data sent and response loaded.');
-  });
-
-  // We define what will happen in case of error
+  // Say nothing when saved?
+  // XHR.addEventListener('load', function(event) {...});
   XHR.addEventListener('error', function(event) {
-    alert('Oups! Something goes wrong.');
+    alert('Unforunately the map could not be saved.');
   });
-
-  // We setup our request
-  XHR.open('POST', wikiUrl);
-
-  // We add the required HTTP header to handle a form data POST request
-  XHR.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
-  XHR.setRequestHeader('Content-Length', urlEncodedData.length);
-
-  // And finally, We send our data.
-  XHR.send(urlEncodedData);
+  try {
+    XHR.open('POST', wikiUrl);
+    XHR.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
+    XHR.setRequestHeader('Content-Length', urlEncodedData.length);
+    XHR.send(urlEncodedData);
+  } catch (e) {
+    alert('This did not work. Perhaps you tried to save to the wiki without loading the script from the wiki?');
+  }
 }
 
 /**
@@ -2487,6 +2480,7 @@ onload = initialize;
 	<a id="export" class="blue" href="javascript:prepareLink()">Prepare Link</a>  
 	<a class="blue" href="https://github.com/kensanata/gridmapper#how-to-save">Learn More</a>
 	<br/>
+	<a class="blue" href="javascript:save()">Save to Wiki</a>  
 	<a class="blue" href="https://github.com/kensanata/gridmapper">Source</a>  
 	<a id="demo" class="blue" href="javascript:Demo.start()">Demo</a>
       </p>
