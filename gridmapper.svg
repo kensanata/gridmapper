@@ -944,29 +944,69 @@ function getSource () {
   return source;
 }
 
+function message (str) {
+  var element = document.createElementNS(svgNs, 'g');
+  var rect = document.createElementNS(svgNs, 'rect');
+  rect.setAttribute('fill', 'white');
+  rect.setAttribute('stroke', 'black');
+  rect.setAttribute('stroke-width', '1px');
+  rect.setAttribute('x', 2 * Map.tileWidth);
+  rect.setAttribute('y', 2 * Map.tileWidth);
+  element.appendChild(rect);
+  var text = document.createElementNS(svgNs, 'text');
+  element.appendChild(text);
+  var lines = str.split('\n');
+  var len = 0;
+  for (var i = 0; i < lines.length; i++) {
+    var tspan = document.createElementNS(svgNs, 'tspan');
+    len = Math.max(len, lines[i].length);
+    tspan.textContent = lines[i];
+    tspan.setAttribute('x',  3 * Map.tileWidth);
+    if (i === 0) {
+      tspan.setAttribute('y', 3 * Map.tileWidth);
+    } else {
+      tspan.setAttribute('dy', Map.tileWidth);
+    }
+    text.appendChild(tspan);
+  }
+  rect.setAttribute('width', (2 + len / 2.5) * Map.tileWidth);
+  rect.setAttribute('height', (0.5 + lines.length) * Map.tileWidth);
+  document.rootElement.appendChild(element);
+  fadeElementTo(element, 0, linear, 2000);
+  setTimeout(function(){document.rootElement.removeChild(element);}, 2000);
+}
+
 /**
  * Saves the map to Campaign Wiki.
  * Based on
  * https://developer.mozilla.org/en-US/docs/Web/Guide/HTML/Forms/Sending_forms_through_JavaScript#Building_an_XMLHttpRequest_manually
  */
 function save () {
-  var title = Map.exportarea.value;
   if (window.location.hostname !== 'campaignwiki.org') {
     Map.exportarea.value = 'Unfortunately, this will only work when loading Gridmapper from campaignwiki.org';
     return;
   } 
-  if (title === undefined) {
-    Map.exportarea.value = "Please provide a name for your wiki in this text area!";
+  var input = Map.exportarea.value;
+  if (input === undefined || input === '') {
+    message('Please provide a name for your wiki in this text area!\n'
+            + 'Use the first line for the wiki name,\n'
+            + 'the second line for your name,\n'
+            + 'and the third line for a summary.');
     return;
   }
+  var inputs = input.split('\n');
+  var title = inputs[0];
+  var username = inputs[1];
+  var summary = inputs[2];
   if (title.search(/^([-,.()'%&?;<> _1-9A-Za-z\u0080-\ufffd]|[-,.()'%&?;<> _0-9A-Za-z\u0080-\ufffd][-,.()'%&?;<> _0-9A-Za-z\u0080-\ufffd]+)$/) !== 0) {
-    Map.exportarea.value = 'Unfortunately, this name is not a valid wiki page name:\n' + Map.exportarea.value;
+    message('Unfortunately, this name is not a valid wiki page name');
     return;
   }
   var data = {
-    title: title,
-    text: '{{{\n' + getSource() + '}}}\n',
-    username: 'Gridmapper',
+    title: inputs[0],
+    text: (inputs[2] || '') + '{{{\n' + getSource() + '}}}\n',
+    username: inputs[1] || 'Gridmapper',
+    summary: inputs[2] || 'Map saved',
     frodo: 1,
   };
   var XHR = new XMLHttpRequest();
@@ -977,15 +1017,15 @@ function save () {
     urlEncodedDataPairs.push(encodeURIComponent(name) + '=' + encodeURIComponent(data[name]));
   }
   urlEncodedData = urlEncodedDataPairs.join('&').replace(/%20/g, '+');
-  // Say nothing when saved?
-  // XHR.addEventListener('load', function(event) {...});
+  XHR.addEventListener('load', function(event) {
+    message('Saved');
+  });
   XHR.addEventListener('error', function(event) {
     alert('Unforunately the map could not be saved.');
   });
   try {
     XHR.open('POST', wikiUrl);
     XHR.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
-    XHR.setRequestHeader('Content-Length', urlEncodedData.length);
     XHR.send(urlEncodedData);
   } catch (e) {
     alert('This did not work. Perhaps you tried to save to the wiki without loading the script from the wiki?');
