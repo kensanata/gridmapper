@@ -14,7 +14,9 @@ link you can save your work to a local file – and the local file comes
 with all the code to keep working on it, off line! A bit like
 [Tiddly Wiki](http://tiddlywiki.com/), I guess.﻿
 
-Written using [Vanilla JS](http://vanilla-js.com/).
+Written using [Vanilla JS](http://vanilla-js.com/). Unfortunately, it
+no longer works for Internet Explorer. That's because it mixes SVG and
+XHTML in the same document and that appears not to work for IE.
 
 Examples
 --------
