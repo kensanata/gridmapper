@@ -25,7 +25,9 @@
 var svgNs      = 'http://www.w3.org/2000/svg';
 var xlinkNs    = 'http://www.w3.org/1999/xlink';
 var inkscapeNs = 'http://www.inkscape.org/namespaces/inkscape';
+var xhtmlNs    = 'http://www.w3.org/1999/xhtml';
 var wikiUrl    = 'https://campaignwiki.org/wiki/Gridmapper';
+
 /**
  * Stores everything about the map. The element members point to the
  * SVG elements where we'll be adding stuff. We need multiple elements
@@ -961,7 +963,7 @@ function message (str) {
     var tspan = document.createElementNS(svgNs, 'tspan');
     len = Math.max(len, lines[i].length);
     tspan.textContent = lines[i];
-    tspan.setAttribute('x',  3 * Map.tileWidth);
+    tspan.setAttribute('x',  2.5 * Map.tileWidth);
     if (i === 0) {
       tspan.setAttribute('y', 3 * Map.tileWidth);
     } else {
@@ -1023,14 +1025,128 @@ function save () {
     message('Saved');
   });
   XHR.addEventListener('error', function(event) {
-    alert('Unforunately the map could not be saved.');
+    message('Unfortunately the map could not be saved.');
   });
   try {
     XHR.open('POST', wikiUrl);
     XHR.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
     XHR.send(urlEncodedData);
   } catch (e) {
-    alert('This did not work. Perhaps you tried to save to the wiki without loading the script from the wiki?');
+    message('This did not work.\n'
+            + 'Perhaps you tried to save to the wiki\n'
+            + 'without loading the script from the wiki?');
+  }
+}
+
+/**
+ * Shows a drop down box where the user can pick a map from the wiki.
+ */
+function load () {
+  message("Loading maps...");
+  var XHR = new XMLHttpRequest();
+  XHR.addEventListener('load', loadMenu);
+  XHR.addEventListener('error', function(event) {
+    message('Unfortunately the maps could not be loaded.');
+  });
+  try {
+    XHR.open('GET', wikiUrl + '?action=index');
+    XHR.responseType = 'document';
+    XHR.send();
+  } catch (e) {
+    message('This did not work.\n'
+            + 'Perhaps you tried to load from the wiki\n'
+            + 'without loading the script from the wiki?');
+  }
+}
+
+/**
+ * Shows a menu of all the maps available.
+ */
+function loadMenu (event) {
+  var doc = event.target.responseXML;
+  var links = doc.getElementsByClassName('content')[0].getElementsByTagName('a');
+  var g = document.createElementNS(svgNs, 'g');
+  g.setAttribute('class', 'menu');
+  var x = 2 * Map.tileWidth, y = 2 * Map.tileWidth;
+  var menu = document.createElementNS(svgNs, 'rect');
+  menu.setAttribute('x', x);
+  menu.setAttribute('y', y);
+  menu.setAttribute('width', 10 * Map.tileWidth);
+  menu.setAttribute('height', (links.length - 0.5) * Map.tileWidth); // deleting HomePage!
+  menu.setAttribute('fill', 'white');
+  menu.setAttribute('stroke', 'black');
+  menu.setAttribute('stroke-width', '1');
+  g.appendChild(menu);
+  // FIXME: once we have enough maps, add columns and scrolling!
+  for (var i = 0; i < links.length; i++) {
+    if (links[i].textContent === 'HomePage')
+      continue;
+    var a = document.createElementNS(svgNs, 'a');
+    var href = links[i].getAttribute('href');
+    a.setAttributeNS(xlinkNs, 'href', 'javascript:loadMap("' + href + '")');
+    var text = document.createElementNS(svgNs, 'text');
+    text.setAttribute('x', x + 10);
+    text.setAttribute('y', y + 17);
+    text.setAttribute('fill', 'blue');
+    text.textContent = links[i].textContent.substr(0,20);
+    if (links[i].textContent.length > 20)
+      text.textContent += "…";
+    a.appendChild(text);
+    g.appendChild(a);
+    var rect = document.createElementNS(svgNs, 'rect');
+    rect.setAttribute('x', x);
+    rect.setAttribute('y', y);
+    rect.setAttribute('width', 10 * Map.tileWidth);
+    rect.setAttribute('height', Map.tileWidth);
+    rect.setAttribute('fill', 'white');
+    rect.setAttribute('opacity', '0');
+    a.appendChild(rect);
+    y += Map.tileWidth;
+  }
+  document.rootElement.appendChild(g);
+  var ms = 3000 + 500 * links.length;
+  var t1 = setTimeout(function(){fadeElementTo(g, 0, linear, ms - 3000);}, 3000);
+  var t2 = setTimeout(function(){document.rootElement.removeChild(g);}, ms);
+  g.onclick = function(evt) {
+    clearTimeout(t1);
+    clearTimeout(t2);
+    document.rootElement.removeChild(g);
+  }
+}
+
+/**
+ * Loads map from the wiki page.
+ */
+function loadMap(url) {
+  var XHR = new XMLHttpRequest();
+  XHR.addEventListener('load', loadIt);
+  XHR.addEventListener('error', function(event) {
+    message('Unfortunately the map could not be loaded.');
+  });
+  try {
+    XHR.open('GET', url);
+    XHR.responseType = 'document';
+    XHR.send();
+  } catch (e) {
+    message('This did not work.\n'
+            + 'Perhaps you tried to load a map\n'
+            + 'without loading the script from the wiki?');
+  }
+}
+
+/**
+ * Loads map from the wiki page.
+ */
+function loadIt(event) {
+  var doc = event.target.responseXML;
+  var pre = doc.getElementsByTagNameNS(xhtmlNs, 'pre')[0];
+  if (pre === undefined) {
+    message('Unfortunately this link\n'
+            + 'contains no map.');
+  } else {
+    Map.reset();
+    Map.exportarea.value = pre.textContent;
+    textImport();
   }
 }
 
@@ -2303,6 +2419,7 @@ onload = initialize;
   .blue { color: blue; }
   .key { color: forestgreen; fill: forestgreen; font-weight: bold; }
   #ui { -webkit-tap-highlight-color: rgba(0,0,0,0); }
+  .menu a rect:hover { opacity: 0.2; fill: forestgreen }
   ]]></style>
 
   <g id="help">
@@ -2530,7 +2647,8 @@ onload = initialize;
 	<a id="export" class="blue" href="javascript:prepareLink()">Prepare Link</a>  
 	<a class="blue" href="https://github.com/kensanata/gridmapper#how-to-save">Learn More</a>
 	<br/>
-	<a class="blue" href="javascript:save()">Save to Wiki</a>  
+	<a id="save" class="blue" href="javascript:save()">Save to Wiki</a>  
+	<a id="load" class="blue" href="javascript:load()">Load from Wiki</a>  
 	<a class="blue" href="https://github.com/kensanata/gridmapper">Source</a>  
 	<a id="demo" class="blue" href="javascript:Demo.start()">Demo</a>
       </p>
