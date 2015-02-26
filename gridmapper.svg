@@ -1065,6 +1065,11 @@ function load () {
 function loadMenu (event) {
   var doc = event.target.responseXML;
   var links = doc.getElementsByClassName('content')[0].getElementsByTagName('a');
+  for (var i = links.length - 1; i >= 0; i--) {
+    if (links[i].textContent === 'HomePage' || links[i].textContent.indexOf("Comments on ") === 0) {
+      links[i].remove();
+    }
+  }
   var g = document.createElementNS(svgNs, 'g');
   g.setAttribute('class', 'menu');
   var x = 2 * Map.tileWidth, y = 2 * Map.tileWidth;
@@ -1072,15 +1077,13 @@ function loadMenu (event) {
   menu.setAttribute('x', x);
   menu.setAttribute('y', y);
   menu.setAttribute('width', 10 * Map.tileWidth);
-  menu.setAttribute('height', (links.length - 0.5) * Map.tileWidth); // deleting HomePage!
+  menu.setAttribute('height', (0.5 + links.length) * Map.tileWidth);
   menu.setAttribute('fill', 'white');
   menu.setAttribute('stroke', 'black');
   menu.setAttribute('stroke-width', '1');
   g.appendChild(menu);
   // FIXME: once we have enough maps, add columns and scrolling!
   for (var i = 0; i < links.length; i++) {
-    if (links[i].textContent === 'HomePage')
-      continue;
     var a = document.createElementNS(svgNs, 'a');
     var href = links[i].getAttribute('href');
     a.setAttributeNS(xlinkNs, 'href', 'javascript:loadMap("' + href + '")');
