@@ -999,6 +999,13 @@ function save () {
     return;
   }
   var inputs = input.split('\n');
+  if (inputs.length > 3) {
+    message('Please use text area to provide some information.\n'
+            + 'Use the first line for the wiki name,\n'
+            + 'the second line for your name,\n'
+            + 'and the third line for a summary.');
+    return;
+  }
   var title = inputs[0];
   var username = inputs[1];
   var summary = inputs[2];
