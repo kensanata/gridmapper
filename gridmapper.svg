@@ -1056,7 +1056,7 @@ function load () {
     message('Unfortunately the maps could not be loaded.');
   });
   try {
-    XHR.open('GET', wikiUrl + '?action=index');
+    XHR.open('GET', wikiUrl + '?search={{{;context=0');
     XHR.responseType = 'document';
     XHR.send();
   } catch (e) {
@@ -1071,7 +1071,7 @@ function load () {
  */
 function loadMenu (event) {
   var doc = event.target.responseXML;
-  var links = doc.getElementsByClassName('content')[0].getElementsByTagName('a');
+  var links = doc.getElementsByClassName('content')[0].getElementsByClassName('local');
   for (var i = links.length - 1; i >= 0; i--) {
     if (links[i].textContent === 'HomePage' || links[i].textContent.indexOf("Comments on ") === 0) {
       links[i].remove();
@@ -1157,6 +1157,18 @@ function loadIt(event) {
     Map.reset();
     Map.exportarea.value = pre.textContent;
     textImport();
+    var username = '';
+    var cookie = event.target.responseXML.cookie;
+    var match = decodeURIComponent(decodeURIComponent(cookie)).match(/^Wiki=(.*?);/);
+    if (match !== null) {
+      var array = match[1].split('\x1e');
+      var i = array.indexOf('username');
+      if (i >= 0) {
+        username = array[i + 1];
+      }
+    }
+    var h1 = doc.getElementsByTagNameNS(xhtmlNs, 'h1')[0];
+    Map.exportarea.value = h1.textContent + '\n' + username + '\n';
   }
 }
 
