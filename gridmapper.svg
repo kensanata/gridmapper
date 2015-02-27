@@ -1159,7 +1159,7 @@ function loadIt(event) {
     textImport();
     var username = '';
     var cookie = event.target.responseXML.cookie;
-    var match = decodeURIComponent(decodeURIComponent(cookie)).match(/^Wiki=(.*?);/);
+    var match = decodeURIComponent(decodeURIComponent(cookie)).match(/\bWiki=([^;]*)/);
     if (match !== null) {
       var array = match[1].split('\x1e');
       var i = array.indexOf('username');
