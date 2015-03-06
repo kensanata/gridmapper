@@ -262,6 +262,9 @@ var Map = {
     'chest': 'bed',
     'bed': 'table',
     'table': 'chest',
+    'empty': 'void',
+    'void': 'water',
+    'water': 'empty',
   },
 
   symbols: null,
@@ -2155,8 +2158,8 @@ function interpretCont (code, i) {
     default:
       keyPressed(code[i]);
     }
-    // advance unless we're going to move elsewhere (peek ahead)
-    if (advance && code[i+1] !== '\n' && code[i] !== '(' && code[i] !== '[')
+    // advance unless we're going to move elsewhere or switch a variant (peek ahead)
+    if (advance && code[i+1] !== 'v' && code[i+1] !== '\n' && code[i] !== '(' && code[i] !== '[')
       move(advance);
   }
 }
@@ -2265,6 +2268,13 @@ onload = initialize;
   <defs>
     <rect id="cursor" width="10" height="10" fill="forestgreen" opacity="0.2"/>
     <rect id="empty" width="10" height="10" fill="white" stroke="black" stroke-width="1"/>
+    <rect id="void" width="10" height="10" fill="none" stroke="black" stroke-width="1"/>
+    <g id="water" width="20">
+      <rect width="20" height="20" fill="white" stroke="black" stroke-width="2"/>
+      <path id="waves" fill="none" stroke="black" stroke-width="1" d="M3,5 v-1 A1,1 0 0,1 5,4 A1,1 0 1,0 7,4 A1,1 0 0,1 9,4 A1,1 0 1,0 11,4 A1,1 0 0,1 13,4 A1,1 0 1,0 15,4 A1,1 0 0,1 17,4 v1" />
+      <use xlink:href="#waves" transform="translate(0,6)"/> 
+      <use xlink:href="#waves" transform="translate(0,12)"/> 
+    </g>
     <g id="wall" width="10">
       <line x1="0" y1="0" x2="0" y2="10" stroke="black" stroke-width="3" stroke-linecap="round"/>
     </g>
@@ -2470,6 +2480,13 @@ onload = initialize;
 	  <svg xmlns="http://www.w3.org/2000/svg" width="180" height="22">
 	    <a xlink:href="javascript:interpret('f')" title="floor">
 	      <use x="10" y="1" xlink:href="#empty"/>
+	    </a>
+	    <a xlink:href="javascript:interpret('fv')" title="void">
+	      <rect x="40" y="1" width="20" height="20" fill="ivory"/>
+	      <use x="40" y="1" xlink:href="#void"/>
+	    </a>
+	    <a xlink:href="javascript:interpret('fvv')" title="water">
+	      <use x="70" y="1" xlink:href="#water"/>
 	    </a>
 	  </svg>
 	  <a href="javascript:interpret('w')"><span class="key">w</span> :</a>
