@@ -68,6 +68,11 @@ var Map = {
     Map.ui.ondragstart = function() { return false };
     Map.ui.onmousedown = penDown;
     Map.ui.onmousemove = Pen.update;
+    // cannot load or save unless sharing the domain!
+    if (window.location.hostname !== 'campaignwiki.org') {
+      disableLink(document.getElementById('load'));
+      disableLink(document.getElementById('save'));
+    }
     // http://javascript.info/tutorial/keyboard-events
     Map.exportarea = document.getElementById('exportarea');
     Map.labelfield = document.getElementById('label');
@@ -856,6 +861,14 @@ function moveElements () {
               // an empty column at the top
               Map.tileWidth,
               linear, 500);
+}
+
+/**
+ * Make sure the link element no longer looks like a link.
+ */
+function disableLink(element) {
+  element.setAttribute('style', 'color:grey');
+  element.setAttribute('title', 'Your browser prevents this unless you’re loading the script from campaignwiki.org.');
 }
 
 /**
