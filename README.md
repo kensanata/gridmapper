@@ -6,13 +6,18 @@ file using your browser and you have a very simple dungeon mapping
 tool.
 
 The user interface comes with a help screen explaining all the
-details, and a link to a demo.
+details, and a link to a demo. The map icons are inspired by the icons
+in Moldvay's *Basic D&D*. There's a screenshot in
+[this review on RPG Geeks](http://rpggeek.com/thread/659631/game-got-it-started-me).
+Here's
+[a Master Dungeon Mapping Key PDF](http://savevsdragon.blogspot.ch/2012/03/free-download-master-dungeon-mapping.html),
+if you want something more recent.
 
-Also note that it's totally free and gratis. It costs nothing to use,
-and you can do with it what you want. Using the appropriate download
-link you can save your work to a local file – and the local file comes
-with all the code to keep working on it, off line! A bit like
-[Tiddly Wiki](http://tiddlywiki.com/), I guess.﻿
+Also note that Gridmapper is totally free and gratis. It costs nothing
+to use, and you can do with it what you want. Using the appropriate
+download link you can save your work to a local file – and the local
+file comes with all the code to keep working on it, off line! A bit
+like [Tiddly Wiki](http://tiddlywiki.com/), I guess.﻿
 
 Written using [Vanilla JS](http://vanilla-js.com/). Unfortunately, it
 no longer works for Internet Explorer. That's because it mixes SVG and
