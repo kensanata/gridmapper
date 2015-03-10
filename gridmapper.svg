@@ -54,6 +54,10 @@ var Map = {
   wallsElement: null, // the SVG element for the walls of the current level
   labelsElement: null, // the SVG element for the labels of the current level
   hideOthers: false, // are the other levels hidden?
+  lastUrl: null, // last URL loaded
+  lastLoad: null, // last map loaded
+  lastEtag: null, // last etag received
+  autoloads: 0, // number of autoloads
   
   /**
    * Initializes the datastructures if necessary. We only need to run
@@ -1046,6 +1050,14 @@ function save () {
   urlEncodedData = urlEncodedDataPairs.join('&').replace(/%20/g, '+');
   XHR.addEventListener('load', function(event) {
     message('Saved');
+    var elems = document.getElementsByClassName('autosave');
+    for (var i = 0; i < elems.length; i++) {
+      elems[i].setAttribute('class', 'autosave visible');
+    }
+    var elems = document.getElementsByClassName('autoload');
+    for (var i = 0; i < elems.length; i++) {
+      elems[i].setAttribute('class', 'autoload invisible');
+    }
   });
   XHR.addEventListener('error', function(event) {
     message('Unfortunately the map could not be saved.');
@@ -1171,8 +1183,12 @@ function loadIt(event) {
             + 'contains no map.');
   } else {
     Map.reset();
-    Map.exportarea.value = pre.textContent;
-    textImport();
+    Map.lastEtag = event.target.getResponseHeader("etag");
+    Map.lastUrl = doc.URL;
+    Map.lastLoad = pre.textContent.replace("✎", "");
+    interpret(pre.textContent);
+    Map.showLevelAnimation();
+    Pen.update(null);
     var username = '';
     var cookie = event.target.responseXML.cookie;
     var match = decodeURIComponent(decodeURIComponent(cookie)).match(/\bWiki=([^;]*)/);
@@ -1185,7 +1201,91 @@ function loadIt(event) {
     }
     var h1 = doc.getElementsByTagNameNS(xhtmlNs, 'h1')[0];
     Map.exportarea.value = h1.textContent + '\n' + username + '\n';
+    var elems = document.getElementsByClassName('autoload');
+    for (var i = 0; i < elems.length; i++) {
+      elems[i].setAttribute('class', 'autoload visible');
+    }
+    var elems = document.getElementsByClassName('autosave');
+    for (var i = 0; i < elems.length; i++) {
+      elems[i].setAttribute('class', 'autosave invisible');
+    }
+    document.getElementById('autoload').checked = false;
+    Map.autoloads = 0;    
   }
+}
+
+/**
+ * Implement autoloading of the dungeon. We don't want to reset and
+ * reload the entire dungeon. Instead, we'll assume that new
+ * information has been added at the end and we'll just run that.
+ */
+function autoload () {
+  if (document.getElementById('autoload').checked === true
+      // stop after 60 minutes (20s per reload), just to be sure
+      && Map.autoloads++ < 180) {
+    var XHR = new XMLHttpRequest();
+    XHR.addEventListener('load', autoloadIt);
+    XHR.addEventListener('error', function(event) {
+      message('Unfortunately the map could not be loaded.');
+      document.getElementById('autoload').checked = false;
+      Map.autoloads = 0;    
+    });
+    try {
+      XHR.open('GET', Map.lastUrl);
+      XHR.responseType = 'document';
+      XHR.setRequestHeader('if-none-match', Map.lastEtag);
+      XHR.send();
+    } catch (e) {
+      message('This did not work.\n'
+              + 'Perhaps you tried to autoload a map\n'
+              + 'without loading the script from the wiki?');
+      document.getElementById('autoload').checked = false;
+      Map.autoloads = 0;    
+    }
+  } else {
+    document.getElementById('autoload').checked = false;
+    Map.autoloads = 0;    
+  }
+}
+
+/**
+ * Do the actual interpreting.
+ */
+function autoloadIt (event) {
+  if (event.target.status === 304) {
+    // unchanged
+    setTimeout(autoload, 20000); // reload every 10s
+    return;
+  }
+  var doc = event.target.responseXML;
+  var pre = doc.getElementsByTagNameNS(xhtmlNs, 'pre')[0];
+  if (pre === undefined) {
+    message('Unfortunately this link\n'
+            + 'contains no map.');
+    document.getElementById('autoload').checked = false;
+    Map.autoloads = 0;
+    return;
+  }
+  var data = pre.textContent.replace("✎", "");
+  if (data.indexOf(Map.lastLoad) !== 0) {
+    message('The map is out of sync and needs to be reloaded.\n'
+            + 'Please reactivate Auto Load, if you need it.');
+    document.getElementById('autoload').checked = false;
+    Map.autoloads = 0;    
+    loadMap(Map.lastUrl);
+  } else {
+    interpret(data.substr(Map.lastLoad.length));
+    Map.lastLoad = data;
+    Pen.update(null);
+    setTimeout(autoload, 20000); // reload every 10s
+  }
+}
+
+/**
+ * Implement autosaving of the dungeon. We are going to add new
+ * information at the very end.
+ */
+function autosave () {
 }
 
 /**
@@ -2465,6 +2565,7 @@ onload = initialize;
   .key { color: forestgreen; fill: forestgreen; font-weight: bold; }
   #ui { -webkit-tap-highlight-color: rgba(0,0,0,0); }
   .menu a rect:hover { opacity: 0.2; fill: forestgreen }
+  .invisible { visibility: hidden }
   ]]></style>
 
   <g id="help">
@@ -2703,6 +2804,11 @@ onload = initialize;
 	<a id="load" class="blue" href="javascript:load()">Load from Wiki</a>  
 	<a class="blue" href="https://github.com/kensanata/gridmapper">Source</a>  
 	<a id="demo" class="blue" href="javascript:Demo.start()">Demo</a>
+	<br/>
+	<input id="autosave" type="checkbox" class="autosave invisible" onclick="autosave()"/>
+	<label class="autosave invisible" for="autosave">Auto Save</label> 
+	<input id="autoload" type="checkbox" class="autoload invisible" onclick="autoload()"/>
+	<label class="autoload invisible" for="autoload">Auto Load</label>
       </p>
       </body>
     </foreignObject>
