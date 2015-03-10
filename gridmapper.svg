@@ -55,7 +55,7 @@ var Map = {
   labelsElement: null, // the SVG element for the labels of the current level
   hideOthers: false, // are the other levels hidden?
   lastUrl: null, // last URL loaded
-  lastLoad: null, // last map loaded
+  trail: null, // last map loaded + the current key trail
   lastEtag: null, // last etag received
   autoloads: 0, // number of autoloads
   
@@ -92,6 +92,7 @@ var Map = {
    */
   reset: function() {
     Commands.reset();
+    Map.trail = '';
     while (Map.levelsElement.lastChild) 
       Map.levelsElement.removeChild(Map.levelsElement.lastChild);
     Map.levels = [];
@@ -99,6 +100,13 @@ var Map = {
     Map.setLevel(0);
     Map.showLevelAnimation(0);
     moveElements();
+  },
+
+  /**
+   * Record a trail of commands for saving. This is not the same as the command undo/redo history!
+   */
+  record: function(key) {
+    Map.trail += key;
   },
   
   /**
@@ -1185,8 +1193,7 @@ function loadIt(event) {
     Map.reset();
     Map.lastEtag = event.target.getResponseHeader("etag");
     Map.lastUrl = doc.URL;
-    Map.lastLoad = pre.textContent.replace("✎", "");
-    interpret(pre.textContent);
+    interpret(pre.textContent.replace("✎", ""));
     Map.showLevelAnimation();
     Pen.update(null);
     var username = '';
@@ -1254,7 +1261,7 @@ function autoload () {
 function autoloadIt (event) {
   if (event.target.status === 304) {
     // unchanged
-    setTimeout(autoload, 20000); // reload every 10s
+    setTimeout(autoload, 20000); // reload every 20s
     return;
   }
   var doc = event.target.responseXML;
@@ -1267,17 +1274,17 @@ function autoloadIt (event) {
     return;
   }
   var data = pre.textContent.replace("✎", "");
-  if (data.indexOf(Map.lastLoad) !== 0) {
+  if (data.indexOf(Map.trail) !== 0) {
     message('The map is out of sync and needs to be reloaded.\n'
             + 'Please reactivate Auto Load, if you need it.');
     document.getElementById('autoload').checked = false;
     Map.autoloads = 0;    
     loadMap(Map.lastUrl);
   } else {
-    interpret(data.substr(Map.lastLoad.length));
-    Map.lastLoad = data;
+    interpret(data.substr(Map.trail.length));
+    Map.trail = data;
     Pen.update(null);
-    setTimeout(autoload, 20000); // reload every 10s
+    setTimeout(autoload, 20000); // reload every 20s
   }
 }
 
@@ -1286,6 +1293,44 @@ function autoloadIt (event) {
  * information at the very end.
  */
 function autosave () {
+  if (document.getElementById('autosave').checked === true
+      // stop after 60 minutes (20s per reload), just to be sure
+      && Map.autoloads++ < 180) {
+    var data = {
+      action: 'draft',
+      text: Map.trail,
+    };
+    var XHR = new XMLHttpRequest();
+    var urlEncodedData = "";
+    var urlEncodedDataPairs = [];
+    var name;
+    for(name in data) {
+      urlEncodedDataPairs.push(encodeURIComponent(name) + '=' + encodeURIComponent(data[name]));
+    }
+    urlEncodedData = urlEncodedDataPairs.join('&').replace(/%20/g, '+');
+    XHR.addEventListener('load', function(event) {
+      setTimeout(autosave, 20000); // auto save every 20s
+    });
+    XHR.addEventListener('error', function(event) {
+      message('Unfortunately the map could not be saved.');
+      document.getElementById('autosave').checked = false;
+      Map.autoloads = 0;
+    });
+    try {
+      XHR.open('POST', Map.lastUrl);
+      XHR.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
+      XHR.send(urlEncodedData);
+    } catch (e) {
+      message('This did not work.\n'
+              + 'Perhaps you tried to autosave a map\n'
+              + 'without loading the script from the wiki?');
+      document.getElementById('autoload').checked = false;
+      Map.autoloads = 0;    
+    }
+  } else {
+    document.getElementById('autoload').checked = false;
+    Map.autoloads = 0;    
+  }
 }
 
 /**
@@ -1808,6 +1853,7 @@ function removeFloor (x, y) {
  */
 
 function drawToCommand (x, y, tile, type) {
+  Map.record('('+x+','+y+')f');
   var remove = function(){
     Map.floorElement.removeChild(tile);
     Map.data.get(x, y).floor = null;
@@ -1972,7 +2018,8 @@ function getChar(event) {
 function keyPressed (evt) {
   // Could be a string when running interpreted code.
   var key = evt;
-
+  var record = true;
+  
   // When running the demo, ignore key events from the browser.
   if (!Demo.running && evt instanceof KeyboardEvent) {
     key = getChar(evt);
@@ -1988,6 +2035,7 @@ function keyPressed (evt) {
   } else if (target != undefined && target.parentNode === Map.labelfield) {
     if (key === 'Enter') {
       saveLabel();
+      Map.record(Map.data.get(x, y).label.textContent + '"');
     } else if (key === 'Esc') {
       hideLabelField();
     }
@@ -2020,6 +2068,7 @@ function keyPressed (evt) {
       floor(Pen.x, Pen.y);
     }
     move('down');
+    key = '[1,0]';
     break;
 
   case 'ArrowUp':
@@ -2029,6 +2078,7 @@ function keyPressed (evt) {
       floor(Pen.x, Pen.y);
     }
     move('up');
+    key = '[0,-1]';
     break;
 
   case 'ArrowLeft':
@@ -2038,6 +2088,7 @@ function keyPressed (evt) {
       floor(Pen.x, Pen.y);
     }
     move('left');
+    key = '-'; // record this instead
     break;
 
   case 'ArrowRight':
@@ -2048,6 +2099,7 @@ function keyPressed (evt) {
       floor(Pen.x, Pen.y);
     }
     move('right');
+    key = ' '; // record a space
     break;
 
   case '1':
@@ -2073,10 +2125,11 @@ function keyPressed (evt) {
           || removeFloor(Pen.x, Pen.y, null, null);
       }
     } else {
-    deleteFromLabel(Pen.x, Pen.y)
-      || removeWall(Pen.x, Pen.y)
+      deleteFromLabel(Pen.x, Pen.y)
+        || removeWall(Pen.x, Pen.y)
         || removeFloor(Pen.x, Pen.y, null, null);
     }
+    key = 'x'; // record x
     break;
 
   case 'f':
@@ -2088,10 +2141,12 @@ function keyPressed (evt) {
   case 'Enter':
     if (evt.ctrlKey) {
       textImport();
+      record = false; // don't record this one
     } else {
       wallModeOff();
       Pen.x = 0;
       move('down');
+      key = '\n'; // record a newline
     }
     break;
 
@@ -2170,7 +2225,12 @@ function keyPressed (evt) {
   default:
     console.log('Gridmapper does not know how to handle "'+ key
                 + '" (keyIdentifier: '+evt.keyIdentifier+', keyCode: '+ evt.keyCode+')');
+    record = false;
     break;
+  }
+
+  if (record) {
+    Map.record(key);
   }
 }
 
