@@ -27,6 +27,7 @@ var xlinkNs    = 'http://www.w3.org/1999/xlink';
 var inkscapeNs = 'http://www.inkscape.org/namespaces/inkscape';
 var xhtmlNs    = 'http://www.w3.org/1999/xhtml';
 var wikiUrl    = 'https://campaignwiki.org/wiki/Gridmapper';
+// var wikiUrl    = 'http://localhost/cgi-bin/wiki';
 
 /**
  * Stores everything about the map. The element members point to the
@@ -58,6 +59,8 @@ var Map = {
   trail: null, // last map loaded + the current key trail
   lastEtag: null, // last etag received
   autoloads: 0, // number of autoloads
+  title: null, // the name of the map (after saving to the wiki)
+  username: null, // the name of the user (after saving to the wiki)
   
   /**
    * Initializes the datastructures if necessary. We only need to run
@@ -73,7 +76,8 @@ var Map = {
     Map.ui.onmousedown = penDown;
     Map.ui.onmousemove = Pen.update;
     // cannot load or save unless sharing the domain!
-    if (window.location.hostname !== 'campaignwiki.org') {
+    if (window.location.hostname !== 'campaignwiki.org'
+        && window.location.hostname !== 'localhost') {
       disableLink(document.getElementById('load'));
       disableLink(document.getElementById('save'));
     }
@@ -92,6 +96,7 @@ var Map = {
    */
   reset: function() {
     Commands.reset();
+    Pen.reset();
     Map.trail = '';
     while (Map.levelsElement.lastChild) 
       Map.levelsElement.removeChild(Map.levelsElement.lastChild);
@@ -484,6 +489,16 @@ var Pen = {
       return true;
     }
     return false;
+  },
+
+  /**
+   * Resets the pen coordinates so that a file can no be loaded
+   * safely.
+   */
+  reset: function() {
+    Pen.x = 0;
+    Pen.y = 0;
+    Pen.type = null;
   },
 };
 
@@ -971,6 +986,7 @@ function getSource () {
   source = source.replace(/zz+/,'z');
   source = source.replace(/^z+/,'');
   source = source.replace(/z+\w*$/,'');
+  source += '(' + Pen.x + ',' + Pen.y + ',' + Map.level + ')\n'; // end with newline
   return source;
 }
 
@@ -1013,11 +1029,6 @@ function message (str) {
  * https://developer.mozilla.org/en-US/docs/Web/Guide/HTML/Forms/Sending_forms_through_JavaScript#Building_an_XMLHttpRequest_manually
  */
 function save () {
-  if (window.location.hostname !== 'campaignwiki.org') {
-    message('Unfortunately, this will only work when loading\n'
-            + 'Gridmapper from campaignwiki.org');
-    return;
-  } 
   var input = Map.exportarea.value;
   if (input === undefined || input === '') {
     message('Please provide a name for your wiki in this text area!\n'
@@ -1041,11 +1052,33 @@ function save () {
     message('Unfortunately, this name is not a valid wiki page name');
     return;
   }
+  Map.title = title; // remember for autosave
+  Map.username = inputs[1] || 'Gridmapper'; // remember for autosave
+  var onload = function(event) {
+    message('Saved');
+    var elems = document.getElementsByClassName('autosave');
+    for (var i = 0; i < elems.length; i++) {
+      elems[i].setAttribute('class', 'autosave visible');
+    }
+    var elems = document.getElementsByClassName('autoload');
+    for (var i = 0; i < elems.length; i++) {
+      elems[i].setAttribute('class', 'autoload invisible');
+    }
+  }    
+  saveIt(title, Map.username, inputs[2] || 'Map saved', onload);
+}
+
+/**
+ * Saves the current dungeon to the wiki. The wiki replies with a
+ * redirect. Unfortunately, we cannot prevent XMLHttpRequest from
+ * following this redirect.
+ */
+function saveIt (title, username, summary, onload) {
   var data = {
-    title: inputs[0],
-    text: (inputs[2] || '') + '{{{\n' + getSource() + '}}}\n',
-    username: inputs[1] || 'Gridmapper',
-    summary: inputs[2] || 'Map saved',
+    title: title,
+    text: (summary || '') + '\n{{{\n' + getSource() + '}}}\n',
+    username: Map.username,
+    summary: summary,
     frodo: 1,
   };
   var XHR = new XMLHttpRequest();
@@ -1056,19 +1089,11 @@ function save () {
     urlEncodedDataPairs.push(encodeURIComponent(name) + '=' + encodeURIComponent(data[name]));
   }
   urlEncodedData = urlEncodedDataPairs.join('&').replace(/%20/g, '+');
-  XHR.addEventListener('load', function(event) {
-    message('Saved');
-    var elems = document.getElementsByClassName('autosave');
-    for (var i = 0; i < elems.length; i++) {
-      elems[i].setAttribute('class', 'autosave visible');
-    }
-    var elems = document.getElementsByClassName('autoload');
-    for (var i = 0; i < elems.length; i++) {
-      elems[i].setAttribute('class', 'autoload invisible');
-    }
-  });
+  XHR.addEventListener('load', onload);
   XHR.addEventListener('error', function(event) {
     message('Unfortunately the map could not be saved.');
+    document.getElementById('autosave').checked = false;
+    Map.autoloads = 0;    
   });
   try {
     XHR.open('POST', wikiUrl);
@@ -1078,6 +1103,22 @@ function save () {
     message('This did not work.\n'
             + 'Perhaps you tried to save to the wiki\n'
             + 'without loading the script from the wiki?');
+    document.getElementById('autosave').checked = false;
+    Map.autoloads = 0;    
+  }
+}
+
+/**
+ * Autosaves the dungeon.
+ */
+function autosave () {
+  if (document.getElementById('autosave').checked === true
+      // stop after 60 minutes (20s per reload), just to be sure
+      && Map.autoloads++ < 180) {
+    var onload = function(event) {
+      setTimeout(autosave, 20000); // auto save every 20s
+    };
+    saveIt(Map.title, Map.username, 'autosave', onload);
   }
 }
 
@@ -1273,64 +1314,13 @@ function autoloadIt (event) {
     Map.autoloads = 0;
     return;
   }
-  var data = pre.textContent.replace("✎", "");
-  if (data.indexOf(Map.trail) !== 0) {
-    message('The map is out of sync and needs to be reloaded.\n'
-            + 'Please reactivate Auto Load, if you need it.');
-    document.getElementById('autoload').checked = false;
-    Map.autoloads = 0;    
-    loadMap(Map.lastUrl);
-  } else {
-    interpret(data.substr(Map.trail.length));
-    Map.trail = data;
-    Pen.update(null);
-    setTimeout(autoload, 20000); // reload every 20s
-  }
-}
-
-/**
- * Implement autosaving of the dungeon. We are going to add new
- * information at the very end.
- */
-function autosave () {
-  if (document.getElementById('autosave').checked === true
-      // stop after 60 minutes (20s per reload), just to be sure
-      && Map.autoloads++ < 180) {
-    var data = {
-      action: 'draft',
-      text: Map.trail,
-    };
-    var XHR = new XMLHttpRequest();
-    var urlEncodedData = "";
-    var urlEncodedDataPairs = [];
-    var name;
-    for(name in data) {
-      urlEncodedDataPairs.push(encodeURIComponent(name) + '=' + encodeURIComponent(data[name]));
-    }
-    urlEncodedData = urlEncodedDataPairs.join('&').replace(/%20/g, '+');
-    XHR.addEventListener('load', function(event) {
-      setTimeout(autosave, 20000); // auto save every 20s
-    });
-    XHR.addEventListener('error', function(event) {
-      message('Unfortunately the map could not be saved.');
-      document.getElementById('autosave').checked = false;
-      Map.autoloads = 0;
-    });
-    try {
-      XHR.open('POST', Map.lastUrl);
-      XHR.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
-      XHR.send(urlEncodedData);
-    } catch (e) {
-      message('This did not work.\n'
-              + 'Perhaps you tried to autosave a map\n'
-              + 'without loading the script from the wiki?');
-      document.getElementById('autoload').checked = false;
-      Map.autoloads = 0;    
-    }
-  } else {
-    document.getElementById('autoload').checked = false;
-    Map.autoloads = 0;    
-  }
+  Map.reset();
+  Map.lastEtag = event.target.getResponseHeader("etag");
+  Map.lastUrl = doc.URL;
+  interpret(pre.textContent.replace("✎", ""));
+  Map.showLevelAnimation();
+  Pen.update(null);
+  setTimeout(autoload, 20000); // reload every 20s
 }
 
 /**
@@ -2262,11 +2252,12 @@ function interpretCont (code, i) {
       }, 500);
       return; // end!
     case '(':
-      var match = code.substr(i).match(/^\((\d+(?:\.\d+)?),(\d+(?:\.\d+)?)\)/);
+      var match = code.substr(i).match(/^\((\d+(?:\.\d+)?),(\d+(?:\.\d+)?)(?:,(\d+))?\)/);
       if (match) {
         // no longer ints!
         var x = Number(match[1]);
         var y = Number(match[2]);
+        var z = Number(match[3]);
         if (Demo.running) {
           if (Pen.moveTo({x: x, y: y})) {
             Pen.update(null);
@@ -2278,6 +2269,8 @@ function interpretCont (code, i) {
         } else {
           Pen.x = x;
           Pen.y = y;
+          if (z >= 0)
+            Map.jump(z);
         }
         i += match[0].length - 1; // will get incremented above
       }
@@ -2417,6 +2410,8 @@ function createLevel (z) {
  * Initialize the user interface.
  */
 function initialize () {
+  document.getElementById('autosave').checked = false;
+  document.getElementById('autoload').checked = false;
   scaleTiles();
   Map.initialize(); // don't reset the Map so we can load from a file
   Pen.update(null); // show it
