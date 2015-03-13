@@ -981,7 +981,7 @@ function getSource () {
     Map.setLevel(z);
     source += Map.code();
   }
-  Map.level = level; // reset
+  Map.setLevel(level); // reset
   source = source.replace(/zz+/,'z');
   source = source.replace(/^z+/,'');
   source = source.replace(/z+\w*$/,'');
