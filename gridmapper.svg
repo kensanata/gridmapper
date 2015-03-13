@@ -27,7 +27,6 @@ var xlinkNs    = 'http://www.w3.org/1999/xlink';
 var inkscapeNs = 'http://www.inkscape.org/namespaces/inkscape';
 var xhtmlNs    = 'http://www.w3.org/1999/xhtml';
 var wikiUrl    = 'https://campaignwiki.org/wiki/Gridmapper';
-// var wikiUrl    = 'http://localhost/cgi-bin/wiki';
 
 /**
  * Stores everything about the map. The element members point to the
@@ -1056,14 +1055,8 @@ function save () {
   Map.username = inputs[1] || 'Gridmapper'; // remember for autosave
   var onload = function(event) {
     message('Saved');
-    var elems = document.getElementsByClassName('autosave');
-    for (var i = 0; i < elems.length; i++) {
-      elems[i].setAttribute('class', 'autosave visible');
-    }
-    var elems = document.getElementsByClassName('autoload');
-    for (var i = 0; i < elems.length; i++) {
-      elems[i].setAttribute('class', 'autoload invisible');
-    }
+    enableIt('autosave', true);
+    enableIt('autoload', false);
   }    
   saveIt(title, Map.username, inputs[2] || 'Map saved', onload);
 }
@@ -1092,8 +1085,7 @@ function saveIt (title, username, summary, onload) {
   XHR.addEventListener('load', onload);
   XHR.addEventListener('error', function(event) {
     message('Unfortunately the map could not be saved.');
-    document.getElementById('autosave').checked = false;
-    Map.autoloads = 0;    
+    enableIt('autosave', false);
   });
   try {
     XHR.open('POST', wikiUrl);
@@ -1103,8 +1095,7 @@ function saveIt (title, username, summary, onload) {
     message('This did not work.\n'
             + 'Perhaps you tried to save to the wiki\n'
             + 'without loading the script from the wiki?');
-    document.getElementById('autosave').checked = false;
-    Map.autoloads = 0;    
+    enableIt('autosave', false);
   }
 }
 
@@ -1249,16 +1240,8 @@ function loadIt(event) {
     }
     var h1 = doc.getElementsByTagNameNS(xhtmlNs, 'h1')[0];
     Map.exportarea.value = h1.textContent + '\n' + username + '\n';
-    var elems = document.getElementsByClassName('autoload');
-    for (var i = 0; i < elems.length; i++) {
-      elems[i].setAttribute('class', 'autoload visible');
-    }
-    var elems = document.getElementsByClassName('autosave');
-    for (var i = 0; i < elems.length; i++) {
-      elems[i].setAttribute('class', 'autosave invisible');
-    }
-    document.getElementById('autoload').checked = false;
-    Map.autoloads = 0;    
+    enableIt('autoload', true);
+    enableIt('autosave', false);
   }
 }
 
@@ -1275,8 +1258,7 @@ function autoload () {
     XHR.addEventListener('load', autoloadIt);
     XHR.addEventListener('error', function(event) {
       message('Unfortunately the map could not be loaded.');
-      document.getElementById('autoload').checked = false;
-      Map.autoloads = 0;    
+      enableIt('autoload', false);
     });
     try {
       XHR.open('GET', Map.lastUrl);
@@ -1287,12 +1269,10 @@ function autoload () {
       message('This did not work.\n'
               + 'Perhaps you tried to autoload a map\n'
               + 'without loading the script from the wiki?');
-      document.getElementById('autoload').checked = false;
-      Map.autoloads = 0;    
+      enableIt('autoload', false);
     }
   } else {
-    document.getElementById('autoload').checked = false;
-    Map.autoloads = 0;    
+    enableIt('autoload', false);
   }
 }
 
@@ -1310,8 +1290,7 @@ function autoloadIt (event) {
   if (pre === undefined) {
     message('Unfortunately this link\n'
             + 'contains no map.');
-    document.getElementById('autoload').checked = false;
-    Map.autoloads = 0;
+    enableIt('autoload', false);
     return;
   }
   Map.reset();
@@ -1321,6 +1300,35 @@ function autoloadIt (event) {
   Map.showLevelAnimation();
   Pen.update(null);
   setTimeout(autoload, 20000); // reload every 20s
+}
+
+/**
+ * Disable the autoload and autosave checkboxes.
+ */
+function disableCheckboxes () {
+  enableIt('autoload', false);
+  enableIt('autosave', false);
+}
+
+/**
+ * Enables or disables the checkbox and label of a particular name.
+ * Both the input and the label element have the class 'autosave' or
+ * 'autoload'. Only the input element has the id 'autosave' or
+ * 'autoload'.
+ */
+function enableIt (name, enabled) {
+  var elements = document.getElementsByClassName(name);
+  for (var i = 0; i < elements.length; ++i) {
+    if (elements[i].id === name) {
+      // checkbox
+      elements[i].checked = false;
+      elements[i].disabled = !enabled;
+    } else {
+      elements[i].setAttribute('style', enabled ? 'color:black' : 'color:grey');
+    }
+  }
+  // restart the counter
+  Map.autoloads = 0;
 }
 
 /**
@@ -2410,12 +2418,13 @@ function createLevel (z) {
  * Initialize the user interface.
  */
 function initialize () {
-  document.getElementById('autosave').checked = false;
-  document.getElementById('autoload').checked = false;
+  disableCheckboxes();
   scaleTiles();
   Map.initialize(); // don't reset the Map so we can load from a file
   Pen.update(null); // show it
   recreateModel(); // create model
+  if (window.location.hostname === 'localhost') // testing
+    wikiUrl = 'http://localhost/cgi-bin/wiki';
 }
 
 onload = initialize;
@@ -2609,7 +2618,7 @@ onload = initialize;
   <rect id="ui" opacity="0"/>
 
   <style><![CDATA[
-  body { font: 14px 'Courier New', Courier, monospace; background: ivory; width: 398px; height: 560px; border: 1px solid black; margin: 0; padding: 20px; }
+  body { font: 14px 'Courier New', Courier, monospace; background: ivory; width: 398px; height: 580px; border: 1px solid black; margin: 0; padding: 10px 20px; }
   p { margin: 0 0 10px 0; padding: 0; }
   text { font: 14px 'Courier New', Courier, monospace; }
   .line {  }
@@ -2620,7 +2629,6 @@ onload = initialize;
   .key { color: forestgreen; fill: forestgreen; font-weight: bold; }
   #ui { -webkit-tap-highlight-color: rgba(0,0,0,0); }
   .menu a rect:hover { opacity: 0.2; fill: forestgreen }
-  .invisible { visibility: hidden }
   ]]></style>
 
   <g id="help">
@@ -2855,15 +2863,20 @@ onload = initialize;
 	<a id="export" class="blue" href="javascript:prepareLink()">Prepare Link</a>  
 	<a class="blue" href="https://github.com/kensanata/gridmapper#how-to-save">Learn More</a>
 	<br/>
-	<a id="save" class="blue" href="javascript:save()">Save to Wiki</a>  
-	<a id="load" class="blue" href="javascript:load()">Load from Wiki</a>  
+	<a id="save" class="blue" href="javascript:save()">Save to Wiki  </a>
+	<span title="Save a map to the wiki before enabling this">
+	  <input id="autosave" type="checkbox" class="autosave" onclick="autosave()"/>
+	  <label class="autosave" for="autosave">Auto Save</label>
+	</span>
+	<br/>
+	<a id="load" class="blue" href="javascript:load()">Load from Wiki</a>
+	<span title="Load a map from the wiki before enabling this">
+	  <input id="autoload" type="checkbox" class="autoload" onclick="autoload()"/>
+	  <label class="autoload" for="autoload">Auto Load</label>
+	</span>
+	<br/>
 	<a class="blue" href="https://github.com/kensanata/gridmapper">Source</a>  
 	<a id="demo" class="blue" href="javascript:Demo.start()">Demo</a>
-	<br/>
-	<input id="autosave" type="checkbox" class="autosave invisible" onclick="autosave()"/>
-	<label class="autosave invisible" for="autosave">Auto Save</label> 
-	<input id="autoload" type="checkbox" class="autoload invisible" onclick="autoload()"/>
-	<label class="autoload invisible" for="autoload">Auto Load</label>
       </p>
       </body>
     </foreignObject>
