@@ -2014,6 +2014,10 @@ function getChar(event) {
  * position is always tracked (onmousemove, Pen.update).
  */
 function keyPressed (evt) {
+  // We don't handly any meta keys.
+  if (evt.metaKey)
+    return;
+  
   // Could be a string when running interpreted code.
   var key = evt;
   var record = true;
