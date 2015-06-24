@@ -2055,6 +2055,10 @@ function keyPressed (evt) {
     }
     break;
 
+  case '.':
+    Pen.ts = null;
+    break;
+
   case 'u':
     Commands.undo();
     break;
@@ -2257,7 +2261,6 @@ function interpretCont (code, i) {
   for (; i < code.length; i++) {
     var advance = null;
     switch(code[i]) { // needs charAt?
-    case '.': Pen.ts = null; break;
     case ';':
       setTimeout(function() {
         interpretCont(code, i + 1);
