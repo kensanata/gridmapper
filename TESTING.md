@@ -8,7 +8,7 @@ Things to Test
 5. Run the demo.
 6. Test $, ? and 123 Backspace
 
-file:///Users/alex/Source/gridmapper/gridmapper.svg?%0A%20w.dfwwfwwfw%0A%20wftfw.wfwwfww.dddfw%0A%20wfffwnnnn%20nn%20wfwwfwwfw%0A%20ww%20ww%20w.dfffwfn%20nnn%20w%0A%20%20%20ww%20ww%20ww%20wfnnnn%20fd%0A%20%20%20%20%20%20ww%20ww%20ww
+file:///Users/alex/Source/gridmapper/gridmapper.svg?%0A%20w.dfwwfwwfw%0A%20wftv%20fw.wfwwfww.dddfw%0A%20wfffwnnnn%20nn%20wfwwfwwfw%0A%20ww%20ww%20w.dfffwfn%20nnn%20w%0A%20%20%20ww%20ww%20ww%20wfnnnn%20fd%0A%20%20%20%20%20%20ww%20ww%20ww
 
 file:///Users/alex/Source/gridmapper/gridmapper.svg?%2813%2C11%29ffff%0A%20%20%20%20%20%20%20%20%20%20%20ssss%20%20ff1ffdffssssv%0A%20%20%20%20%20%20%20%20%20%20%20%20%20ffff%0A%20%20%20%20%20%20%20%20%20%20%20%20%20ffffdfnn%0A%20%20%20%20%20%20%20%20%20%20%20%20%20ffffnnnn%20fff%0A%20%20%20%20%20%20%20%20%20%20%20%20%20%20fddvvvf%20%20%204ffdvvfff%0A%20%20%20%20%20%20%20%20%20%20%20%20%20%20ff%20%20%20%20%20f5fdddvf%0A%20%20%20%20%20%20%20%20%20%20%20p%20p%20p%20ffdvf%20%20%20%20fff%0A%20%20%20%20%20%20%20%20%20%20%20b%20t%20f2ffwf%0A%20%20%20%20%20%20%20%20%20%20%20p%20p%20p%20ffwfz%2821%2C11%29fwfwf%0A%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%206fddfddfddfdv%0A%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20ddfw.dfw.df
 
