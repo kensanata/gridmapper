@@ -1999,10 +1999,7 @@ function getChar(event) {
   } else if (event.type == 'keydown') { // special key
     if(event.key && event.key.length != 1) return event.key; // Firefox
     if(event.keyIdentifier && event.keyIdentifier.substring(0,2) !== 'U+') return event.keyIdentifier; // Chrome
-    if(event.keyCode === 8) { // Chrome Backspace
-      event.preventDefault();
-      return 'Backspace';
-    }
+    if(event.keyCode === 8) return 'Backspace'; // Chrome Backspace
   }
   return null; // ignore second key event
 }
@@ -2034,7 +2031,9 @@ function keyPressed (evt) {
       textImport();
     }
     return;
-  } else if (target != undefined && target.parentNode === Map.labelfield) {
+  }
+
+  if (target != undefined && target.parentNode === Map.labelfield) {
     if (key === 'Enter') {
       saveLabel();
       Map.record(Map.data.get(x, y).label.textContent + '"');
@@ -2042,6 +2041,10 @@ function keyPressed (evt) {
       hideLabelField();
     }
     return;
+  }
+
+  if (key === 'Backspace') {
+    evt.preventDefault();
   }
 
   switch (key) {
