@@ -74,6 +74,8 @@ var Map = {
     Map.ui.ondragstart = function() { return false };
     Map.ui.onmousedown = penDown;
     Map.ui.onmousemove = Pen.update;
+    Map.ui.ontouchstart = penDown;
+    Map.ui.ontouchend = Pen.update;
     // cannot load or save unless sharing the domain!
     if (window.location.hostname !== 'campaignwiki.org'
         && window.location.hostname !== 'localhost') {
@@ -455,6 +457,7 @@ var Pen = {
    */
   update: function(evt) {
     if (evt) {
+      evt.preventDefault(); /* for touch events: no scrolling */
       var pos = Pen.position(evt);
       if (Pen.x !== pos.x || Pen.y !== pos.y) {
         Pen.ts = null;
@@ -617,6 +620,8 @@ var Demo = {
     Demo.link('Click to stop demo', 'Demo.stop()', false);
     Map.ui.onmousemove = null;
     Map.ui.onmousedown = null;
+    Map.ui.ontouchmove = null;
+    Map.ui.ontouchstart = null;
     Demo.element = document.getElementById('messages');
     moveElement(Demo.element,
                 Demo.element.getBBox().x,
@@ -637,6 +642,8 @@ var Demo = {
     wallModeOff();
     Map.ui.onmousemove = Pen.update;
     Map.ui.onmousedown = penDown;
+    Map.ui.ontouchmove = Pen.update;
+    Map.ui.ontouchstart = penDown;
     Demo.link('Abort! Abort!', 'void', false);
   },
 
@@ -1900,9 +1907,13 @@ function penDown (evt) {
   drawTo(evt);
   // install new handler
   Map.ui.onmousemove = drawTo;
+  Map.ui.ontouchmove = drawTo;
   // revert to pen tracking on mouse up *anywhere*
   document.onmouseup = function() {
     Map.ui.onmousemove = Pen.update;
+  }
+  document.ontouchend = function() {
+    Map.ui.ontouchmove = Pen.update;
   }
 }
 
