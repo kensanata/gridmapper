@@ -851,17 +851,17 @@ function resizeSVG () {
   var help = document.getElementById('help').firstElementChild;
   var level = document.getElementById('level');
   document.rootElement.setAttribute(
-    "width", (Map.width + 2) * Map.tileWidth // map with + two empty columns
-      + Number(help.getAttribute("width"))
-      + Number(level.getAttribute("x"))    // distance between help
-      - Number(help.getAttribute("x"))     // rectangle and level
-      - Number(help.getAttribute("width")) // indicator
+    'width', (Map.width + 2) * Map.tileWidth // map with + two empty columns
+      + Number(help.getAttribute('width'))
+      + Number(level.getAttribute('x'))    // distance between help
+      - Number(help.getAttribute('x'))     // rectangle and level
+      - Number(help.getAttribute('width')) // indicator
       + level.getBBox().width // width of level indicator
   );
   document.rootElement.setAttribute(
-    "height", Math.max((Map.width + 2) * Map.tileWidth,
+    'height', Math.max((Map.width + 2) * Map.tileWidth,
                        2 * Map.tileWidth
-                       + Number(help.getAttribute("height"))));
+                       + Number(help.getAttribute('height'))));
 }
 
 /**
@@ -1084,7 +1084,7 @@ function saveIt (title, username, summary, onload) {
     frodo: 1,
   };
   var XHR = new XMLHttpRequest();
-  var urlEncodedData = "";
+  var urlEncodedData = '';
   var urlEncodedDataPairs = [];
   var name;
   for(name in data) {
@@ -1112,7 +1112,7 @@ function saveIt (title, username, summary, onload) {
  * Implement the timer to keep autosaving.
  */
 function autosaveIt() {
-  if (Map.auto == "save"
+  if (Map.auto === 'save'
       // stop after 60 minutes (20s per reload), just to be sure
       && Map.autocount++ < 180) {
     var onload = function(event) {
@@ -1127,8 +1127,8 @@ function autosaveIt() {
  * Start autosaving the dungeon.
  */
 function autosave () {
-  if (Map.auto != "save") {
-    Map.auto = "save";
+  if (Map.auto !== 'save') {
+    Map.auto = 'save';
     autosaveIt();
   } else {
     message('Autosave disabled');
@@ -1140,7 +1140,7 @@ function autosave () {
  * Shows a drop down box where the user can pick a map from the wiki.
  */
 function load () {
-  message("Loading maps...");
+  message('Loading maps...');
   var XHR = new XMLHttpRequest();
   XHR.addEventListener('load', loadMenu);
   XHR.addEventListener('error', function(event) {
@@ -1164,7 +1164,7 @@ function loadMenu (event) {
   var doc = event.target.responseXML;
   var links = doc.getElementsByClassName('content')[0].getElementsByClassName('local');
   for (var i = links.length - 1; i >= 0; i--) {
-    if (links[i].textContent === 'HomePage' || links[i].textContent.indexOf("Comments on ") === 0) {
+    if (links[i].textContent === 'HomePage' || links[i].textContent.indexOf('Comments on ') === 0) {
       links[i].remove();
     }
   }
@@ -1191,7 +1191,7 @@ function loadMenu (event) {
     text.setAttribute('fill', 'blue');
     text.textContent = links[i].textContent.substr(0,20);
     if (links[i].textContent.length > 20)
-      text.textContent += "…";
+      text.textContent += '…';
     a.appendChild(text);
     g.appendChild(a);
     var rect = document.createElementNS(svgNs, 'rect');
@@ -1227,7 +1227,9 @@ function loadMap(url) {
   try {
     XHR.open('GET', url);
     XHR.responseType = 'document';
-    XHR.setRequestHeader('if-none-match', Map.lastEtag);
+    if (Map.lastUrl === url) {
+      XHR.setRequestHeader('if-none-match', Map.lastEtag);
+    }
     XHR.send();
   } catch (e) {
     message('This did not work.\n'
@@ -1253,9 +1255,9 @@ function loadIt(event) {
   } else {
     message('Loading');
     Map.reset();
-    Map.lastEtag = event.target.getResponseHeader("etag");
+    Map.lastEtag = event.target.getResponseHeader('etag');
     Map.lastUrl = doc.URL;
-    interpret(pre.textContent.replace("✎", ""));
+    interpret(pre.textContent.replace('✎', ''));
     Map.showLevelAnimation();
     Pen.update(null);
     var username = '';
@@ -1279,7 +1281,7 @@ function loadIt(event) {
  * Implement the timer to keep autoloading.
  */
 function autoloadIt() {
-  if (Map.auto == "load"
+  if (Map.auto === 'load'
       // stop after 60 minutes (20s per reload), just to be sure
       && Map.autocount++ < 180) {
     setTimeout(autoloadIt, 20000); // auto load every 20s
@@ -1291,8 +1293,8 @@ function autoloadIt() {
  * Start autoloading the dungeon.
  */
 function autoload () {
-  if (Map.auto != "load") {
-    Map.auto = "load";
+  if (Map.auto !== 'load') {
+    Map.auto = 'load';
     autoloadIt();
   } else {
     message('Autoload disabled');
@@ -1400,7 +1402,7 @@ function setLabel (x, y, s, append) {
       }
     },
     function(){
-      if (text === "") {
+      if (text === '') {
         Map.labelsElement.appendChild(tile);
         Map.data.get(x, y).label = tile;
       }
@@ -1422,7 +1424,7 @@ function showLabelField (x, y) {
   var tile = Map.data.get(x, y).label;
   setTimeout(function(){
     // on Chrome, the text field will start with " or l from the second event
-    Map.labelfield.firstElementChild.value = tile ? tile.textContent : "";
+    Map.labelfield.firstElementChild.value = tile ? tile.textContent : '';
   }, 1);
   Map.labelfield.firstElementChild.focus();
 }
@@ -1453,7 +1455,7 @@ function deleteFromLabel(x, y) {
   var tile = Map.data.get(x, y).label;
   if (tile !== null) {
     var text = tile.textContent;
-    if (text !== "") {
+    if (text !== '') {
       Commands.do(
         function(){
           if (text.length === 1) {
@@ -1464,7 +1466,7 @@ function deleteFromLabel(x, y) {
         },
         function(){
           tile.textContent = tile.textContent.substr(0, tile.textContent.length - 1);
-          if (tile.textContent === "") {
+          if (tile.textContent === '') {
             Map.labelsElement.removeChild(tile);
             Map.data.get(x, y).label = null;
           }
