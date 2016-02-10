@@ -57,7 +57,8 @@ var Map = {
   lastUrl: null, // last URL loaded
   trail: null, // last map loaded + the current key trail
   lastEtag: null, // last etag received
-  autoloads: 0, // number of autoloads
+  autocount: 0, // number of autoloads or autosaves
+  auto: null, // is auto 'save' or 'load' enabled
   title: null, // the name of the map (after saving to the wiki)
   username: null, // the name of the user (after saving to the wiki)
   
@@ -1024,15 +1025,15 @@ function message (str) {
   rect.setAttribute('width', (2 + len / 2.5) * Map.tileWidth);
   rect.setAttribute('height', (0.5 + lines.length) * Map.tileWidth);
   document.rootElement.appendChild(element);
-  var ms = 2000 + 500 * lines.length;
+  var ms = 2000 + 700 * lines.length;
   fadeElementTo(element, 0, linear, ms);
   setTimeout(function(){document.rootElement.removeChild(element);}, ms);
 }
 
 /**
- * Saves the map to Campaign Wiki.
- * Based on
- * https://developer.mozilla.org/en-US/docs/Web/Guide/HTML/Forms/Sending_forms_through_JavaScript#Building_an_XMLHttpRequest_manually
+ * Saves the map to Campaign Wiki. This is the interactive entry
+ * point. It reads title, username and summary from the exportarea
+ * multiline text field.
  */
 function save () {
   var input = Map.exportarea.value;
@@ -1064,14 +1065,15 @@ function save () {
     message('Saved');
     enableIt('autosave', true);
     enableIt('autoload', false);
-  }    
+  }
   saveIt(title, Map.username, inputs[2] || 'Map saved', onload);
 }
 
 /**
  * Saves the current dungeon to the wiki. The wiki replies with a
  * redirect. Unfortunately, we cannot prevent XMLHttpRequest from
- * following this redirect.
+ * following this redirect. The AJAX stuff is based on
+ * https://developer.mozilla.org/en-US/docs/Web/Guide/HTML/Forms/Sending_forms_through_JavaScript#Building_an_XMLHttpRequest_manually
  */
 function saveIt (title, username, summary, onload) {
   var data = {
@@ -1107,16 +1109,30 @@ function saveIt (title, username, summary, onload) {
 }
 
 /**
- * Autosaves the dungeon.
+ * Implement the timer to keep autosaving.
  */
-function autosave () {
-  if (document.getElementById('autosave').checked === true
+function autosaveIt() {
+  if (Map.auto == "save"
       // stop after 60 minutes (20s per reload), just to be sure
-      && Map.autoloads++ < 180) {
+      && Map.autocount++ < 180) {
     var onload = function(event) {
-      setTimeout(autosave, 20000); // auto save every 20s
+      message('Autosaved');
+      setTimeout(autosaveIt, 20000); // auto save every 20s
     };
     saveIt(Map.title, Map.username, 'autosave', onload);
+  }
+}
+
+/**
+ * Start autosaving the dungeon.
+ */
+function autosave () {
+  if (Map.auto != "save") {
+    Map.auto = "save";
+    autosaveIt();
+  } else {
+    message('Autosave disabled');
+    Map.auto = null;
   }
 }
 
@@ -1211,6 +1227,7 @@ function loadMap(url) {
   try {
     XHR.open('GET', url);
     XHR.responseType = 'document';
+    XHR.setRequestHeader('if-none-match', Map.lastEtag);
     XHR.send();
   } catch (e) {
     message('This did not work.\n'
@@ -1220,15 +1237,21 @@ function loadMap(url) {
 }
 
 /**
- * Loads map from the wiki page.
+ * Extract map from the wiki content.
  */
 function loadIt(event) {
+  if (event.target.status === 304) {
+    // unchanged
+    message('Map unchanged...');
+    return;
+  }
   var doc = event.target.responseXML;
   var pre = doc.getElementsByTagNameNS(xhtmlNs, 'pre')[0];
   if (pre === undefined) {
     message('Unfortunately this link\n'
             + 'contains no map.');
   } else {
+    message('Loading');
     Map.reset();
     Map.lastEtag = event.target.getResponseHeader("etag");
     Map.lastUrl = doc.URL;
@@ -1253,64 +1276,33 @@ function loadIt(event) {
 }
 
 /**
- * Implement autoloading of the dungeon. We don't want to reset and
- * reload the entire dungeon. Instead, we'll assume that new
- * information has been added at the end and we'll just run that.
+ * Implement the timer to keep autoloading.
+ */
+function autoloadIt() {
+  if (Map.auto == "load"
+      // stop after 60 minutes (20s per reload), just to be sure
+      && Map.autocount++ < 180) {
+    setTimeout(autoloadIt, 20000); // auto load every 20s
+    loadMap(Map.lastUrl);
+  }
+}
+
+/**
+ * Start autoloading the dungeon.
  */
 function autoload () {
-  if (document.getElementById('autoload').checked === true
-      // stop after 60 minutes (20s per reload), just to be sure
-      && Map.autoloads++ < 180) {
-    var XHR = new XMLHttpRequest();
-    XHR.addEventListener('load', autoloadIt);
-    XHR.addEventListener('error', function(event) {
-      message('Unfortunately the map could not be loaded.');
-      enableIt('autoload', false);
-    });
-    try {
-      XHR.open('GET', Map.lastUrl);
-      XHR.responseType = 'document';
-      XHR.setRequestHeader('if-none-match', Map.lastEtag);
-      XHR.send();
-    } catch (e) {
-      message('This did not work.\n'
-              + 'Perhaps you tried to autoload a map\n'
-              + 'without loading the script from the wiki?');
-      enableIt('autoload', false);
-    }
+  if (Map.auto != "load") {
+    Map.auto = "load";
+    autoloadIt();
   } else {
-    enableIt('autoload', false);
+    message('Autoload disabled');
+    Map.auto = null;
   }
 }
 
-/**
- * Do the actual interpreting.
- */
-function autoloadIt (event) {
-  if (event.target.status === 304) {
-    // unchanged
-    setTimeout(autoload, 20000); // reload every 20s
-    return;
-  }
-  var doc = event.target.responseXML;
-  var pre = doc.getElementsByTagNameNS(xhtmlNs, 'pre')[0];
-  if (pre === undefined) {
-    message('Unfortunately this link\n'
-            + 'contains no map.');
-    enableIt('autoload', false);
-    return;
-  }
-  Map.reset();
-  Map.lastEtag = event.target.getResponseHeader("etag");
-  Map.lastUrl = doc.URL;
-  interpret(pre.textContent.replace("✎", ""));
-  Map.showLevelAnimation();
-  Pen.update(null);
-  setTimeout(autoload, 20000); // reload every 20s
-}
 
 /**
- * Disable the autoload and autosave checkboxes.
+ * Disable the autoload and autosave links.
  */
 function disableCheckboxes () {
   enableIt('autoload', false);
@@ -1318,24 +1310,21 @@ function disableCheckboxes () {
 }
 
 /**
- * Enables or disables the checkbox and label of a particular name.
- * Both the input and the label element have the class 'autosave' or
- * 'autoload'. Only the input element has the id 'autosave' or
- * 'autoload'.
+ * Enables or disables auto load and auto save links.
  */
-function enableIt (name, enabled) {
-  var elements = document.getElementsByClassName(name);
-  for (var i = 0; i < elements.length; ++i) {
-    if (elements[i].id === name) {
-      // checkbox
-      elements[i].checked = false;
-      elements[i].disabled = !enabled;
+function enableIt (id, enabled) {
+  var element = document.getElementById(id);
+  if (element != null) {
+    element.disabled = !enabled;
+    element.remove
+    if (enabled) {
+      element.removeAttribute('style');
     } else {
-      elements[i].setAttribute('style', enabled ? 'color:black' : 'color:grey');
+      element.setAttribute('style', 'color:grey');
     }
   }
   // restart the counter
-  Map.autoloads = 0;
+  Map.autocount = 0;
 }
 
 /**
@@ -1345,8 +1334,13 @@ function enableIt (name, enabled) {
  * by the map. The original tiles are all based on a 10x10 grid and
  * are scaled up to 20x20, for example. The easiest way to do this is
  * to use a <g> element and give it an appropriate width attribute.
+ * For some user agents such as the iPad Pro, we might want to adjust
+ * the tile size to get a better user experience. I wonder...
  */
 function scaleTiles () {
+  if (navigator.userAgent.match(/iPad/i)) {
+    Map.tileWidth = 15; // instead of 20
+  }
   var tiles = document.getElementsByTagName('defs')[0].childNodes;
   for (var i = 0; i < tiles.length; ++i) {
     if (tiles[i].nodeType === Node.ELEMENT_NODE
@@ -2878,23 +2872,16 @@ onload = initialize;
 	<a class="blue" href="javascript:textImport()">Text Import</a> or
 	<span class="key">Ctrl Enter</span>
       </p>
-      <textarea xmlns="http://www.w3.org/1999/xhtml" style="background: white; width: 390px; height: 50px; font: 10px 'Courier New', Courier, monospace; " id="exportarea"/>
+      <textarea xmlns="http://www.w3.org/1999/xhtml" style="background: white; width: 390px; height: 50px; padding:0; font: 10px 'Courier New', Courier, monospace; " id="exportarea"/>
       <p style="margin-top:10px">
 	<a id="download" class="blue" href="javascript:download()">Prepare Download</a>  
 	<a id="export" class="blue" href="javascript:prepareLink()">Prepare Link</a>  
 	<a class="blue" href="https://github.com/kensanata/gridmapper#how-to-save">Learn More</a>
 	<br/>
-	<a id="save" class="blue" href="javascript:save()">Save to Wiki  </a>
-	<span title="Save a map to the wiki before enabling this">
-	  <input id="autosave" type="checkbox" class="autosave" onclick="autosave()"/>
-	  <label class="autosave" for="autosave">Auto Save</label>
-	</span>
-	<br/>
-	<a id="load" class="blue" href="javascript:load()">Load from Wiki</a>
-	<span title="Load a map from the wiki before enabling this">
-	  <input id="autoload" type="checkbox" class="autoload" onclick="autoload()"/>
-	  <label class="autoload" for="autoload">Auto Load</label>
-	</span>
+	<a id="save" class="blue" title="Put the name of the map in the text area above when saving" href="javascript:save()">Save</a>
+        (<a id="autosave" class="blue" title="Save a map to the wiki before enabling this" href="javascript:autosave()">auto save</a>)  
+	<a id="load" class="blue" href="javascript:load()">Load</a>
+        (<a id="autoload" class="blue" title="Load a map from the wiki before enabling this" href="javascript:autoload()">auto load</a>)
 	<br/>
 	<a class="blue" href="https://github.com/kensanata/gridmapper">Source</a>  
 	<a id="demo" class="blue" href="javascript:Demo.start()">Demo</a>
