@@ -1900,6 +1900,9 @@ function drawTo (evt) {
  * (null), we'll want to draw an empty floor tile. We store this
  * information in the Pen type and as we keep on drawing (onmousemove,
  * drawTo), we don't change it.
+ *
+ * As for touch screens: If we are just touching the screen, don't
+ * draw a tile. If we keep touching the screen, however, draw a tile.
  */
 function penDown (evt) {
   wallModeOff();
@@ -1910,7 +1913,10 @@ function penDown (evt) {
     Pen.type = 'empty';
   }
   // draw a tile unless we just touched the screen
-  if (evt.type !== 'touchstart') {
+  if (evt.type === 'touchstart') {
+    var ts = Date.now();
+    var pos = Pen.x + "," + Pen.y;
+  } else {
     drawTo(evt);
   }
   // install new handler
@@ -1921,6 +1927,10 @@ function penDown (evt) {
     Map.ui.onmousemove = Pen.update;
   }
   document.ontouchend = function() {
+    // if this was a long touch and we haven't moved, draw a tile anyway
+    if (Date.now() > ts + 300 && pos === Pen.x + "," + Pen.y) {
+      drawTo(evt);
+    }
     Map.ui.ontouchmove = Pen.update;
   }
 }
