@@ -1072,9 +1072,9 @@ function save () {
   Map.title = title; // remember for autosave
   Map.username = inputs[1] || 'Gridmapper'; // remember for autosave
   var onload = function(event) {
-    message('Saved');
     enableIt('autosave', true);
     enableIt('autoload', false);
+    message('Saved');
   }
   saveIt(title, Map.username, inputs[2] || 'Map saved', onload);
 }
