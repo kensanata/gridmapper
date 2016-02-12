@@ -66,6 +66,16 @@ var Map = {
    * Initializes the datastructures if necessary. We only need to run
    * this at the very beginning. This does not reset the map in case
    * we're loading an existing file.
+   *
+   * Mouse and touch events: When we move the mouse (mousemove,
+   * touchmove), we call Pen.update to move the pointer. When we click
+   * the mouse (mousedown, touchstart), we call penDown. This changes
+   * what happens when we move the mouse. Moving the mouse now calls
+   * drawTo. When we end our move, we change back: Moving the mouse
+   * now calls Pen.update again.
+   *
+   * When we run the demo, all four event handlers are set to null.
+   * When the demo ends, we listen for mousedown and touchstart again.
    */
   initialize: function() {
     Map.pointer = document.getElementById('pointer');
@@ -73,10 +83,10 @@ var Map = {
     // http://javascript.info/tutorial/mouse-events#drag-n-drop
     Map.ui = document.getElementById('ui'); // will be moved, too
     Map.ui.ondragstart = function() { return false };
-    Map.ui.onmousedown = penDown;
     Map.ui.onmousemove = Pen.update;
-    Map.ui.ontouchstart = penDown;
     Map.ui.ontouchend = Pen.update;
+    Map.ui.onmousedown = penDown;
+    Map.ui.ontouchstart = penDown;
     // cannot load or save unless sharing the domain!
     if (window.location.hostname !== 'campaignwiki.org'
         && window.location.hostname !== 'localhost') {
@@ -1899,8 +1909,10 @@ function penDown (evt) {
   } else {
     Pen.type = 'empty';
   }
-  // draw at least one tile
-  drawTo(evt);
+  // draw a tile unless we just touched the screen
+  if (evt.type !== 'touchstart') {
+    drawTo(evt);
+  }
   // install new handler
   Map.ui.onmousemove = drawTo;
   Map.ui.ontouchmove = drawTo;
