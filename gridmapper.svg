@@ -1128,6 +1128,8 @@ function autosaveIt() {
     var onload = function(event) {
       message('Autosaved');
       setTimeout(autosaveIt, 20000); // auto save every 20s
+      enableIt('autosave', true); // update text
+      enableIt('autoload', false); // make sure this is correct
     };
     saveIt(Map.title, Map.username, 'autosave', onload);
   }
@@ -1141,8 +1143,9 @@ function autosave () {
     Map.auto = 'save';
     autosaveIt();
   } else {
-    message('Autosave disabled');
     Map.auto = null;
+    enableIt('autosave', true); // update text
+    message('Autosave disabled');
   }
 }
 
@@ -1253,8 +1256,8 @@ function loadMap(url) {
  */
 function loadIt(event) {
   if (event.target.status === 304) {
-    // unchanged
     message('Map unchanged...');
+    enableIt('autoload', true); // update text
     return;
   }
   var doc = event.target.responseXML;
@@ -1307,8 +1310,9 @@ function autoload () {
     Map.auto = 'load';
     autoloadIt();
   } else {
-    message('Autoload disabled');
     Map.auto = null;
+    enableIt('autoload', true); // update text
+    message('Autoload disabled');
   }
 }
 
@@ -1327,12 +1331,38 @@ function disableCheckboxes () {
 function enableIt (id, enabled) {
   var element = document.getElementById(id);
   if (element != null) {
+    var text;
     element.disabled = !enabled;
-    element.remove
     if (enabled) {
       element.removeAttribute('style');
+      element.setAttribute('href', 'javascript:' + id + '()');
+      if (id === 'autosave') {
+        if (Map.auto === 'save') {
+          element.setAttribute('title', 'This will stop saving the map every 20s');
+          element.textContent = 'disable auto save';
+        } else {
+          element.setAttribute('title', 'This will save the map every 20s');
+          element.textContent = 'enable auto save';
+        }
+      } else if (id === 'autoload') {
+        if (Map.auto === 'load') {
+          element.setAttribute('title', 'This will stop reloading the map every 20s');
+          element.textContent = 'disable auto load';
+        } else {
+          element.setAttribute('title', 'This will reload the map every 20s');
+          element.textContent = 'enable auto load';
+        }
+      }
     } else {
       element.setAttribute('style', 'color:grey');
+      element.setAttribute('href', 'javascript:void()');
+      if (id === 'autosave') {
+        element.setAttribute('title', 'Save a map to the wiki to enable autosaving');
+        element.textContent = 'auto save';
+      } else if (id === 'autoload') {
+        element.setAttribute('title', 'Load a map from the wiki to enable autoloading');
+        element.textContent = 'auto load';
+      }
     }
   }
   // restart the counter
@@ -2903,9 +2933,9 @@ onload = initialize;
 	<a class="blue" href="https://github.com/kensanata/gridmapper#how-to-save">Learn More</a>
 	<br/>
 	<a id="save" class="blue" title="Put the name of the map in the text area above when saving" href="javascript:save()">Save</a>
-        (<a id="autosave" class="blue" title="Save a map to the wiki before enabling this" href="javascript:autosave()">auto save</a>)  
+        (<a id="autosave" class="blue">auto save</a>)  
 	<a id="load" class="blue" href="javascript:load()">Load</a>
-        (<a id="autoload" class="blue" title="Load a map from the wiki before enabling this" href="javascript:autoload()">auto load</a>)
+        (<a id="autoload" class="blue">auto load</a>)
 	<br/>
 	<a class="blue" href="https://github.com/kensanata/gridmapper">Source</a>  
 	<a id="demo" class="blue" href="javascript:Demo.start()">Demo</a>
