@@ -2786,7 +2786,7 @@ onload = initialize;
 	    </a>
 	  </svg>
 	  <span>
-	    <span class="key">"abc"</span> :
+	    <a href="javascript:interpret('l')"><span class="key">"abc"</span> :</a>
 	    <svg xmlns="http://www.w3.org/2000/svg" width="41" height="22">
 	      <use x="10" y="1" xlink:href="#empty"/>
 	      <g class="labels" title="labels">
