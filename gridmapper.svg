@@ -926,25 +926,31 @@ function disableLink(element) {
  * such download attribute for SVG or XHTML.
  */
 function download () {
-  var source = btoa('<?xml version="1.0" standalone="no"?>\n' +
-                    '<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN" "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">\n' +
-                    '<svg version="1.1"\n' +
-                    '     xmlns="' + svgNs + '"\n' +
-                    '     xmlns:inkscape="' + inkscapeNs + '"\n' +
-                    '     xmlns:xlink="' + xlinkNs + '">' +
-                    // handle Unicode characters
-                    unescape(encodeURIComponent(document.documentElement.innerHTML)) +
-                    '</svg>');
-  var link = document.getElementById('download');
-  var text = link.firstChild.nodeValue;
-  link.firstChild.nodeValue = 'Download';
-  var href = link.getAttribute('href');
-  link.setAttribute('download', 'gridmapper.svg');
-  link.setAttribute('href', 'data:image/svg+xml;base64,' + source);
-  // reset after 10s
+  // https://gist.github.com/gustavohenke/9073132
+  var svg = document.querySelector('svg');
+  var source = btoa(unescape(encodeURIComponent(new XMLSerializer().serializeToString(svg))));
+  var prep = document.getElementById('download');
+  var span = document.getElementById('format');
+  var svgl  = document.getElementById('download_svg');
+  var pngl  = document.getElementById('download_png');
+  prep.setAttribute('class', 'invisible');
+  span.removeAttribute('class');
+  svgl.setAttribute('href', 'data:image/svg+xml;base64,' + source);
+  var canvas = document.createElementNS(xhtmlNs, 'canvas');
+  var rect = svg.getBoundingClientRect();
+  canvas.width = rect.width;
+  canvas.height = rect.height;
+  var ctx = canvas.getContext('2d');
+  var img = document.createElementNS(xhtmlNs, 'img');
+  img.setAttribute('src', 'data:image/svg+xml;base64,' + source);
+  img.onload = function() {
+    ctx.drawImage(img, 0, 0);
+    pngl.setAttribute('href', canvas.toDataURL('image/png'));
+  };
+  // revert after 10s
   var t = setInterval(function() {
-    link.setAttribute('href', href);
-    link.firstChild.nodeValue = text;
+    prep.setAttribute('class', 'blue');
+    span.setAttribute('class', 'invisible');
     clearInterval(t);
   }, 10000);
 }
@@ -2696,6 +2702,7 @@ onload = initialize;
   a { color: black; text-decoration: none; }
   .blue { color: blue; }
   .key { color: forestgreen; fill: forestgreen; font-weight: bold; }
+  .invisible { display: none; }
   #ui { -webkit-tap-highlight-color: rgba(0,0,0,0); }
   .menu a rect:hover { opacity: 0.2; fill: forestgreen }
   ]]></style>
@@ -2928,7 +2935,12 @@ onload = initialize;
       </p>
       <textarea xmlns="http://www.w3.org/1999/xhtml" style="background: white; width: 390px; height: 50px; padding:0; font: 10px 'Courier New', Courier, monospace; " id="exportarea"/>
       <p style="margin-top:10px">
-	<a id="download" class="blue" href="javascript:download()">Prepare Download</a>  
+	<a id="download" class="blue" href="javascript:download()">Prepare Download</a>
+	<span id="format" class="invisible">
+	  Download
+	  <a id="download_svg" class="blue" download="gridmapper.svg">SVG</a>
+	  <a id="download_png" class="blue" download="gridmapper.png">PNG</a>
+	</span>  
 	<a id="export" class="blue" href="javascript:prepareLink()">Prepare Link</a>  
 	<a class="blue" href="https://github.com/kensanata/gridmapper#how-to-save">Learn More</a>
 	<br/>

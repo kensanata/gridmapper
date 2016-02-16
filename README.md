@@ -41,14 +41,18 @@ How to Save
 -----------
 
 This being a very simple web application, it has no access to your
-file system. And worse: If you use "Save As..." in your browser you'll
-save a copy *without* any of the changes you made!
+file system. And worse: If you use "Save As..." in Firefox or Chrome
+you'll save a copy *without* any of the changes you made!
 
-There are your options:
+These are your options:
+
+1. If you're using Safari, you can just save the page. This will
+   create a [webarchive](https://en.wikipedia.org/wiki/Webarchive).
 
 1. Click on **Text Export** and copy the content of the text area into
    a text file. When you come back later, paste the text file into the
-   text area and click **Text Import**. This is usually your best bet.
+   text area and click **Text Import**. This text file is basically a
+   little script recreating your dungeon.
 
 1. Click on **Prepare Link** and then click on the resulting *Link*.
    Bookmark this page. The link now basically contains a little script
@@ -57,18 +61,17 @@ There are your options:
    length of a link, this will not work for *big* dungeons.
 
 2. Click on **Prepare Download** and the click on the resulting
-   *Download*. On **Firefox**, this will *download* a copy of Gridmapper
+   *SVG* link. On **Firefox**, this will *download* a copy of Gridmapper
    containing the current state of your dungeon. On **Chrome**, this will
    *open* a copy of Gridmapper containing the current state of your
-   dungeon. *Now* you can use "Save As..." On **IE** this won't work.
-   Yikes!
+   dungeon. *Now* you can use "Save As..."
 
-3. Click on **Save to Wiki**. This will make your wiki public, which is nice.
-   It may also not be what you want if your players are watching the wiki.
-   In order for this to work, you need to
-   provide some information in the text area: put the dungeon name on
-   the first line, your name on the second line, and a description on
-   the third line. Example:
+3. Click on **Save to Wiki**. This will make your wiki public, which
+   is nice. It may also not be what you want if your players are
+   watching the wiki. In order for this to work, you need to provide
+   some information in the text area: put the dungeon name on the
+   first line, your name on the second line, and a description on the
+   third line. Example:
 
 ```
 Demo Dungeon
