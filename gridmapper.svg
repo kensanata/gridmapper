@@ -928,7 +928,11 @@ function disableLink(element) {
 function download () {
   // https://gist.github.com/gustavohenke/9073132
   var svg = document.querySelector('svg');
+  svg.getElementById('help').setAttribute('class', 'invisible');
+  svg.getElementById('pointer').setAttribute('class', 'invisible');
   var source = btoa(unescape(encodeURIComponent(new XMLSerializer().serializeToString(svg))));
+  svg.getElementById('help').removeAttribute('class');
+  svg.getElementById('pointer').removeAttribute('class');
   var prep = document.getElementById('download');
   var span = document.getElementById('format');
   var svgl  = document.getElementById('download_svg');
