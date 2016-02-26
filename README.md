@@ -57,21 +57,35 @@ These are your options:
 1. Click on **Prepare Link** and then click on the resulting *Link*.
    Bookmark this page. The link now basically contains a little script
    recreating your dungeon. This is ideal for sharing while chatting
-   with people. As browsers and web sites have size limitations on the
-   length of a link, this will not work for *big* dungeons.
+   with people or when posting a link on Facebook or Google+. You
+   might have to use a URL shortener such as
+   [goo.https](gl://goo.gl/). As browsers and web sites have size
+   limitations on the length of a link, this will not work for *big*
+   dungeons.
 
-2. Click on **Prepare Download** and the click on the resulting
-   *SVG* link. On **Firefox**, this will *download* a copy of Gridmapper
-   containing the current state of your dungeon. On **Chrome**, this will
-   *open* a copy of Gridmapper containing the current state of your
-   dungeon. *Now* you can use "Save As..."
+2. Click on **Prepare Download** and click on the resulting
+   **SVG** link. On **Firefox**, this will *download* a copy of
+   Gridmapper containing the current state of your dungeon. On
+   **Chrome**, this will *open* a copy of Gridmapper containing the
+   current state of your dungeon. *Now* you can use "Save As..." This
+   is also what you would use if you wanted to continue working on
+   your dungeon using an SVG editor such as
+   [Inkscape](https://inkscape.org/). This will also allow you to save
+   the map as a PDF file.
 
-3. Click on **Save to Wiki**. This will make your wiki public, which
-   is nice. It may also not be what you want if your players are
-   watching the wiki. In order for this to work, you need to provide
-   some information in the text area: put the dungeon name on the
-   first line, your name on the second line, and a description on the
-   third line. Example:
+2. Click on **Prepare Download** and click on the resulting **PNG**
+   link. This downloads a bitmap image. This is what you would use if
+   you wanted to continue working on your dungeon using
+   [Gimp](https://gimp.org/) or Photoshop. Remember, if you want to *print*
+   the dungeon, you need 300 dpi or 300 pixels per inch. You're probably
+   better off using the SVG file and converting it to PDF.
+
+3. Click on **Save to Wiki**. This will make your wiki public, which is nice.
+   It may also not be what you want if your players are watching the wiki.
+   In order for this to work, you need to
+   provide some information in the text area: put the dungeon name on
+   the first line, your name on the second line, and a description on
+   the third line. Example:
 
 ```
 Demo Dungeon
