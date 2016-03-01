@@ -2883,7 +2883,7 @@ onload = initialize;
 	      <use x="120" y="1" xlink:href="#stair-big"/>
 	    </a>
 	  </svg>
-	  <svg xmlns="http://www.w3.org/2000/svg" width="180" height="120" style="margin-left: -18px; margin-bottom: -72px">
+	  <svg xmlns="http://www.w3.org/2000/svg" width="180" height="140" style="margin-left: -18px; margin-bottom: -92px">
 	    <text x="1" y="15"><tspan class="key">0-9</tspan><tspan> :</tspan></text>
 	    <use x="61" y="1" xlink:href="#empty"/>
 	    <g class="labels" title="labels">
@@ -2898,16 +2898,16 @@ onload = initialize;
 	      <text x="91" y="48">Wall Mode</text>
 	    </a>
 	    <text>
-	      <tspan x="60" y="80">Use arrow keys</tspan>
-	      <tspan x="70" dy="20">or vi keys</tspan>
-	      <tspan x="60" dy="20">to move around</tspan>
+	      <tspan x="10" y="80">Use arrow keys</tspan>
+	      <tspan x="10" dy="20">or vi keys</tspan>
+	      <tspan x="10" dy="20">to move around</tspan>
 	    </text>
-	    <text x="25" y="80">
+	    <text x="150" y="80">
 	      <a xlink:href="javascript:interpret('k')" title="up">
 		<tspan class="key">k</tspan>
 	      </a>
 	    </text>
-	    <text x="5" y="98">
+	    <text x="130" y="100">
 	      <a xlink:href="javascript:interpret('h')" title="left">
 		<tspan class="key">h</tspan>
 	      </a>
@@ -2916,9 +2916,11 @@ onload = initialize;
 		<tspan class="key">l</tspan>
 	      </a>
 	    </text>
-	    <a xlink:href="javascript:interpret('j')" title="down">
-	      <text x="25" y="115"><tspan class="key">j</tspan></text>
-	    </a>
+	    <text x="150" y="120">
+	      <a xlink:href="javascript:interpret('j')" title="down">
+		<tspan class="key">j</tspan>
+	      </a>
+	    </text>
 	  </svg>
 	</p>
 	<p class="line">
