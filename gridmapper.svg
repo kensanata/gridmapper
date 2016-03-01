@@ -2141,6 +2141,8 @@ function keyPressed (evt) {
 
   case 'ArrowDown':
   case 'Down':
+  case 'j':
+  case 'J':
     if (evt.shiftKey) {
       wallModeOff();
       floor(Pen.x, Pen.y);
@@ -2151,6 +2153,8 @@ function keyPressed (evt) {
 
   case 'ArrowUp':
   case 'Up':
+  case 'k':
+  case 'K':
     if (evt.shiftKey) {
       wallModeOff();
       floor(Pen.x, Pen.y);
@@ -2161,6 +2165,8 @@ function keyPressed (evt) {
 
   case 'ArrowLeft':
   case 'Left':
+  case 'h':
+  case 'H':
     if (evt.shiftKey) {
       wallModeOff();
       floor(Pen.x, Pen.y);
@@ -2171,6 +2177,8 @@ function keyPressed (evt) {
 
   case 'ArrowRight':
   case 'Right':
+  case 'l':
+  case 'L':
   case ' ':
     if (evt.shiftKey) {
       wallModeOff();
@@ -2296,7 +2304,7 @@ function keyPressed (evt) {
     break;
 
   case '"':
-  case 'l':
+  case '\02': // STX (start of text) for the "abc" link (" is processed by interpretCont)
     showLabelField(Pen.x, Pen.y);
     break;
 
@@ -2827,30 +2835,28 @@ onload = initialize;
 	</p>
 	<p class="line">
 	  <a href="javascript:interpret('d')"><span class="key">d</span> :</a>
-	  <svg xmlns="http://www.w3.org/2000/svg" width="91" height="22">
+	  <svg xmlns="http://www.w3.org/2000/svg" width="180" height="52" style="margin-top: -30px">
 	    <a xlink:href="javascript:interpret('d')" title="door">
-	      <use x="10" y="1" xlink:href="#empty"/>
-	      <use x="10" y="1" xlink:href="#door"/>
+	      <use x="10" y="31" xlink:href="#empty"/>
+	      <use x="10" y="31" xlink:href="#door"/>
 	    </a>
 	    <a xlink:href="javascript:interpret('dv')" title="secret door">
-	      <use x="40" y="1" xlink:href="#empty"/>
-	      <use x="40" y="1" xlink:href="#secret"/>
+	      <use x="40" y="31" xlink:href="#empty"/>
+	      <use x="40" y="31" xlink:href="#secret"/>
 	    </a>
 	    <a xlink:href="javascript:interpret('dvv')" title="concealed door">
-	      <use x="70" y="1" xlink:href="#empty"/>
-	      <use x="70" y="1" xlink:href="#concealed"/>
+	      <use x="70" y="31" xlink:href="#empty"/>
+	      <use x="70" y="31" xlink:href="#concealed"/>
 	    </a>
-	  </svg>
-	  <svg xmlns="http://www.w3.org/2000/svg" width="47" height="42" style="vertical-align:bottom; margin-top: -20px">
 	    <a xlink:href="javascript:interpret('dvvv')" title="double door, gate">
-	      <use x="5" y="1" xlink:href="#empty"/>
-	      <use x="5" y="21" xlink:href="#empty"/>
-	      <use x="5" y="1" xlink:href="#gate"/>
+	      <use x="100" y="11" xlink:href="#empty"/>
+	      <use x="100" y="31" xlink:href="#empty"/>
+	      <use x="100" y="11" xlink:href="#gate"/>
 	    </a>
 	  </svg>
-	  <span>
-	    <a href="javascript:interpret('l')"><span class="key">"abc"</span> :</a>
-	    <svg xmlns="http://www.w3.org/2000/svg" width="41" height="22">
+	  <span style="margin-left: -34px">
+	    <a href="javascript:interpret('\02')"><span class="key">"abc"</span> :</a>
+	    <svg xmlns="http://www.w3.org/2000/svg" width="130" height="22">
 	      <use x="10" y="1" xlink:href="#empty"/>
 	      <g class="labels" title="labels">
 		<text x="20" y="15">abc</text>
@@ -2858,9 +2864,9 @@ onload = initialize;
 	    </svg>
 	  </span>
 	</p>
-	<p class="line" style="margin: 0">
+	<p class="line">
 	  <a href="javascript:interpret('s')"><span class="key">s</span> :</a>
-	  <svg xmlns="http://www.w3.org/2000/svg" width="161" height="52">
+	  <svg xmlns="http://www.w3.org/2000/svg" width="180" height="52">
 	    <a xlink:href="javascript:interpret('s')" title="stairs">
 	      <use x="10" y="1" xlink:href="#stair"/>
 	    </a>
@@ -2877,19 +2883,41 @@ onload = initialize;
 	      <use x="120" y="1" xlink:href="#stair-big"/>
 	    </a>
 	  </svg>
-	  <svg xmlns="http://www.w3.org/2000/svg" width="170" height="56">
-	    <text x="3" y="15"><tspan class="key">0-9</tspan><tspan> :</tspan></text>
-	    <use x="63" y="1" xlink:href="#empty"/>
+	  <svg xmlns="http://www.w3.org/2000/svg" width="180" height="120" style="position: absolute; margin-left: -10px">
+	    <text x="1" y="15"><tspan class="key">0-9</tspan><tspan> :</tspan></text>
+	    <use x="61" y="1" xlink:href="#empty"/>
 	    <g class="labels" title="labels">
-	      <text x="72.5" y="15">123</text>
+	      <text x="71" y="15">123</text>
 	    </g>
 	    <a xlink:href="javascript:interpret('m')">
-	      <text x="20" y="48"><tspan class="key">m</tspan><tspan> :</tspan></text>
+	      <text x="17" y="48"><tspan class="key">m</tspan><tspan> :</tspan></text>
 	    </a>
 	    <a xlink:href="javascript:interpret('m')" title="Wall Mode">
-	      <use x="63" y="35" xlink:href="#empty"/>
-	      <use x="53" y="35" xlink:href="#cursor"/>
-	      <text x="93" y="48">Wall Mode</text>
+	      <use x="61" y="35" xlink:href="#empty"/>
+	      <use x="51" y="35" xlink:href="#cursor"/>
+	      <text x="91" y="48">Wall Mode</text>
+	    </a>
+	    <text>
+	      <tspan x="60" y="80">Use arrow keys</tspan>
+	      <tspan x="70" dy="20">or vi keys</tspan>
+	      <tspan x="60" dy="20">to move around</tspan>
+	    </text>
+	    <text x="25" y="80">
+	      <a xlink:href="javascript:interpret('k')" title="up">
+		<tspan class="key">k</tspan>
+	      </a>
+	    </text>
+	    <text x="5" y="98">
+	      <a xlink:href="javascript:interpret('h')" title="left">
+		<tspan class="key">h</tspan>
+	      </a>
+	      ╋
+	      <a xlink:href="javascript:interpret('l')" title="right">
+		<tspan class="key">l</tspan>
+	      </a>
+	    </text>
+	    <a xlink:href="javascript:interpret('j')" title="down">
+	      <text x="25" y="115"><tspan class="key">j</tspan></text>
 	    </a>
 	  </svg>
 	</p>
