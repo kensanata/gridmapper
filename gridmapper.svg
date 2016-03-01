@@ -2883,7 +2883,7 @@ onload = initialize;
 	      <use x="120" y="1" xlink:href="#stair-big"/>
 	    </a>
 	  </svg>
-	  <svg xmlns="http://www.w3.org/2000/svg" width="180" height="120" style="position: absolute; margin-left: -10px">
+	  <svg xmlns="http://www.w3.org/2000/svg" width="180" height="120" style="margin-left: -18px; margin-bottom: -72px">
 	    <text x="1" y="15"><tspan class="key">0-9</tspan><tspan> :</tspan></text>
 	    <use x="61" y="1" xlink:href="#empty"/>
 	    <g class="labels" title="labels">
