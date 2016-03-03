@@ -1197,13 +1197,14 @@ function loadMenu (event) {
   var menu = document.createElementNS(svgNs, 'rect');
   menu.setAttribute('x', x);
   menu.setAttribute('y', y);
-  menu.setAttribute('width', 10 * Map.tileWidth);
-  menu.setAttribute('height', (0.5 + links.length) * Map.tileWidth);
+  var perColumn = Map.height - 2;
+  var n = 1;
+  menu.setAttribute('width', 10 * Map.tileWidth * Math.ceil(links.length / perColumn));
+  menu.setAttribute('height', (0.5 + perColumn) * Map.tileWidth);
   menu.setAttribute('fill', 'white');
   menu.setAttribute('stroke', 'black');
   menu.setAttribute('stroke-width', '1');
   g.appendChild(menu);
-  // FIXME: once we have enough maps, add columns and scrolling!
   for (var i = 0; i < links.length; i++) {
     var a = document.createElementNS(svgNs, 'a');
     var href = links[i].getAttribute('href');
@@ -1225,11 +1226,17 @@ function loadMenu (event) {
     rect.setAttribute('fill', 'white');
     rect.setAttribute('opacity', '0');
     a.appendChild(rect);
-    y += Map.tileWidth;
+    if (n++ < perColumn) {
+      y += Map.tileWidth;
+    } else {
+      n = 1;
+      y = 2 * Map.tileWidth;
+      x += 10 * Map.tileWidth;
+    }
   }
   document.rootElement.appendChild(g);
-  var ms = 3000 + 500 * links.length;
-  var t1 = setTimeout(function(){fadeElementTo(g, 0, linear, ms - 3000);}, 3000);
+  var ms = 5000 + 500 * links.length;
+  var t1 = setTimeout(function(){fadeElementTo(g, 0, linear, ms - 5000);}, 5000);
   var t2 = setTimeout(function(){document.rootElement.removeChild(g);}, ms);
   g.onclick = function(evt) {
     clearTimeout(t1);
