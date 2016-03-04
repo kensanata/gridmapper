@@ -1098,7 +1098,8 @@ function save () {
 function saveIt (title, username, summary, onload) {
   var data = {
     title: title,
-    text: (summary || '') + '\n{{{\n' + getSource() + '}}}\n',
+    text: '[[Gridmapper:' + title + ']]: '
+      + (summary || '') + '\n{{{\n' + getSource() + '}}}\n',
     username: Map.username,
     summary: summary,
     frodo: 1,
@@ -1197,7 +1198,7 @@ function loadMenu (event) {
   var menu = document.createElementNS(svgNs, 'rect');
   menu.setAttribute('x', x);
   menu.setAttribute('y', y);
-  var perColumn = Map.height - 2;
+  var perColumn = Math.min(links.length, Map.height - 2);
   var n = 1;
   menu.setAttribute('width', 10 * Map.tileWidth * Math.ceil(links.length / perColumn));
   menu.setAttribute('height', (0.5 + perColumn) * Map.tileWidth);
