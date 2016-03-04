@@ -2441,9 +2441,15 @@ function recreateModel () {
   if (z === 0) {
     createLevel(0);
   }
-  // skip initial '?', start at level 0
+  // start at level 0
   Map.setLevel(0);
-  interpret(decodeURIComponent(window.location.search).substring(1));
+  // parse URL
+  var str = decodeURIComponent(window.location.search);
+  if (str.substr(0, 6) === '?load=') {
+    loadMap(wikiUrl + '/' + str.substr(6));
+  } else if (str.charAt(0) === '?') {
+    interpret(str.substring(1));
+  }
   // at the end, move to the top of the dungeon and show it
   Map.jump(0);
   Map.showLevelAnimation();
@@ -2516,9 +2522,9 @@ function initialize () {
   scaleTiles();
   Map.initialize(); // don't reset the Map so we can load from a file
   Pen.update(null); // show it
-  recreateModel(); // create model
   if (window.location.hostname === 'localhost') // testing
     wikiUrl = 'http://localhost/cgi-bin/wiki';
+  recreateModel(); // create model from SVG or URL
 }
 
 onload = initialize;
