@@ -27,6 +27,7 @@ var xlinkNs    = 'http://www.w3.org/1999/xlink';
 var inkscapeNs = 'http://www.inkscape.org/namespaces/inkscape';
 var xhtmlNs    = 'http://www.w3.org/1999/xhtml';
 var wikiUrl    = 'https://campaignwiki.org/wiki/Gridmapper';
+var wsUrl      = 'ws://localhost:3000';
 
 /**
  * Stores everything about the map. The element members point to the
@@ -55,12 +56,10 @@ var Map = {
   labelsElement: null, // the SVG element for the labels of the current level
   hideOthers: false, // are the other levels hidden?
   lastUrl: null, // last URL loaded
-  trail: null, // last map loaded + the current key trail
   lastEtag: null, // last etag received
-  autocount: 0, // number of autoloads or autosaves
-  auto: null, // is auto 'save' or 'load' enabled
-  title: null, // the name of the map (after saving to the wiki)
   username: null, // the name of the user (after saving to the wiki)
+  websocket: null, // the websocket used to host or listen
+  joined: false, // true when a map is joined (no input)
   
   /**
    * Initializes the datastructures if necessary. We only need to run
@@ -83,10 +82,7 @@ var Map = {
     // http://javascript.info/tutorial/mouse-events#drag-n-drop
     Map.ui = document.getElementById('ui'); // will be moved, too
     Map.ui.ondragstart = function() { return false };
-    Map.ui.onmousemove = Pen.update;
-    Map.ui.ontouchend = Pen.update;
-    Map.ui.onmousedown = penDown;
-    Map.ui.ontouchstart = penDown;
+    Map.enable();
     // cannot load or save unless sharing the domain!
     if (window.location.hostname !== 'campaignwiki.org'
         && window.location.hostname !== 'localhost') {
@@ -96,11 +92,33 @@ var Map = {
     // http://javascript.info/tutorial/keyboard-events
     Map.exportarea = document.getElementById('exportarea');
     Map.labelfield = document.getElementById('label');
-    document.onkeydown = keyPressed; // capture arrow keys
-    document.onkeypress = keyPressed; // capture character keys
     Map.symbolInit();
   },
 
+  /**
+   * Enable editing on the map.
+   */
+  enable: function() {
+    Map.ui.onmousemove = Pen.update;
+    Map.ui.ontouchend = Pen.update;
+    Map.ui.onmousedown = penDown;
+    Map.ui.ontouchstart = penDown;
+    document.onkeydown = keyPressed; // capture arrow keys
+    document.onkeypress = keyPressed; // capture character keys
+  },
+
+  /**
+   * Disable editing on the map.
+   */
+  disable: function() {
+    Map.ui.onmousemove = null;
+    Map.ui.ontouchend = null;
+    Map.ui.onmousedown = null;
+    Map.ui.ontouchstart = null;
+    document.onkeydown = null; // capture arrow keys
+    document.onkeypress = null; // capture character keys
+  },
+  
   /**
    * Reset the map. This collects the minimum we need to clean
    * everything up. We run this code before starting the demo, for
@@ -109,7 +127,6 @@ var Map = {
   reset: function() {
     Commands.reset();
     Pen.reset();
-    Map.trail = '';
     while (Map.levelsElement.lastChild) 
       Map.levelsElement.removeChild(Map.levelsElement.lastChild);
     Map.levels = [];
@@ -117,13 +134,6 @@ var Map = {
     Map.setLevel(0);
     Map.showLevelAnimation(0);
     moveElements();
-  },
-
-  /**
-   * Record a trail of commands for saving. This is not the same as the command undo/redo history!
-   */
-  record: function(key) {
-    Map.trail += key;
   },
   
   /**
@@ -344,7 +354,7 @@ var Map = {
           
           // label must precede floor tiles which advance the position
           var label = Map.data.get(x, y).label;
-	  if (label != undefined) {
+	  if (label !== null) {
 	    if (label.textContent.search(/^[0-9]*$/) === 0) {
               source += label.textContent;
             } else {
@@ -474,6 +484,7 @@ var Pen = {
         Pen.ts = null;
         Pen.x = pos.x;
         Pen.y = pos.y;
+        record('(' + Pen.x + ',' + Pen.y + ')');
       }
     }
     Map.pointer.setAttribute('x', (Pen.x + 1) * Map.tileWidth);
@@ -494,10 +505,10 @@ var Pen = {
       Pen.x += target.x > Pen.x ? 0.5 : -0.5;
       Pen.y += target.y > Pen.y ? 0.5 : -0.5;
       return true;
-    } else if (Pen.x != target.x) {
+    } else if (Pen.x !== target.x) {
       Pen.x += target.x > Pen.x ? 1 : -1;
       return true;
-    } else if (Pen.y != target.y) {
+    } else if (Pen.y !== target.y) {
       Pen.y += target.y > Pen.y ? 1 : -1;
       return true;
     }
@@ -625,14 +636,9 @@ var Demo = {
    */
   run: function () {
     Map.reset();
-    Pen.x = 0;
-    Pen.y = 0;
     Demo.running = true;
     Demo.link('Click to stop demo', 'Demo.stop()', false);
-    Map.ui.onmousemove = null;
-    Map.ui.onmousedown = null;
-    Map.ui.ontouchmove = null;
-    Map.ui.ontouchstart = null;
+    Map.disable();
     Demo.element = document.getElementById('messages');
     moveElement(Demo.element,
                 Demo.element.getBBox().x,
@@ -651,10 +657,7 @@ var Demo = {
     Demo.running = null;
     Demo.clean(null);
     wallModeOff();
-    Map.ui.onmousemove = Pen.update;
-    Map.ui.onmousedown = penDown;
-    Map.ui.ontouchmove = Pen.update;
-    Map.ui.ontouchstart = penDown;
+    Map.enable();
     Demo.link('Abort! Abort!', 'void', false);
   },
 
@@ -819,7 +822,7 @@ function moveElement (element, x1, y1, x2, y2, delta, duration) {
   var newDy = y2 - currentY;
   element.currentX = x2;
   element.currentY = y2;
-  if (newDx != 0 || newDy != 0)
+  if (newDx !== 0 || newDy !== 0)
     animate({
       delay: 10,
       duration: duration || 1000, // 1 sec by default
@@ -1072,21 +1075,13 @@ function save () {
             + 'and the third line for a summary.');
     return;
   }
-  var title = inputs[0];
-  var username = inputs[1];
-  var summary = inputs[2];
-  if (title.search(/^([-,.()'%&?;<> _1-9A-Za-z\u0080-\ufffd]|[-,.()'%&?;<> _0-9A-Za-z\u0080-\ufffd][-,.()'%&?;<> _0-9A-Za-z\u0080-\ufffd]+)$/) !== 0) {
+  if (inputs[0].search(/^([-,.()'%&?;<> _1-9A-Za-z\u0080-\ufffd]|[-,.()'%&?;<> _0-9A-Za-z\u0080-\ufffd][-,.()'%&?;<> _0-9A-Za-z\u0080-\ufffd]+)$/) !== 0) {
     message('Unfortunately, this name is not a valid wiki page name');
     return;
   }
-  Map.title = title; // remember for autosave
-  Map.username = inputs[1] || 'Gridmapper'; // remember for autosave
-  var onload = function(event) {
-    enableIt('autosave', true);
-    enableIt('autoload', false);
-    message('Saved');
-  }
-  saveIt(title, Map.username, inputs[2] || 'Map saved', onload);
+  saveIt(inputs[0],
+         inputs[1] || 'Gridmapper',
+         inputs[2] || 'Map saved');
 }
 
 /**
@@ -1095,7 +1090,7 @@ function save () {
  * following this redirect. The AJAX stuff is based on
  * https://developer.mozilla.org/en-US/docs/Web/Guide/HTML/Forms/Sending_forms_through_JavaScript#Building_an_XMLHttpRequest_manually
  */
-function saveIt (title, username, summary, onload) {
+function saveIt (title, username, summary) {
   var data = {
     title: title,
     text: '[[Gridmapper:' + title + ']]: '
@@ -1112,10 +1107,11 @@ function saveIt (title, username, summary, onload) {
     urlEncodedDataPairs.push(encodeURIComponent(name) + '=' + encodeURIComponent(data[name]));
   }
   urlEncodedData = urlEncodedDataPairs.join('&').replace(/%20/g, '+');
-  XHR.addEventListener('load', onload);
+  XHR.addEventListener('load', function(event) {
+    message('Saved');
+  });
   XHR.addEventListener('error', function(event) {
     message('Unfortunately the map could not be saved.');
-    enableIt('autosave', false);
   });
   try {
     XHR.open('POST', wikiUrl);
@@ -1125,38 +1121,6 @@ function saveIt (title, username, summary, onload) {
     message('This did not work.\n'
             + 'Perhaps you tried to save to the wiki\n'
             + 'without loading the script from the wiki?');
-    enableIt('autosave', false);
-  }
-}
-
-/**
- * Implement the timer to keep autosaving.
- */
-function autosaveIt() {
-  if (Map.auto === 'save'
-      // stop after 60 minutes (20s per reload), just to be sure
-      && Map.autocount++ < 180) {
-    var onload = function(event) {
-      message('Autosaved');
-      setTimeout(autosaveIt, 20000); // auto save every 20s
-      enableIt('autosave', true); // update text
-      enableIt('autoload', false); // make sure this is correct
-    };
-    saveIt(Map.title, Map.username, 'autosave', onload);
-  }
-}
-
-/**
- * Start autosaving the dungeon.
- */
-function autosave () {
-  if (Map.auto !== 'save') {
-    Map.auto = 'save';
-    autosaveIt();
-  } else {
-    Map.auto = null;
-    enableIt('autosave', true); // update text
-    message('Autosave disabled');
   }
 }
 
@@ -1275,7 +1239,6 @@ function loadMap(url) {
 function loadIt(event) {
   if (event.target.status === 304) {
     message('Map unchanged...');
-    enableIt('autoload', true); // update text
     return;
   }
   var doc = event.target.responseXML;
@@ -1303,88 +1266,128 @@ function loadIt(event) {
     }
     var h1 = doc.getElementsByTagNameNS(xhtmlNs, 'h1')[0];
     Map.exportarea.value = h1.textContent + '\n' + username + '\n';
-    enableIt('autoload', true);
-    enableIt('autosave', false);
   }
 }
 
 /**
- * Implement the timer to keep autoloading.
+ * Hosts a map on Campaign Wiki. It reads the map name from the
+ * exportarea multiline text field. Information is sent via record.
  */
-function autoloadIt() {
-  if (Map.auto === 'load'
-      // stop after 60 minutes (20s per reload), just to be sure
-      && Map.autocount++ < 180) {
-    setTimeout(autoloadIt, 20000); // auto load every 20s
-    loadMap(Map.lastUrl);
+function host () {
+  var input = Map.exportarea.value;
+  if (input === undefined || input === '' || input.split('\n').length > 1) {
+    message('Please provide a name for your map in the text area!');
+    return;
   }
-}
-
-/**
- * Start autoloading the dungeon.
- */
-function autoload () {
-  if (Map.auto !== 'load') {
-    Map.auto = 'load';
-    autoloadIt();
-  } else {
-    Map.auto = null;
-    enableIt('autoload', true); // update text
-    message('Autoload disabled');
+  if (Map.websocket !== null) {
+    Map.websocket.close();
   }
-}
-
-
-/**
- * Disable the autoload and autosave links.
- */
-function disableCheckboxes () {
-  enableIt('autoload', false);
-  enableIt('autosave', false);
-}
-
-/**
- * Enables or disables auto load and auto save links.
- */
-function enableIt (id, enabled) {
-  var element = document.getElementById(id);
-  if (element != null) {
-    var text;
-    element.disabled = !enabled;
-    if (enabled) {
-      element.removeAttribute('style');
-      element.setAttribute('href', 'javascript:' + id + '()');
-      if (id === 'autosave') {
-        if (Map.auto === 'save') {
-          element.setAttribute('title', 'This will stop saving the map every 20s');
-          element.textContent = 'disable auto save';
-        } else {
-          element.setAttribute('title', 'This will save the map every 20s');
-          element.textContent = 'enable auto save';
-        }
-      } else if (id === 'autoload') {
-        if (Map.auto === 'load') {
-          element.setAttribute('title', 'This will stop reloading the map every 20s');
-          element.textContent = 'disable auto load';
-        } else {
-          element.setAttribute('title', 'This will reload the map every 20s');
-          element.textContent = 'enable auto load';
-        }
-      }
+  Map.websocket = new WebSocket(wsUrl + '/draw/' + encodeURIComponent(input));
+  Map.websocket.onopen = function(evt) {
+    message('Hosting ' + input);
+    document.getElementById('join').setAttribute('class', 'invisible');
+    var link = document.getElementById('host');
+    link.firstChild.nodeValue = 'Cancel Hosting';
+    link.setAttribute('href', 'javascript:stop()');
+  };
+  Map.websocket.onclose = function(evt) {
+    message('Stopped hosting');
+  };
+  Map.websocket.onmessage = function(evt) {
+    if (evt.data === 'reset') {
+      Map.websocket.send('\02' + getSource() + '\03');
     } else {
-      element.setAttribute('style', 'color:grey');
-      element.setAttribute('href', 'javascript:void()');
-      if (id === 'autosave') {
-        element.setAttribute('title', 'Save a map to the wiki to enable autosaving');
-        element.textContent = 'auto save';
-      } else if (id === 'autoload') {
-        element.setAttribute('title', 'Load a map from the wiki to enable autoloading');
-        element.textContent = 'auto load';
-      }
+      console.log('Ignoring message from host: ' + evt.data);
     }
+  };
+  Map.websocket.onerror = function(evt) {
+    message('Hosting error: ' + evt.data);
+  };
+}
+
+function stop () {
+  if (Map.websocket !== null) {
+    Map.websocket.close();
   }
-  // restart the counter
-  Map.autocount = 0;
+  message('Stopped Hosting');
+  document.getElementById('join').setAttribute('class', 'blue');
+  var link = document.getElementById('host');
+  link.firstChild.nodeValue = 'Host';
+  link.setAttribute('href', 'javascript:host()');
+}
+
+/**
+ * Join a hosted map on Campaign Wiki. It reads the map name from the
+ * exportarea multiline text field.
+ */
+
+function join () {
+  var input = Map.exportarea.value;
+  if (input === undefined || input === '' || input.split('\n').length > 1) {
+    message('Please provide the name of a hosted map in the text area!');
+    return;
+  }
+  if (Map.websocket !== null) {
+    Map.websocket.close();
+  }
+  Map.websocket = new WebSocket(wsUrl + '/join/' + encodeURIComponent(input));
+  Map.websocket.onopen = function(evt) {
+    message('Joined ' + input);
+    Map.reset();
+    Map.showLevelAnimation();
+    Pen.update(null);
+    Map.disable();
+    Map.joined = true;
+    document.getElementById('host').setAttribute('class', 'invisible');
+    var link = document.getElementById('join');
+    link.firstChild.nodeValue = 'Leave Map';
+    link.setAttribute('href', 'javascript:leave()');
+    Map.websocket.send('reset');
+  };
+  Map.websocket.onclose = function(evt) {
+    Map.joined = false;
+    Map.enable();
+    document.getElementById('host').setAttribute('class', 'blue');
+    var link = document.getElementById('join');
+    link.firstChild.nodeValue = 'Join';
+    link.setAttribute('href', 'javascript:join()');
+    if (Map.websocket.readyState === WebSocket.OPEN) {
+      message('Left map'); // don't send msg if error is being sent
+    }
+  };
+  Map.websocket.onmessage = function(evt) {
+    interpretCont(evt.data, 0); // skip the test for Map.joined in interpret()
+  };
+  Map.websocket.onerror = function(evt) {
+    if (Map.websocket.readyState === WebSocket.OPEN) {
+      message('Network error: ' + evt.data);
+    } else {
+      message('Could not join ' + input);
+    }
+  };
+}
+
+function leave () {
+  if (Map.websocket !== null) {
+    Map.websocket.close();
+  }
+  message('Left map');
+  document.getElementById('host').setAttribute('class', 'blue');
+  var link = document.getElementById('join');
+  link.firstChild.nodeValue = 'Join';
+  link.setAttribute('href', 'javascript:join()');
+}
+
+/**
+ * Record all commands for hosting. This is not the same as the
+ * command undo/redo history! Recorded commands are sent to the
+ * websocket if were're connected and we're not listening instead.
+ */
+function record (key) {
+  if (Map.websocket !== null && Map.websocket.readyState === WebSocket.OPEN
+      && !Map.joined) {
+    Map.websocket.send(key);
+  }
 }
 
 /**
@@ -1406,7 +1409,7 @@ function scaleTiles () {
     if (tiles[i].nodeType === Node.ELEMENT_NODE
         && tiles[i].hasAttribute('width')) {
       var scale = Map.tileWidth / tiles[i].getAttribute('width');
-      if (scale != 1) {
+      if (scale !== 1) {
         tiles[i].setAttribute('transform', 'scale('+scale+','+scale+')');
       }
     }
@@ -1590,7 +1593,7 @@ function wallPlacement (x, y, type) {
     var old = tile.getAttribute('transform');
     var angle = parseInt(tile.getAttribute('rotate'));
     var rotate = getUnusedAngle(x, y, (angle + 90) % 360);
-    if (rotate != null) {
+    if (rotate !== null) {
       type = tile.type; // use 'concealed' instead of 'door' for example
       Commands.do(
         function(){
@@ -1602,7 +1605,7 @@ function wallPlacement (x, y, type) {
     }
   } else {
     var rotate = getUnusedAngle(x, y, 0);
-    if (rotate != null) {
+    if (rotate !== null) {
       var tile = createTile(x, y, type);
       rotateTile(tile, type, x, y, rotate);
       Commands.do(
@@ -1740,7 +1743,7 @@ function removeWall (x, y) {
   } else {
     i = walls.length - 1;
   }
-  if (i != null && i >= 0) {
+  if (i !== null && i >= 0) {
     var old = walls[i];
     Commands.do(
       function(){
@@ -1762,7 +1765,7 @@ function removeWall (x, y) {
  */
 function draw (x, y, type) {
   var old = Map.data.get(x, y).floor;
-  if (old != null && old.type === type) {
+  if (old !== null && old.type === type) {
     floor(x, y);
   } else {
     replaceFloor(x, y, old, createTile(x, y, type));
@@ -1884,7 +1887,7 @@ function floorRotate (x, y, type) {
  */
 function floor (x, y) {
   var old   = Map.data.get(x, y).floor;
-  if (!old || old.type != 'empty') {
+  if (!old || old.type !== 'empty') {
     replaceFloor(x, y, old, createTile(x, y, 'empty'));
   } else {
     replaceFloor(x, y, old, null);
@@ -1892,7 +1895,7 @@ function floor (x, y) {
 }
 
 /**
- * Ease floor tile, if any.
+ * Erase floor tile, if any.
  */
 function removeFloor (x, y) {
   var old   = Map.data.get(x, y).floor;
@@ -1910,9 +1913,8 @@ function removeFloor (x, y) {
  * creating closures for Commands, we need to do this in a factory.
  * https://developer.mozilla.org/en-US/docs/Web/JavaScript/Closures#Creating_closures_in_loops.3A_A_common_mistake
  */
-
 function drawToCommand (x, y, tile, type) {
-  Map.record('('+x+','+y+')f');
+  record('('+x+','+y+')f');
   var remove = function(){
     Map.floorElement.removeChild(tile);
     Map.data.get(x, y).floor = null;
@@ -1928,6 +1930,9 @@ function drawToCommand (x, y, tile, type) {
   }
 }
 
+/**
+ * Call drawToCommand based on the position data in the event.
+ */
 function drawTo (evt) {
   var target = Pen.position(evt);
   // draw up to the current position (at least once if we just started)
@@ -2065,8 +2070,8 @@ function move (dir) {
 }
 
 /**
- * Extract key from KeyboardEvent
- * Basic source from http://javascript.info/tutorial/keyboard-events#processing-the-character-keypress
+ * Extract key from KeyboardEvent Basic source from
+ * http://javascript.info/tutorial/keyboard-events#processing-the-character-keypress
  */
 function getChar(event) {
   if (event.which == null) {
@@ -2074,7 +2079,7 @@ function getChar(event) {
   } else if (event.which!=0 && event.charCode!=0) {
     return String.fromCharCode(event.which) // the rest character keys
   } else if (event.type == 'keydown') { // special key
-    if(event.key && event.key.length != 1) return event.key; // Firefox
+    if(event.key && event.key.length !== 1) return event.key; // Firefox
     if(event.keyIdentifier && event.keyIdentifier.substring(0,2) !== 'U+') return event.keyIdentifier; // Chrome
     if(event.keyCode === 8) return 'Backspace'; // Chrome Backspace
   }
@@ -2094,7 +2099,7 @@ function keyPressed (evt) {
   
   // Could be a string when running interpreted code.
   var key = evt;
-  var record = true;
+  var isRecorded = true;
   
   // When running the demo, ignore key events from the browser.
   if (!Demo.running && evt instanceof KeyboardEvent) {
@@ -2110,10 +2115,10 @@ function keyPressed (evt) {
     return;
   }
 
-  if (target != undefined && target.parentNode === Map.labelfield) {
+  if (target !== undefined && target.parentNode === Map.labelfield) {
     if (key === 'Enter') {
       saveLabel();
-      Map.record(Map.data.get(x, y).label.textContent + '"');
+      record(Map.data.get(Pen.x, Pen.y).label.textContent + '"');
     } else if (key === 'Esc') {
       hideLabelField();
     }
@@ -2156,7 +2161,7 @@ function keyPressed (evt) {
       floor(Pen.x, Pen.y);
     }
     move('down');
-    key = '[1,0]';
+    key = '(' + Pen.x + ',' + Pen.y + ')';
     break;
 
   case 'ArrowUp':
@@ -2168,7 +2173,7 @@ function keyPressed (evt) {
       floor(Pen.x, Pen.y);
     }
     move('up');
-    key = '[0,-1]';
+    key = '(' + Pen.x + ',' + Pen.y + ')';
     break;
 
   case 'ArrowLeft':
@@ -2180,7 +2185,7 @@ function keyPressed (evt) {
       floor(Pen.x, Pen.y);
     }
     move('left');
-    key = '-'; // record this instead
+    key = '(' + Pen.x + ',' + Pen.y + ')';
     break;
 
   case 'ArrowRight':
@@ -2193,7 +2198,7 @@ function keyPressed (evt) {
       floor(Pen.x, Pen.y);
     }
     move('right');
-    key = ' '; // record a space
+    key = '(' + Pen.x + ',' + Pen.y + ')';
     break;
 
   case '1':
@@ -2235,7 +2240,7 @@ function keyPressed (evt) {
   case 'Enter':
     if (evt.ctrlKey) {
       textImport();
-      record = false; // don't record this one
+      isRecorded = false; // don't record this one
     } else {
       wallModeOff();
       Pen.x = 0;
@@ -2312,31 +2317,61 @@ function keyPressed (evt) {
     break;
 
   case '"':
-  case '\02': // STX (start of text) for the "abc" link (" is processed by interpretCont)
+  case "'": // for the "abc" link: " is processed by interpretCont
     showLabelField(Pen.x, Pen.y);
     break;
 
   default:
     console.log('Gridmapper does not know how to handle "'+ key
                 + '" (keyIdentifier: '+evt.keyIdentifier+', keyCode: '+ evt.keyCode+')');
-    record = false;
+    isRecorded = false;
     break;
   }
 
-  if (record) {
-    Map.record(key);
+  if (isRecorded) {
+    record(key);
   }
 }
 
 /**
- * Interprets a sequence of characters as a script. A '.' will reset
- * the Pen's timestamp, simulating a pause (to prevent rotating the
- * last tile). A ';' will cause a timeout. This is used for the demo.
- * Since we don't want to freeze the computer, all the heavy lifting
- * is done by another function which knows how to finish the job.
+ * Interprets a sequence of characters as a script. Most of the job
+ * will be handled by keyPressed. The interpreter adds a few extra
+ * characters which are only useful non-interactively.
+ *
+ * '.' will reset the Pen's timestamp, simulating a pause (to prevent
+ * rotating the last tile)
+ *
+ * ';' will cause a pause (using a timeout). This is used for the
+ * demo. This is why the real code runs as interpretCont – it has a
+ * pointer into the code. 
+ * 
+ * '(1,2)' will move the pointer to this position.
+ *
+ * '[0,-1]' will move the pointer by this vector.
+ *
+ * '"abc"' will insert the label abc (instead of showing an input
+ * field). This is why the link in the help area sends a single quote
+ * instead of a double quote. The double quote is already taken for
+ * strings.
+ * 
+ * 'z' has an alternate implementation: when loading a map, going down
+ * should not animate anything, unless we're looking at the demo.
+ *
+ * '-' moves point to the left (a shorthand for '[-1,0]') if we have not
+ * joined a map and the next character is neither 'v' (a variation)
+ * nor a newline.
+ *
+ * 'f' places a floor tile and moves to the right unless you're 
+ *
+ * '\02' causes a map reset and is followed by a new map until we get
+ * to the '\03' characters (Ctrl-B is Start Of Text, Ctrl-C is End Of
+ * Text), because while the map is being read, '-' and 'f' have the
+ * same meaning as while loading a map...
  */
 function interpret (code) {
-  interpretCont(code, 0);
+  if (!Map.joined) {
+    interpretCont(code, 0);
+  }
 }
 
 /**
@@ -2374,6 +2409,8 @@ function interpretCont (code, i) {
           Pen.y = y;
           if (z >= 0)
             Map.jump(z);
+          if (Map.joined)
+            Pen.update(null);
         }
         i += match[0].length - 1; // will get incremented above
       }
@@ -2408,14 +2445,25 @@ function interpretCont (code, i) {
         Map.jump(Map.level + 1);
       }
       break;
+    case '\02': // Ctrl-B
+      Map.reset();
+      Map.joined = false; // start loading a map
+      break;
+    case '\03': // Ctrl-C
+      if (Map.websocket !== null && Map.websocket.readyState === WebSocket.OPEN)
+          Map.joined = true; // end of loading a map
+      break;
     case 'f':
-      advance = 'right';
+        advance = 'right';
       // fall through to default
     default:
       keyPressed(code[i]);
     }
-    // advance unless we're going to move elsewhere or switch a variant (peek ahead)
-    if (advance && code[i+1] !== 'v' && code[i+1] !== '\n' && code[i] !== '(' && code[i] !== '[')
+    // advance unless we're going to move elsewhere or switch a
+    // variant (peek ahead); also don't advance when we joined a
+    // hosted map
+    if (!Map.joined && advance && code[i+1] !== 'v'
+        && code[i+1] !== '\n' && code[i] !== '(' && code[i] !== '[')
       move(advance);
   }
 }
@@ -2519,7 +2567,6 @@ function createLevel (z) {
  * Initialize the user interface.
  */
 function initialize () {
-  disableCheckboxes();
   scaleTiles();
   Map.initialize(); // don't reset the Map so we can load from a file
   Pen.update(null); // show it
@@ -2849,27 +2896,30 @@ onload = initialize;
 	</p>
 	<p class="line">
 	  <a href="javascript:interpret('d')"><span class="key">d</span> :</a>
-	  <svg xmlns="http://www.w3.org/2000/svg" width="180" height="52" style="margin-top: -30px">
+	  <svg xmlns="http://www.w3.org/2000/svg" width="95" height="22">
 	    <a xlink:href="javascript:interpret('d')" title="door">
-	      <use x="10" y="31" xlink:href="#empty"/>
-	      <use x="10" y="31" xlink:href="#door"/>
+	      <use x="10" y="1" xlink:href="#empty"/>
+	      <use x="10" y="1" xlink:href="#door"/>
 	    </a>
 	    <a xlink:href="javascript:interpret('dv')" title="secret door">
-	      <use x="40" y="31" xlink:href="#empty"/>
-	      <use x="40" y="31" xlink:href="#secret"/>
+	      <use x="40" y="1" xlink:href="#empty"/>
+	      <use x="40" y="1" xlink:href="#secret"/>
 	    </a>
 	    <a xlink:href="javascript:interpret('dvv')" title="concealed door">
-	      <use x="70" y="31" xlink:href="#empty"/>
-	      <use x="70" y="31" xlink:href="#concealed"/>
-	    </a>
-	    <a xlink:href="javascript:interpret('dvvv')" title="double door, gate">
-	      <use x="100" y="11" xlink:href="#empty"/>
-	      <use x="100" y="31" xlink:href="#empty"/>
-	      <use x="100" y="11" xlink:href="#gate"/>
+	      <use x="70" y="1" xlink:href="#empty"/>
+	      <use x="70" y="1" xlink:href="#concealed"/>
 	    </a>
 	  </svg>
-	  <span style="margin-left: -34px">
-	    <a href="javascript:interpret('\02')"><span class="key">"abc"</span> :</a>
+	  <svg xmlns="http://www.w3.org/2000/svg" width="95" height="52"
+	       style="margin-left: -10px; margin-top: -32px">
+	    <a xlink:href="javascript:interpret('dvvv')" title="double door, gate">
+	      <use x="10" y="11" xlink:href="#empty"/>
+	      <use x="10" y="31" xlink:href="#empty"/>
+	      <use x="10" y="11" xlink:href="#gate"/>
+	    </a>
+	  </svg>
+	  <span style="margin-left: -42px">
+	    <a href="javascript:interpret('&apos;')"><span class="key">"abc"</span> :</a>
 	    <svg xmlns="http://www.w3.org/2000/svg" width="130" height="22">
 	      <use x="10" y="1" xlink:href="#empty"/>
 	      <g class="labels" title="labels">
@@ -2992,10 +3042,10 @@ onload = initialize;
 	<a id="export" class="blue" href="javascript:prepareLink()">Prepare Link</a>  
 	<a class="blue" href="https://github.com/kensanata/gridmapper#how-to-save">Learn More</a>
 	<br/>
-	<a id="save" class="blue" title="Put the name of the map in the text area above when saving" href="javascript:save()">Save</a>
-        (<a id="autosave" class="blue">auto save</a>)  
-	<a id="load" class="blue" href="javascript:load()">Load</a>
-        (<a id="autoload" class="blue">auto load</a>)
+	<a id="save" class="blue" title="Save the map to the wiki" href="javascript:save()">Save</a>  
+	<a id="load" class="blue" title="Load a map from the wiki" href="javascript:load()">Load</a>  
+	<a id="host" class="blue" title="Host a map for your friends" href="javascript:host()">Host</a>  
+	<a id="join" class="blue" title="Join a map being hosted" href="javascript:join()">Join</a>
 	<br/>
 	<a class="blue" href="https://github.com/kensanata/gridmapper">Source</a>  
 	<a id="demo" class="blue" href="javascript:Demo.start()">Demo</a>
