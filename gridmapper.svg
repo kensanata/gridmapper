@@ -60,6 +60,7 @@ var Map = {
   username: null, // the name of the user (after saving to the wiki)
   websocket: null, // the websocket used to host or listen
   joined: false, // true when a map is joined (no input)
+  hosting: false, // true when a map is hosting
   
   /**
    * Initializes the datastructures if necessary. We only need to run
@@ -1236,7 +1237,7 @@ function loadMap(url) {
 /**
  * Extract map from the wiki content.
  */
-function loadIt(event) {
+function loadIt (event) {
   if (event.target.status === 304) {
     message('Map unchanged...');
     return;
@@ -1248,12 +1249,18 @@ function loadIt(event) {
             + 'contains no map.');
   } else {
     message('Loading');
-    record('\01'); // reset map
     Map.reset();
     Map.lastEtag = event.target.getResponseHeader('etag');
     Map.lastUrl = doc.URL;
-    interpret(pre.textContent.replace('✎', ''));
-    record('\03'); // end of map reload
+    var map = pre.textContent.replace('✎', '');
+    if (Map.hosting) {
+      Map.hosting = false;
+      interpret(map);
+      Map.hosting = true;
+      record('\01' + map + '\03'); // send in a single message
+    } else {
+      interpret(map);
+    }
     Map.showLevelAnimation();
     Pen.update(null);
     var username = '';
@@ -1276,7 +1283,7 @@ function loadIt(event) {
  * exportarea multiline text field. Information is sent via record.
  */
 function host () {
-  var input = Map.exportarea.value;
+  var input = Map.exportarea.value.trim();
   if (input === undefined || input === '' || input.split('\n').length > 1) {
     message('Please provide a name for your map in the text area!');
     return;
@@ -1286,6 +1293,7 @@ function host () {
   }
   Map.websocket = new WebSocket(wsUrl + '/draw/' + encodeURIComponent(input));
   Map.websocket.onopen = function(evt) {
+    Map.hosting = true;
     message('Hosting ' + input);
     document.getElementById('join').setAttribute('class', 'invisible');
     var link = document.getElementById('host');
@@ -1293,6 +1301,7 @@ function host () {
     link.setAttribute('href', 'javascript:stop()');
   };
   Map.websocket.onclose = function(evt) {
+    Map.hosting = false;
     message('Stopped hosting');
   };
   Map.websocket.onmessage = function(evt) {
@@ -1308,6 +1317,7 @@ function host () {
 }
 
 function stop () {
+  record('\04');
   if (Map.websocket !== null) {
     Map.websocket.close();
   }
@@ -1324,7 +1334,7 @@ function stop () {
  */
 
 function join () {
-  var input = Map.exportarea.value;
+  var input = Map.exportarea.value.trim();
   if (input === undefined || input === '' || input.split('\n').length > 1) {
     message('Please provide the name of a hosted map in the text area!');
     return;
@@ -1346,17 +1356,7 @@ function join () {
     link.setAttribute('href', 'javascript:leave()');
     Map.websocket.send('reset');
   };
-  Map.websocket.onclose = function(evt) {
-    Map.joined = false;
-    Map.enable();
-    document.getElementById('host').setAttribute('class', 'blue');
-    var link = document.getElementById('join');
-    link.firstChild.nodeValue = 'Join';
-    link.setAttribute('href', 'javascript:join()');
-    if (Map.websocket.readyState === WebSocket.OPEN) {
-      message('Left map'); // don't send msg if error is being sent
-    }
-  };
+  Map.websocket.onclose = leave;
   Map.websocket.onmessage = function(evt) {
     interpretCont(evt.data, 0); // skip the test for Map.joined in interpret()
   };
@@ -1370,10 +1370,12 @@ function join () {
 }
 
 function leave () {
-  if (Map.websocket !== null) {
+  if (Map.websocket !== null && Map.websocket.readyState === WebSocket.OPEN) {
     Map.websocket.close();
+    message('Left map'); // don't send msg if error is being sent
   }
-  message('Left map');
+  Map.joined = false;
+  Map.enable();
   document.getElementById('host').setAttribute('class', 'blue');
   var link = document.getElementById('join');
   link.firstChild.nodeValue = 'Join';
@@ -1386,8 +1388,8 @@ function leave () {
  * websocket if were're connected and we're not listening instead.
  */
 function record (key) {
-  if (Map.websocket !== null && Map.websocket.readyState === WebSocket.OPEN
-      && !Map.joined) {
+  if (Map.hosting && Map.websocket !== null
+      && Map.websocket.readyState === WebSocket.OPEN) {
     Map.websocket.send(key);
   }
 }
@@ -2370,6 +2372,8 @@ function keyPressed (evt) {
  * Ctrl-B is Start Of Text, Ctrl-C is End Of Text), because while the
  * map is being read, '-' and 'f' have the same meaning as while
  * loading a map...
+ * 
+ * '\04' cases the client to leave the map (Ctrl-D is End Of Transmission).
  */
 function interpret (code) {
   if (!Map.joined) {
@@ -2456,6 +2460,9 @@ function interpretCont (code, i) {
     case '\03': // Ctrl-C
       if (Map.websocket !== null && Map.websocket.readyState === WebSocket.OPEN)
           Map.joined = true; // end of loading a map
+      break;
+    case '\04': // Ctrl-D
+      leave();
       break;
     case 'f':
         advance = 'right';
