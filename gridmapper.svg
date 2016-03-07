@@ -1248,10 +1248,12 @@ function loadIt(event) {
             + 'contains no map.');
   } else {
     message('Loading');
+    record('\01'); // reset map
     Map.reset();
     Map.lastEtag = event.target.getResponseHeader('etag');
     Map.lastUrl = doc.URL;
     interpret(pre.textContent.replace('✎', ''));
+    record('\03'); // end of map reload
     Map.showLevelAnimation();
     Pen.update(null);
     var username = '';
@@ -2363,10 +2365,11 @@ function keyPressed (evt) {
  *
  * 'f' places a floor tile and moves to the right unless you're 
  *
- * '\02' causes a map reset and is followed by a new map until we get
- * to the '\03' characters (Ctrl-B is Start Of Text, Ctrl-C is End Of
- * Text), because while the map is being read, '-' and 'f' have the
- * same meaning as while loading a map...
+ * '\01' or '\02' causes a map reset and is followed by a new map
+ * until we get to the '\03' character (Ctrl-A is Start of Heading,
+ * Ctrl-B is Start Of Text, Ctrl-C is End Of Text), because while the
+ * map is being read, '-' and 'f' have the same meaning as while
+ * loading a map...
  */
 function interpret (code) {
   if (!Map.joined) {
@@ -2445,6 +2448,7 @@ function interpretCont (code, i) {
         Map.jump(Map.level + 1);
       }
       break;
+    case '\01': // Ctrl-A
     case '\02': // Ctrl-B
       Map.reset();
       Map.joined = false; // start loading a map

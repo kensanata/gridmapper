@@ -68,7 +68,8 @@ websocket '/draw/:map' => sub {
   # Increase inactivity timeout (seconds)
   $c->inactivity_timeout(300);
   
-  # Incoming message
+  # Incoming message: If it starts with Ctrl-B, then it's a reset message that's
+  # only sent to the client(s) that requested it.
   $c->on(message => sub {
     my ($c, $msg) = @_;
     if (substr($msg, 0, 1) eq "\cB") {
