@@ -27,7 +27,7 @@ var xlinkNs    = 'http://www.w3.org/1999/xlink';
 var inkscapeNs = 'http://www.inkscape.org/namespaces/inkscape';
 var xhtmlNs    = 'http://www.w3.org/1999/xhtml';
 var wikiUrl    = 'https://campaignwiki.org/wiki/Gridmapper';
-var wsUrl      = 'https://campaignwiki.org/gridmapper-server';
+var wsUrl      = 'wss://campaignwiki.org/gridmapper-server';
 
 /**
  * Stores everything about the map. The element members point to the
@@ -1312,7 +1312,9 @@ function host () {
     }
   };
   Map.websocket.onerror = function(evt) {
-    message('Hosting error: ' + evt.data);
+    if (Map.websocket.readyState === WebSocket.OPEN) {
+      message('Hosting error: ' + evt.data);
+    }
   };
 }
 
@@ -1356,23 +1358,21 @@ function join () {
     link.setAttribute('href', 'javascript:leave()');
     Map.websocket.send('reset');
   };
-  Map.websocket.onclose = leave;
+  Map.websocket.onclose = null; // ignore?
   Map.websocket.onmessage = function(evt) {
     interpretCont(evt.data, 0); // skip the test for Map.joined in interpret()
   };
   Map.websocket.onerror = function(evt) {
     if (Map.websocket.readyState === WebSocket.OPEN) {
       message('Network error: ' + evt.data);
-    } else {
-      message('Could not join ' + input);
     }
   };
 }
 
 function leave () {
-  if (Map.websocket !== null && Map.websocket.readyState === WebSocket.OPEN) {
+  if (Map.websocket.readyState === WebSocket.OPEN) {
     Map.websocket.close();
-    message('Left map'); // don't send msg if error is being sent
+    message('Left map');
   }
   Map.joined = false;
   Map.enable();

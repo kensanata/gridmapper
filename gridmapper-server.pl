@@ -1,7 +1,6 @@
 use Mojolicious::Lite;
 
-# Template with browser-side code
-get '/' => 'index';
+app->config(hypnotoad => {listen => ['http://campaignwiki.org:8082'], workers => 1});
 
 # API:
 # /join/The_Map -- listen to "The_Map"
@@ -13,6 +12,12 @@ get '/' => 'index';
 my %clients;
 my %hosts;
 my %resets;
+
+get '/' => sub {
+  my $c = shift;
+  $c->render(template => 'main',
+	     maps => [keys %hosts]);
+};
 
 websocket '/join/:map' => sub {
   my $c = shift;
@@ -100,7 +105,7 @@ websocket '/draw/:map' => sub {
 app->start;
 __DATA__
 
-@@ index.html.ep
+@@ main.html.ep
 % layout 'default';
 % title 'Gridmapper Server';
 <h1>Gridmapper Server</h1>
@@ -108,6 +113,13 @@ __DATA__
 This is the Gridmapper Server.
 The <a href="https://campaignwiki.org/gridmapper.svg">Gridmapper</a>
 web application connects to it in order to share maps.
+<p>
+Currently sharing the following maps:
+<ul>
+<% for my $map (@$maps) { %>\
+<li><%= $map %>
+<% } %>\
+</ul>
 
 @@ layouts/default.html.ep
 <!DOCTYPE html>

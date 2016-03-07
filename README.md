@@ -136,24 +136,24 @@ walls.
 Scripting works by typing the commands you would need to type, with
 the following additions:
 
-1. ```f``` will place a floor *and automatically advance* (like a
+1. `f` will place a floor *and automatically advance* (like a
    right arrow)
 
-1. ```-``` will move left by one (like a left arrow)
+1. `-` will move left by one (like a left arrow)
 
-1. ```.``` is used to stop rotations; thus ```ddd``` will place a door
-   and rotate it three times where as ```d.dd``` will place one door
+1. `.` is used to stop rotations; thus `ddd` will place a door
+   and rotate it three times where as `d.dd` will place one door
    and a second door, and rotate it once
 
-1. ```;``` is used to pause for half a second; it might be useful if
+1. `;` is used to pause for half a second; it might be useful if
    you're writing a demo for somebody else
 
-2. ```(x,y)``` will automatically move to the new position (be sure to
-   add 0.5 to either x or y in Wall Mode); note that ```(0,0)``` is
+2. `(x,y)` will automatically move to the new position (be sure to
+   add 0.5 to either x or y in Wall Mode); note that `(0,0)` is
    the top left corner and positive y is *down*
 
-3. ```[dx,dy]``` will move the current position relative to the
-   current position; given that positive y is *down*, ```[0,1]``` is
+3. `[dx,dy]` will move the current position relative to the
+   current position; given that positive y is *down*, `[0,1]` is
    the equivalent of moving one down
 
 Editing Maps using a Text Editor
@@ -193,7 +193,7 @@ First, we need to shift it over by 10 spaces:
 ```
 
 Then we combine them, and we add a little extra: we can tell
-Gridmapper to return to the top left corner by providing ```(0,0)```.
+Gridmapper to return to the top left corner by providing `(0,0)`.
 Here's the combined map.
 
 ```
@@ -244,8 +244,8 @@ attribute.
 ```
 
 Step 2: Register the variants. What we need to do is tell Gridmapper
-that hitting ```v``` on a statue will turn it into a well and hitting
-```v``` on a well will turn it into a statue. Find the variants in the
+that hitting `v` on a statue will turn it into a well and hitting
+`v` on a well will turn it into a statue. Find the variants in the
 source code and add the following:
 
 ```
@@ -257,7 +257,7 @@ variants: {
 ```
 
 Step 3: Document it. Find the section at the end where all the tiles
-are documented. Search for ```#statue```. Then, append something like
+are documented. Search for `#statue`. Then, append something like
 the following:
 
 ```
@@ -282,6 +282,13 @@ follows in my web server config file:
 LimitRequestLine      32000
 LimitRequestFieldSize 32000
 ```
+
+If you want hosting to work, you'll need to install
+`gridmapper-server.pl` as a Mojolicious app using
+[Hypnotoad](http://mojolicious.org/perldoc/Mojo/Server/Hypnotoad).
+You cannot use Toadfarm, because it's important that the server use
+only one instance. All the hosts and clients are in-memory. Nothing is
+saved to the disk.
 
 See Also
 --------
