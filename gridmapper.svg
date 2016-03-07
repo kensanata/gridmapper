@@ -27,7 +27,7 @@ var xlinkNs    = 'http://www.w3.org/1999/xlink';
 var inkscapeNs = 'http://www.inkscape.org/namespaces/inkscape';
 var xhtmlNs    = 'http://www.w3.org/1999/xhtml';
 var wikiUrl    = 'https://campaignwiki.org/wiki/Gridmapper';
-var wsUrl      = 'ws://localhost:3000';
+var wsUrl      = 'https://campaignwiki.org/gridmapper-server';
 
 /**
  * Stores everything about the map. The element members point to the
@@ -2581,8 +2581,11 @@ function initialize () {
   scaleTiles();
   Map.initialize(); // don't reset the Map so we can load from a file
   Pen.update(null); // show it
-  if (window.location.hostname === 'localhost') // testing
+  if (window.location.hostname === 'localhost') {
+    // testing
     wikiUrl = 'http://localhost/cgi-bin/wiki';
+    wsUrl = 'ws://localhost:3000';
+  }
   recreateModel(); // create model from SVG or URL
 }
 
