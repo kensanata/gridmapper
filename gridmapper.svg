@@ -2439,7 +2439,7 @@ function interpretCont (code, i) {
     case 'z':
       // When loading from an URL, we need to reposition the Pen, and
       // we want to be quick. When running the Demo, we do not.
-      if (Demo.running) {
+      if (Demo.running || Map.joined) {
         Map.show(Map.level + 1);
       } else {
         Pen.x = 0;
