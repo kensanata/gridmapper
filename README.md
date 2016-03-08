@@ -288,7 +288,30 @@ If you want hosting to work, you'll need to install
 [Hypnotoad](http://mojolicious.org/perldoc/Mojo/Server/Hypnotoad).
 You cannot use Toadfarm, because it's important that the server use
 only one instance. All the hosts and clients are in-memory. Nothing is
-saved to the disk.
+saved to the disk. Remember to change the hostname and port at the top
+of the file.
+
+If you're using Apache 2.2.22 (Debian Wheezy) as a proxy, you're in
+trouble. The gridmapper-server itself is using HTTP on port 8082 and
+the /join and /draw URLs are using WebSocket. This requires
+**mod_proxy_wstunnel**. This required recompiling a patched Apache and
+copying both mod_proxy and mod_proxy_wstunnel. You can find some links
+[on my blog
+post](https://alexschroeder.ch/wiki/2016-03-06_Gridmapper_using_Web_Sockets).
+
+Apache config:
+
+```
+ProxyPass /gridmapper-server/join ws://campaignwiki.org:8082/join
+ProxyPass /gridmapper-server/draw ws://campaignwiki.org:8082/draw
+ProxyPass /gridmapper-server  http://campaignwiki.org:8082/
+```
+
+Starting Hypnotoad:
+
+```
+hypnotoad gridmapper-server.pl
+```
 
 See Also
 --------
