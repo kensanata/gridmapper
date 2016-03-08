@@ -27,6 +27,7 @@ var xlinkNs    = 'http://www.w3.org/1999/xlink';
 var inkscapeNs = 'http://www.inkscape.org/namespaces/inkscape';
 var xhtmlNs    = 'http://www.w3.org/1999/xhtml';
 var wikiUrl    = 'https://campaignwiki.org/wiki/Gridmapper';
+var serverUrl  = 'https://campaignwiki.org/gridmapper-server';
 var wsUrl      = 'wss://campaignwiki.org/gridmapper-server';
 
 /**
@@ -1384,7 +1385,7 @@ function leave () {
   document.getElementById('host').setAttribute('class', 'blue');
   var link = document.getElementById('join');
   link.firstChild.nodeValue = 'Join';
-  link.setAttribute('href', 'javascript:join()');
+  link.setAttribute('href', serverUrl);
 }
 
 /**
@@ -2592,8 +2593,10 @@ function initialize () {
   if (window.location.hostname === 'localhost') {
     // testing
     wikiUrl = 'http://localhost/cgi-bin/wiki';
+    serverUrl = 'http://localhost:3000';
     wsUrl = 'ws://localhost:3000';
   }
+  document.getElementById('join', serverUrl);
   recreateModel(); // create model from SVG or URL
 }
 
