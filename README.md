@@ -59,7 +59,7 @@ These are your options:
    recreating your dungeon. This is ideal for sharing while chatting
    with people or when posting a link on Facebook or Google+. You
    might have to use a URL shortener such as
-   [goo.https](gl://goo.gl/). As browsers and web sites have size
+   [goo.gl](https://goo.gl/). As browsers and web sites have size
    limitations on the length of a link, this will not work for *big*
    dungeons.
 
