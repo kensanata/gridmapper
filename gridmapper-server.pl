@@ -115,13 +115,18 @@ __DATA__
 This is the Gridmapper Server.
 The <a href="https://campaignwiki.org/gridmapper.svg">Gridmapper</a>
 web application connects to it in order to share maps.
+<% if (@$maps) { %>\
 <p>
-Currently sharing the following maps:
+Currently hosting the following maps:
 <ul>
 <% for my $map (@$maps) { %>\
 <li><%= link_to "https://campaignwiki.org/gridmapper.svg?join=$map" => begin %><%= $map %><% end %>
 <% } %>\
 </ul>
+<% } else { %>\
+<p>
+Currently no maps are being hosted.
+<% } %>\
 
 @@ layouts/default.html.ep
 <!DOCTYPE html>
