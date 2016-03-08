@@ -1,6 +1,8 @@
 use Mojolicious::Lite;
 
-app->config(hypnotoad => {listen => ['http://campaignwiki.org:8082'], workers => 1});
+app->config(hypnotoad => {
+  listen => ['http://campaignwiki.org:8082'],
+  workers => 1});
 
 # API:
 # /join/The_Map -- listen to "The_Map"
@@ -117,7 +119,7 @@ web application connects to it in order to share maps.
 Currently sharing the following maps:
 <ul>
 <% for my $map (@$maps) { %>\
-<li><%= $map %>
+<li><%= link_to "https://campaignwiki.org/gridmapper.svg?join=$map" => begin %><%= $map %><% end %>
 <% } %>\
 </ul>
 
