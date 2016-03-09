@@ -1,5 +1,5 @@
 Gridmapper
-----------
+==========
 
 Open the [gridmapper.svg](https://campaignwiki.org/gridmapper.svg)
 file using your browser and you have a very simple dungeon mapping
@@ -16,13 +16,13 @@ if you want something more recent.
 <!-- markdown-toc start - Don't edit this section. Run M-x markdown-toc-generate-toc again -->
 **Table of Contents**
 
-- [-](#-)
-- [It's Free](#its-free)
-- [No Internet Explorer](#no-internet-explorer)
-- [Examples](#examples)
+- [Gridmapper](#gridmapper)
+    - [It's Free](#its-free)
+    - [No Internet Explorer](#no-internet-explorer)
+    - [Examples](#examples)
 - [How to Host](#how-to-host)
 - [How to Save](#how-to-save)
-- [Upgrading your local copy of Gridmapper](#upgrading-your-local-copy-of-gridmapper)
+    - [Upgrading your local copy of Gridmapper](#upgrading-your-local-copy-of-gridmapper)
 - [Scripting](#scripting)
 - [Editing Maps using a Text Editor](#editing-maps-using-a-text-editor)
 - [How to extend Gridmapper](#how-to-extend-gridmapper)
@@ -62,7 +62,7 @@ commands. You can get this link by clicking on *Prepare Link* and then
 clicking on the resulting *Link*. Perfect for sharing and bookmarking.
 
 How to Host
------------
+===========
 
 If you want to share your map as you draw it, you can *host* it.
 It's not a [RPG Virtual Tabletop](http://rpgvirtualtabletop.wikidot.com/),
@@ -73,7 +73,7 @@ so you still nead a way to talk or chat online. Gridmapper simply facilitates th
 3. everybody else clicks **Join** and follows the appropriate link
 
 How to Save
------------
+===========
 
 This being a very simple web application, it has no access to your
 file system. And worse: If you use "Save As..." in Firefox or Chrome
@@ -157,7 +157,7 @@ and **Text Import**.
 Check that everything works before deleting your old copy. :)
 
 Scripting
----------
+=========
 
 It's possible to use the text area for some simple scripting. Paste
 the following in the text area, for example, and use **Ctrl Enter** as
@@ -192,7 +192,7 @@ the following additions:
    the equivalent of moving one down
 
 Editing Maps using a Text Editor
---------------------------------
+================================
 
 Assume you have these two maps:
 [One](https://campaignwiki.org/gridmapper.svg?%0A%20w.dfwwfwwfw%0A%20wft%20fw.wfwwfww.dddfw%0A%20wfffwnnnn%20nn%20wfwwfwwfw%0A%20ww%20ww%20w.dfffwfn%20nnn%20w%0A%20%20%20ww%20ww%20ww%20wfnnnn%20fd%0A%20%20%20%20%20%20ww%20ww%20ww)
@@ -248,7 +248,7 @@ Paste it into the text area and click **Import Text**. That's it.
 Result: [Combined Map](https://campaignwiki.org/gridmapper.svg?%0A%20w.dfwwfwwfw%20%20%20%20%20%20%20ffnn%20n%20nn%20ffnn%0A%20wft%20fw.wfwwfww.dddfw%20%20%20%20dfb%20fdfwfwfb%20f%0A%20wfffwnnnn%20nn%20wfwwfwwfw%20%20ffnnn%20fwfdffnnn%0A%20ww%20ww%20w.dfffwfn%20nnn%20w%0A%20%20%20ww%20ww%20ww%20wfnnnn%20fd%0A%20%20%20%20%20%20ww%20ww%20ww)
 
 How to extend Gridmapper
-------------------------
+========================
 
 Let's assume you want to add *wells* as variants of *statues* to
 Gridmapper – and let's assume this had not yet been implemented. How
@@ -305,7 +305,7 @@ the following:
 Save it, test it, you're done!
 
 Installation on your own Web Server
------------------------------------
+===================================
 
 Since the *query string* is of utmost importance, the limitations on
 request length probably needs to raised. By default,
@@ -349,7 +349,7 @@ hypnotoad gridmapper-server.pl
 ```
 
 See Also
---------
+========
 
 The project was the result of admiring Daniel R. Collins' [original
 GridMapper 1.0](http://www.superdan.net/software/gridmapper/).
