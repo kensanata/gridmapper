@@ -1,5 +1,5 @@
 Gridmapper
-==========
+----------
 
 Open the [gridmapper.svg](https://campaignwiki.org/gridmapper.svg)
 file using your browser and you have a very simple dungeon mapping
@@ -13,11 +13,35 @@ Here's
 [a Master Dungeon Mapping Key PDF](http://savevsdragon.blogspot.ch/2012/03/free-download-master-dungeon-mapping.html),
 if you want something more recent.
 
+<!-- markdown-toc start - Don't edit this section. Run M-x markdown-toc-generate-toc again -->
+**Table of Contents**
+
+- [-](#-)
+- [It's Free](#its-free)
+- [No Internet Explorer](#no-internet-explorer)
+- [Examples](#examples)
+- [How to Host](#how-to-host)
+- [How to Save](#how-to-save)
+- [Upgrading your local copy of Gridmapper](#upgrading-your-local-copy-of-gridmapper)
+- [Scripting](#scripting)
+- [Editing Maps using a Text Editor](#editing-maps-using-a-text-editor)
+- [How to extend Gridmapper](#how-to-extend-gridmapper)
+- [Installation on your own Web Server](#installation-on-your-own-web-server)
+- [See Also](#see-also)
+
+<!-- markdown-toc end -->
+
+It's Free
+---------
+
 Also note that Gridmapper is totally free and gratis. It costs nothing
 to use, and you can do with it what you want. Using the appropriate
 download link you can save your work to a local file – and the local
 file comes with all the code to keep working on it, off line! A bit
 like [Tiddly Wiki](http://tiddlywiki.com/), I guess.﻿
+
+No Internet Explorer
+--------------------
 
 Written using [Vanilla JS](http://vanilla-js.com/). Unfortunately, it
 no longer works for Internet Explorer. That's because it mixes SVG and
