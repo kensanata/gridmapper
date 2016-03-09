@@ -37,6 +37,17 @@ It's a sort of code that's very close to a stream of keyboard
 commands. You can get this link by clicking on *Prepare Link* and then
 clicking on the resulting *Link*. Perfect for sharing and bookmarking.
 
+How to Host
+-----------
+
+If you want to share your map as you draw it, you can *host* it.
+It's not a [RPG Virtual Tabletop](http://rpgvirtualtabletop.wikidot.com/),
+so you still nead a way to talk or chat online. Gridmapper simply facilitates the job of the *mapper*. All the players can watch as the map grows, in real time.
+
+1. everybody opens [Gridmapper](https://campaignwiki.org/gridmapper.svg)
+2. the *mapper* provides a name in the text area and clicks **Host**
+3. everybody else clicks **Join** and follows the appropriate link
+
 How to Save
 -----------
 
