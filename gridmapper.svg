@@ -1083,7 +1083,7 @@ function save () {
     return;
   }
   saveIt(inputs[0],
-         inputs[1] || 'Gridmapper',
+         inputs[1] || 'Anonymous',
          inputs[2] || 'Map saved');
 }
 
@@ -1098,7 +1098,7 @@ function saveIt (title, username, summary) {
     title: title,
     text: '[[Gridmapper:' + title + ']]: '
       + (summary || '') + '\n{{{\n' + getSource() + '}}}\n',
-    username: Map.username,
+    username: username,
     summary: summary,
     frodo: 1,
   };
