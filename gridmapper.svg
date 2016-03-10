@@ -2596,7 +2596,7 @@ function initialize () {
     serverUrl = 'http://localhost:3000';
     wsUrl = 'ws://localhost:3000';
   }
-  document.getElementById('join', serverUrl);
+  document.getElementById('join').setAttribute('href', serverUrl);
   recreateModel(); // create model from SVG or URL
 }
 
