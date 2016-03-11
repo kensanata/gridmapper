@@ -619,13 +619,13 @@ var Demo = {
     var link = document.getElementById('demo');
     var oldText = link.firstChild.nodeValue;
     link.firstChild.nodeValue = text;
-    var href = link.getAttribute('href');
-    link.setAttribute('href', 'javascript:' + js);
+    var href = link.getAttributeNS(xlinkNs, 'href');
+    link.setAttributeNS(xlinkNs, 'href', 'javascript:' + js);
     // reset after 2s
     if (revert)
       var t = setInterval(function() {
         if (!Demo.running) {
-          link.setAttribute('href', href);
+          link.setAttributeNS(xlinkNs, 'href', href);
           link.firstChild.nodeValue = oldText;
           clearInterval(t);
         }
@@ -930,20 +930,38 @@ function disableLink(element) {
  * such download attribute for SVG or XHTML.
  */
 function download () {
-  // https://gist.github.com/gustavohenke/9073132
   var svg = document.querySelector('svg');
+
+  // SVG download includes user interface
+  var source = btoa(unescape(encodeURIComponent(new XMLSerializer().serializeToString(svg))));
+  var link  = document.getElementById('download_svg');
+  link.setAttributeNS(xlinkNs, 'href', 'data:image/svg+xml;base64,' + source);
+
+  // PNG download hides user interface
   svg.getElementById('help').setAttribute('class', 'invisible');
   svg.getElementById('pointer').setAttribute('class', 'invisible');
-  var source = btoa(unescape(encodeURIComponent(new XMLSerializer().serializeToString(svg))));
+  source = btoa(unescape(encodeURIComponent(new XMLSerializer().serializeToString(svg))));
   svg.getElementById('help').removeAttribute('class');
   svg.getElementById('pointer').removeAttribute('class');
+
+  // hide Prepare Download link
   var prep = document.getElementById('download');
-  var span = document.getElementById('format');
-  var svgl  = document.getElementById('download_svg');
-  var pngl  = document.getElementById('download_png');
   prep.setAttribute('class', 'invisible');
+
+  // show format span
+  var span = document.getElementById('format');
   span.removeAttribute('class');
-  svgl.setAttribute('href', 'data:image/svg+xml;base64,' + source);
+
+  // revert this change after 10s
+  var t = setInterval(function() {
+    prep.setAttribute('class', 'blue');
+    span.setAttribute('class', 'invisible');
+    clearInterval(t);
+  }, 10000);
+
+  link  = document.getElementById('download_png');
+  
+  // SVG to PNG using canvas https://gist.github.com/gustavohenke/9073132
   var canvas = document.createElementNS(xhtmlNs, 'canvas');
   var rect = svg.getBoundingClientRect();
   canvas.width = rect.width;
@@ -951,16 +969,12 @@ function download () {
   var ctx = canvas.getContext('2d');
   var img = document.createElementNS(xhtmlNs, 'img');
   img.setAttribute('src', 'data:image/svg+xml;base64,' + source);
+
+  // when the image arrived in the canvas, set the link
   img.onload = function() {
     ctx.drawImage(img, 0, 0);
-    pngl.setAttribute('href', canvas.toDataURL('image/png'));
+    link.setAttributeNS(xlinkNs, 'href', canvas.toDataURL('image/png'));
   };
-  // revert after 10s
-  var t = setInterval(function() {
-    prep.setAttribute('class', 'blue');
-    span.setAttribute('class', 'invisible');
-    clearInterval(t);
-  }, 10000);
 }
 
 /**
@@ -970,14 +984,13 @@ function prepareLink () {
   var link = document.getElementById('export');
   var text = link.firstChild.nodeValue;
   link.firstChild.nodeValue = 'Link';
-  var href = link.getAttribute('href');
+  var href = link.getAttributeNS(xlinkNs, 'href');
   var location = window.location.href.substr(
     0, window.location.href.length - window.location.search.length)
-  link.setAttribute('href', location
-                    + '?' + encodeURIComponent(getSource()));
+  link.setAttributeNS(xlinkNs, 'href', location + '?' + encodeURIComponent(getSource()));
   // reset after 10s
   var t = setInterval(function() {
-    link.setAttribute('href', href);
+    link.setAttributeNS(xlinkNs, 'href', href);
     link.firstChild.nodeValue = text;
     clearInterval(t);
   }, 10000);
@@ -1298,7 +1311,7 @@ function host () {
     document.getElementById('join').setAttribute('class', 'invisible');
     var link = document.getElementById('host');
     link.firstChild.nodeValue = 'Cancel Hosting';
-    link.setAttribute('href', 'javascript:stop()');
+    link.setAttributeNS(xlinkNs, 'href', 'javascript:stop()');
   };
   Map.websocket.onclose = function(evt) {
     Map.hosting = false;
@@ -1325,7 +1338,7 @@ function stop () {
   document.getElementById('join').setAttribute('class', 'blue');
   var link = document.getElementById('host');
   link.firstChild.nodeValue = 'Host';
-  link.setAttribute('href', 'javascript:host()');
+  link.setAttributeNS(xlinkNs, 'href', 'javascript:host()');
 }
 
 /**
@@ -1353,7 +1366,7 @@ function join () {
     document.getElementById('host').setAttribute('class', 'invisible');
     var link = document.getElementById('join');
     link.firstChild.nodeValue = 'Leave Map';
-    link.setAttribute('href', 'javascript:leave()');
+    link.setAttributeNS(xlinkNs, 'href', 'javascript:leave()');
     Map.websocket.send('reset');
   };
   Map.websocket.onclose = leave;
@@ -1379,7 +1392,7 @@ function leave () {
   document.getElementById('host').setAttribute('class', 'blue');
   var link = document.getElementById('join');
   link.firstChild.nodeValue = 'Join';
-  link.setAttribute('href', 'javascript:join()');
+  link.setAttributeNS(xlinkNs, 'href', 'javascript:join()');
 }
 
 /**
@@ -2780,14 +2793,16 @@ onload = initialize;
   <rect id="ui" opacity="0"/>
 
   <style><![CDATA[
-  body { font: 14px 'Courier New', Courier, monospace; background: ivory; width: 398px; height: 580px; border: 1px solid black; margin: 0; padding: 10px 20px; }
+  svg { overflow: visible }
+  text { font: 14px 'Courier New', Courier, monospace; fill="black" }
+  textarea { font: 10px 'Courier New', Courier, monospace }
   p { margin: 0 0 10px 0; padding: 0; }
   text { font: 14px 'Courier New', Courier, monospace; }
   .line {  }
   .line svg { display: inline; vertical-align: middle }
   .labels text, #levels text, #label { text-anchor: middle; font: 10px 'Arial Narrow', sans-serif; font-weight: bold; }
   a { color: black; text-decoration: none; }
-  .blue { color: blue; }
+  .blue { fill: blue; }
   .key { color: forestgreen; fill: forestgreen; font-weight: bold; }
   .invisible { display: none; }
   #ui { -webkit-tap-highlight-color: rgba(0,0,0,0); }
@@ -2795,278 +2810,312 @@ onload = initialize;
   ]]></style>
 
   <g id="help">
-    <foreignObject x="10" y="80" width="440" height="610">
-      <body xmlns="http://www.w3.org/1999/xhtml">
-	<p>
-	  Use the mouse to draw and erase floor tiles.
-	  Use the following keys to place or rotate tiles.
-	  <a href="javascript:interpret('v')">Use <span class="key">v</span> to use variants</a>.
-	</p>
-	<p class="line">
-	  <a href="javascript:interpret('f')"><span class="key">f</span> :</a>
-	  <svg xmlns="http://www.w3.org/2000/svg" width="180" height="22">
-	    <a xlink:href="javascript:interpret('f')" title="floor">
-	      <use x="10" y="1" xlink:href="#empty"/>
-	    </a>
-	    <a xlink:href="javascript:interpret('fv')" title="void">
-	      <rect x="40" y="1" width="20" height="20" fill="ivory"/>
-	      <use x="40" y="1" xlink:href="#void"/>
-	    </a>
-	    <a xlink:href="javascript:interpret('fvv')" title="water">
-	      <use x="70" y="1" xlink:href="#water"/>
-	    </a>
-	  </svg>
-	  <a href="javascript:interpret('w')"><span class="key">w</span> :</a>
-	  <svg xmlns="http://www.w3.org/2000/svg" width="100" height="26">
-	    <a xlink:href="javascript:interpret('w')" title="wall">
-	      <use x="10" y="3" xlink:href="#empty"/>
-	      <use x="10" y="3" xlink:href="#wall"/>
-	    </a>
-	    <a xlink:href="javascript:interpret('wv')" title="curtain">
-	      <use x="40" y="3" xlink:href="#empty"/>
-	      <use x="40" y="3" xlink:href="#curtain"/>
-	    </a>
-	    <a xlink:href="javascript:interpret('wvv')" title="portcullis">
-	      <use x="70" y="3" xlink:href="#empty"/>
-	      <use x="70" y="3" xlink:href="#portcullis"/>
-	    </a>
-	  </svg>
-	</p>
-	<p class="line">
-	  <a href="javascript:interpret('t')"><span class="key">t</span> :</a>
-	  <svg xmlns="http://www.w3.org/2000/svg" width="180" height="22">
-	    <a xlink:href="javascript:interpret('t')" title="covered pit">
-	      <use x="10" y="1" xlink:href="#empty"/>
-	      <use x="10" y="1" xlink:href="#trap"/>
-	    </a>
-	    <a xlink:href="javascript:interpret('tv')" title="open pit">
-	      <use x="40" y="1" xlink:href="#empty"/>
-	      <use x="40" y="1" xlink:href="#pit"/>
-	    </a>
-	    <a xlink:href="javascript:interpret('tvv')" title="trap door in the ceiling">
-	      <use x="70" y="1" xlink:href="#empty"/>
-	      <use x="70" y="1" xlink:href="#trap-door-ceiling"/>
-	    </a>
-	    <a xlink:href="javascript:interpret('tvvv')" title="trap door in the floor">
-	      <use x="100" y="1" xlink:href="#empty"/>
-	      <use x="100" y="1" xlink:href="#trap-door-floor"/>
-	    </a>
-	    <a xlink:href="javascript:interpret('tvvvv')" title="secret trap door">
-	      <use x="130" y="1" xlink:href="#empty"/>
-	      <use x="130" y="1" xlink:href="#trap-door-secret"/>
-	    </a>
-	  </svg>
-	  <a href="javascript:interpret('p')"><span class="key">p</span> :</a>
-	  <svg xmlns="http://www.w3.org/2000/svg" width="130" height="22">
-	      <a xlink:href="javascript:interpret('p')" title="pillar">
-		<use x="10" y="1" xlink:href="#empty"/>
-		<use x="10" y="1" xlink:href="#pillar"/>
-	      </a>
-	      <a xlink:href="javascript:interpret('pv')" title="altar">
-		<use x="40" y="1" xlink:href="#empty"/>
-		<use x="40" y="1" xlink:href="#altar"/>
-	      </a>
-	      <a xlink:href="javascript:interpret('pvv')" title="dais">
-		<use x="70" y="1" xlink:href="#empty"/>
-		<use x="70" y="1" xlink:href="#dais"/>
-	      </a>
-	      <a xlink:href="javascript:interpret('pvvv')" title="round dais">
-		<use x="100" y="1" xlink:href="#empty"/>
-		<use x="100" y="1" xlink:href="#dais-round"/>
-	      </a>
-	  </svg>
-	</p>
-	<p class="line">
-	  <a href="javascript:interpret('b')"><span class="key">b</span> :</a>
-	  <svg xmlns="http://www.w3.org/2000/svg" width="180" height="22">
-	    <a xlink:href="javascript:interpret('b')" title="statue">
-	      <use x="10" y="1" xlink:href="#empty"/>
-	      <use x="10" y="1" xlink:href="#statue"/>
-	    </a>
-	    <a xlink:href="javascript:interpret('bv')" title="well">
-	      <use x="40" y="1" xlink:href="#empty"/>
-	      <use x="40" y="1" xlink:href="#well"/>
-	    </a>
-	    <a xlink:href="javascript:interpret('bvv')" title="fountain">
-	      <use x="70" y="1" xlink:href="#empty"/>
-	      <use x="70" y="1" xlink:href="#fountain"/>
-	    </a>
-	  </svg>
-	  <a href="javascript:interpret('c')"><span class="key">c</span> :</a>
-	  <svg xmlns="http://www.w3.org/2000/svg" width="130" height="22">
-	    <a xlink:href="javascript:interpret('c')" title="chest">
-	      <use x="10" y="1" xlink:href="#empty"/>
-	      <use x="10" y="1" xlink:href="#chest"/>
-	    </a>
-	    <a xlink:href="javascript:interpret('cv')" title="bed">
-	      <use x="40" y="1" xlink:href="#empty"/>
-	      <use x="40" y="1" xlink:href="#bed"/>
-	    </a>
-	    <a xlink:href="javascript:interpret('cvv')" title="table">
-	      <use x="70" y="1" xlink:href="#empty"/>
-	      <use x="70" y="1" xlink:href="#table"/>
-	    </a>
-	  </svg>
-	</p>
-	<p class="line">
-	  <a href="javascript:interpret('d')"><span class="key">d</span> :</a>
-	  <svg xmlns="http://www.w3.org/2000/svg" width="95" height="22">
-	    <a xlink:href="javascript:interpret('d')" title="door">
-	      <use x="10" y="1" xlink:href="#empty"/>
-	      <use x="10" y="1" xlink:href="#door"/>
-	    </a>
-	    <a xlink:href="javascript:interpret('dv')" title="secret door">
-	      <use x="40" y="1" xlink:href="#empty"/>
-	      <use x="40" y="1" xlink:href="#secret"/>
-	    </a>
-	    <a xlink:href="javascript:interpret('dvv')" title="concealed door">
-	      <use x="70" y="1" xlink:href="#empty"/>
-	      <use x="70" y="1" xlink:href="#concealed"/>
-	    </a>
-	  </svg>
-	  <svg xmlns="http://www.w3.org/2000/svg" width="95" height="52"
-	       style="margin-left: -10px; margin-top: -32px">
-	    <a xlink:href="javascript:interpret('dvvv')" title="double door, gate">
-	      <use x="10" y="11" xlink:href="#empty"/>
-	      <use x="10" y="31" xlink:href="#empty"/>
-	      <use x="10" y="11" xlink:href="#gate"/>
-	    </a>
-	  </svg>
-	  <span style="margin-left: -42px">
-	    <a href="javascript:interpret('&apos;')"><span class="key">"abc"</span> :</a>
-	    <svg xmlns="http://www.w3.org/2000/svg" width="130" height="22">
-	      <use x="10" y="1" xlink:href="#empty"/>
-	      <g class="labels" title="labels">
-		<text x="20" y="15">abc</text>
-	      </g>
-	    </svg>
-	  </span>
-	</p>
-	<p class="line">
-	  <a href="javascript:interpret('s')"><span class="key">s</span> :</a>
-	  <svg xmlns="http://www.w3.org/2000/svg" width="180" height="52">
-	    <a xlink:href="javascript:interpret('s')" title="stairs">
-	      <use x="10" y="1" xlink:href="#stair"/>
-	    </a>
-	    <a xlink:href="javascript:interpret('sv')" title="small stairs">
-	      <use x="40" y="1" xlink:href="#stair-small"/>
-	    </a>
-	    <a xlink:href="javascript:interpret('svv')" title="spiral stairs">
-	      <use x="40" y="31" xlink:href="#stair-spiral"/>
-	    </a>
-	    <a xlink:href="javascript:interpret('svvv')" title="big spiral stairs">
-	      <use x="70" y="1" xlink:href="#stair-big-spiral"/>
-	    </a>
-	    <a xlink:href="javascript:interpret('svvvv')" title="bit stairs">
-	      <use x="120" y="1" xlink:href="#stair-big"/>
-	    </a>
-	  </svg>
-	  <svg xmlns="http://www.w3.org/2000/svg" width="180" height="140" style="margin-left: -18px; margin-bottom: -92px">
-	    <text x="1" y="15"><tspan class="key">0-9</tspan><tspan> :</tspan></text>
-	    <use x="61" y="1" xlink:href="#empty"/>
-	    <g class="labels" title="labels">
-	      <text x="71" y="15">123</text>
-	    </g>
-	    <a xlink:href="javascript:interpret('m')">
-	      <text x="17" y="48"><tspan class="key">m</tspan><tspan> :</tspan></text>
-	    </a>
-	    <a xlink:href="javascript:interpret('m')" title="Wall Mode">
-	      <use x="61" y="35" xlink:href="#empty"/>
-	      <use x="51" y="35" xlink:href="#cursor"/>
-	      <text x="91" y="48">Wall Mode</text>
-	    </a>
-	    <text>
-	      <tspan x="10" y="80">Use arrow keys</tspan>
-	      <tspan x="10" dy="20">or vi keys</tspan>
-	      <tspan x="10" dy="20">to move around</tspan>
-	    </text>
-	    <text x="150" y="80">
-	      <a xlink:href="javascript:interpret('k')" title="up">
-		<tspan class="key">k</tspan>
-	      </a>
-	    </text>
-	    <text x="130" y="100">
-	      <a xlink:href="javascript:interpret('h')" title="left">
-		<tspan class="key">h</tspan>
-	      </a>
-	      ╋
-	      <a xlink:href="javascript:interpret('l')" title="right">
-		<tspan class="key">l</tspan>
-	      </a>
-	    </text>
-	    <text x="150" y="120">
-	      <a xlink:href="javascript:interpret('j')" title="down">
-		<tspan class="key">j</tspan>
-	      </a>
-	    </text>
-	  </svg>
-	</p>
-	<p class="line">
-	  <a href="javascript:interpret('n')"><span class="key">n</span> :</a>
-	  <svg xmlns="http://www.w3.org/2000/svg" width="200" height="62">
-	    <a xlink:href="javascript:interpret('n')" title="diagonal">
-	      <use x="10" y="11" xlink:href="#diagonal"/>
-	    </a>
-	    <a xlink:href="javascript:interpret('nv')" title="arc">
-	      <use x="20" y="41" xlink:href="#arc"/>
-	    </a>
-	    <a xlink:href="javascript:interpret('nvv')" title="big arc">
-	      <use x="70" y="41" xlink:href="#arc2"/>
-	    </a>
-	    <a xlink:href="javascript:interpret('nvvv')" title="huge arc">
-	      <use x="140" y="41" xlink:href="#arc3"/>
-	    </a>
-	  </svg>
-	</p>
-	<p>
-	  <a href="javascript:keyPressed('u')"><span class="key">u</span> : undo</a>  
-	  <a href="javascript:keyPressed('r')"><span class="key">r</span> : redo</a>  
-	  <a href="javascript:keyPressed('x')">
-  	    <span class="key">x</span>, <span class="key">Delete</span> : delete
-	  </a>
-	</p>
-	<p>
-	  <a href="javascript:keyPressed('y')"><span class="key">y</span> : up</a>  
-	  <a href="javascript:keyPressed('z')"><span class="key">z</span> : down</a>  
-	  <a href="javascript:keyPressed('Z')">
-  	    <span class="key">Z</span> : hide other levels
-	  </a>
-	</p>
-      <p>
-	<a href="javascript:keyPressed(' ')"><span class="key">Space</span> : move right</a>  
-	<a href="javascript:keyPressed('Enter')"><span class="key">Enter</span> : new line</a>  
-      </p>
-      <p>
-	<span class="key">Arrows</span> : move  
-	<span class="key">Shift Arrows</span> : toggle floor  
-      </p>
-      <p style="margin:0">
-	<a class="blue" href="javascript:textExport()">Text Export</a>  
-	<a class="blue" href="javascript:textImport()">Text Import</a> or
-	<span class="key">Ctrl Enter</span>
-      </p>
-      <textarea xmlns="http://www.w3.org/1999/xhtml" style="background: white; width: 390px; height: 50px; padding:0; font: 10px 'Courier New', Courier, monospace; " id="exportarea"/>
-      <p style="margin-top:10px">
-	<a id="download" class="blue" href="javascript:download()">Prepare Download</a>
-	<span id="format" class="invisible">
+    <rect x="10" y="80" width="440" height="600" fill="ivory" stroke="black" stroke-width="1"/>
+    <text>
+      <tspan x="30" y="102">Use the mouse to draw and erase floor tiles.</tspan>
+      <tspan x="30" dy="17">Use the following keys to place or rotate</tspan>
+      <tspan x="30" dy="17">tiles. <a xlink:href="javascript:interpret('v')">Use <tspan class="key">v</tspan> to use variants</a>.</tspan>
+    </text>
+
+    <svg x="30" y="150">
+      <a href="javascript:interpret('f')">
+	<text x="30" y="14" text-anchor="end"><tspan class="key">f</tspan> :</text>
+      </a>
+      <a xlink:href="javascript:interpret('f')" title="floor">
+	<use x="50" xlink:href="#empty"/>
+      </a>
+      <a xlink:href="javascript:interpret('fv')" title="void">
+	<rect x="80" width="20" height="20" fill="ivory"/>
+	<use x="80" xlink:href="#void"/>
+      </a>
+      <a xlink:href="javascript:interpret('fvv')" title="water">
+	<use x="110" xlink:href="#water"/>
+      </a>
+    </svg>
+
+    <svg x="30" y="180">
+      <a href="javascript:interpret('t')">
+	<text x="30" y="14" text-anchor="end"><tspan class="key">t</tspan> :</text>
+      </a>
+      <a xlink:href="javascript:interpret('t')" title="covered pit">
+	<use x="50" xlink:href="#empty"/>
+	<use x="50" xlink:href="#trap"/>
+      </a>
+      <a xlink:href="javascript:interpret('tv')" title="open pit">
+	<use x="80" xlink:href="#empty"/>
+	<use x="80" xlink:href="#pit"/>
+      </a>
+      <a xlink:href="javascript:interpret('tvv')" title="trap door in the ceiling">
+	<use x="110" xlink:href="#empty"/>
+	<use x="110" xlink:href="#trap-door-ceiling"/>
+      </a>
+      <a xlink:href="javascript:interpret('tvvv')" title="trap door in the floor">
+	<use x="140" xlink:href="#empty"/>
+	<use x="140" xlink:href="#trap-door-floor"/>
+      </a>
+      <a xlink:href="javascript:interpret('tvvvv')" title="secret trap door">
+	<use x="170" xlink:href="#empty"/>
+	<use x="170" xlink:href="#trap-door-secret"/>
+      </a>
+    </svg>
+
+    <svg x="30" y="210">
+      <a href="javascript:interpret('b')">
+	<text x="30" y="14" text-anchor="end"><tspan class="key">b</tspan> :</text>
+      </a>
+      <a xlink:href="javascript:interpret('b')" title="statue">
+	<use x="50" xlink:href="#empty"/>
+	<use x="50" xlink:href="#statue"/>
+      </a>
+      <a xlink:href="javascript:interpret('bv')" title="well">
+	<use x="80" xlink:href="#empty"/>
+	<use x="80" xlink:href="#well"/>
+      </a>
+      <a xlink:href="javascript:interpret('bvv')" title="fountain">
+	<use x="110" xlink:href="#empty"/>
+	<use x="110" xlink:href="#fountain"/>
+      </a>
+    </svg>
+
+    <svg x="30" y="240">
+      <a href="javascript:interpret('d')">
+	<text x="30" y="14" text-anchor="end"><tspan class="key">d</tspan> :</text>
+      </a>
+      <a xlink:href="javascript:interpret('d')" title="door">
+	<use x="50" xlink:href="#empty"/>
+	<use x="50" xlink:href="#door"/>
+      </a>
+      <a xlink:href="javascript:interpret('dv')" title="secret door">
+	<use x="80" xlink:href="#empty"/>
+	<use x="80" xlink:href="#secret"/>
+      </a>
+      <a xlink:href="javascript:interpret('dvv')" title="concealed door">
+	<use x="110" xlink:href="#empty"/>
+	<use x="110" xlink:href="#concealed"/>
+      </a>
+      <a xlink:href="javascript:interpret('dvvv')" title="double door, gate">
+	<use x="140" y="-20" xlink:href="#empty"/>
+	<use x="140" y="" xlink:href="#empty"/>
+	<use x="140" y="-20" xlink:href="#gate"/>
+      </a>
+    </svg>
+
+    <svg x="30" y="270">
+      <a href="javascript:interpret('s')">
+	<text x="30" y="14" text-anchor="end"><tspan class="key">s</tspan> :</text>
+      </a>
+      <a xlink:href="javascript:interpret('s')" title="stairs">
+	<use x="50" xlink:href="#stair"/>
+      </a>
+      <a xlink:href="javascript:interpret('sv')" title="small stairs">
+	<use x="80" xlink:href="#stair-small"/>
+      </a>
+      <a xlink:href="javascript:interpret('svv')" title="spiral stairs">
+	<use x="80" y="31" xlink:href="#stair-spiral"/>
+      </a>
+      <a xlink:href="javascript:interpret('svvv')" title="big spiral stairs">
+	<use x="110" xlink:href="#stair-big-spiral"/>
+      </a>
+      <a xlink:href="javascript:interpret('svvvv')" title="bit stairs">
+	<use x="160" xlink:href="#stair-big"/>
+      </a>
+    </svg>
+
+    <svg x="30" y="320">
+      <a href="javascript:interpret('n')">
+	<text x="30" y="14" text-anchor="end"><tspan class="key">n</tspan> :</text>
+      </a>
+      <a xlink:href="javascript:interpret('n')" title="diagonal">
+	<use x="50" y="10" xlink:href="#diagonal"/>
+      </a>
+      <a xlink:href="javascript:interpret('nv')" title="arc">
+	<use x="60" y="40" xlink:href="#arc"/>
+      </a>
+      <a xlink:href="javascript:interpret('nvv')" title="big arc">
+	<use x="110" y="41" xlink:href="#arc2"/>
+      </a>
+      <a xlink:href="javascript:interpret('nvvv')" title="huge arc">
+	<use x="180" y="41" xlink:href="#arc3"/>
+      </a>
+    </svg>
+
+    <svg x="250" y="150">
+      <a href="javascript:interpret('w')">
+	<text x="30" y="14" text-anchor="end"><tspan class="key">w</tspan> :</text>
+      </a>
+      <a xlink:href="javascript:interpret('w')" title="wall">
+	<use x="50" xlink:href="#empty"/>
+	<use x="50" xlink:href="#wall"/>
+      </a>
+      <a xlink:href="javascript:interpret('wv')" title="curtain">
+	<use x="80" xlink:href="#empty"/>
+	<use x="80" xlink:href="#curtain"/>
+      </a>
+      <a xlink:href="javascript:interpret('wvv')" title="portcullis">
+	<use x="110" xlink:href="#empty"/>
+	<use x="110" xlink:href="#portcullis"/>
+      </a>
+    </svg>
+
+    <svg x="250" y="180">
+      <a href="javascript:interpret('p')">
+	<text x="30" y="14" text-anchor="end"><tspan class="key">p</tspan> :</text>
+      </a>
+      <a xlink:href="javascript:interpret('p')" title="pillar">
+	<use x="50" xlink:href="#empty"/>
+	<use x="50" xlink:href="#pillar"/>
+      </a>
+      <a xlink:href="javascript:interpret('pv')" title="altar">
+	<use x="80" xlink:href="#empty"/>
+	<use x="80" xlink:href="#altar"/>
+      </a>
+      <a xlink:href="javascript:interpret('pvv')" title="dais">
+	<use x="110" xlink:href="#empty"/>
+	<use x="110" xlink:href="#dais"/>
+      </a>
+      <a xlink:href="javascript:interpret('pvvv')" title="round dais">
+	<use x="140" xlink:href="#empty"/>
+	<use x="140" xlink:href="#dais-round"/>
+      </a>
+    </svg>
+
+    <svg x="250" y="210">
+      <a href="javascript:interpret('c')">
+	<text x="30" y="14" text-anchor="end"><tspan class="key">c</tspan> :</text>
+      </a>
+      <a xlink:href="javascript:interpret('c')" title="chest">
+	<use x="50" xlink:href="#empty"/>
+	<use x="50" xlink:href="#chest"/>
+      </a>
+      <a xlink:href="javascript:interpret('cv')" title="bed">
+	<use x="80" xlink:href="#empty"/>
+	<use x="80" xlink:href="#bed"/>
+      </a>
+      <a xlink:href="javascript:interpret('cvv')" title="table">
+	<use x="110" xlink:href="#empty"/>
+	<use x="110" xlink:href="#table"/>
+      </a>
+    </svg>
+
+    <svg x="250" y="240">
+      <a href="javascript:interpret('&apos;')">
+	<text x="30" y="14" text-anchor="end"><tspan class="key">"abc"</tspan> :</text>
+	<use x="50" xlink:href="#empty"/>
+	<g class="labels" title="labels">
+	  <text x="60" y="13.5">abc</text>
+	</g>
+      </a>
+    </svg>
+
+    <svg x="250" y="270">
+      <text x="30" y="14" text-anchor="end"><tspan class="key">0-9</tspan><tspan> :</tspan></text>
+      <use x="50" xlink:href="#empty"/>
+      <g class="labels" title="labels">
+	<text x="60" y="13.5">123</text>
+      </g>
+    </svg>
+
+    <svg x="250" y="300">
+      <a xlink:href="javascript:interpret('m')">
+	<text x="30" y="14" text-anchor="end"><tspan class="key">m</tspan><tspan> :</tspan></text>
+      </a>
+      <a xlink:href="javascript:interpret('m')" title="Wall Mode">
+	<use x="50" xlink:href="#empty"/>
+	<use x="40" xlink:href="#cursor"/>
+	<text x="90" y="14">Wall Mode</text>
+      </a>
+    </svg>
+
+    <svg x="250" y="330">
+      <text>
+	<tspan x="0" y="14">Use arrow keys</tspan>
+	<tspan x="0" dy="20">or vi keys</tspan>
+	<tspan x="0" dy="20">to move around</tspan>
+      </text>
+      <text x="150" y="14">
+	<a xlink:href="javascript:interpret('k')" title="up">
+	  <tspan class="key">k</tspan>
+	</a>
+      </text>
+      <text x="130" y="34">
+	<a xlink:href="javascript:interpret('h')" title="left">
+	  <tspan class="key">h</tspan>
+	</a>
+	╋
+	<a xlink:href="javascript:interpret('l')" title="right">
+	  <tspan class="key">l</tspan>
+	</a>
+      </text>
+      <text x="150" y="54">
+	<a xlink:href="javascript:interpret('j')" title="down">
+	  <tspan class="key">j</tspan>
+	</a>
+      </text>
+    </svg>
+
+    <text>
+      <tspan x="30" y="410">
+	<a xlink:href="javascript:keyPressed('u')"><tspan class="key">u</tspan> : undo</a>  
+	<a xlink:href="javascript:keyPressed('r')"><tspan class="key">r</tspan> : redo</a>  
+	<a xlink:href="javascript:keyPressed('x')">
+  	  <tspan class="key">x</tspan>, <tspan class="key">Delete</tspan> : delete
+	</a>
+      </tspan>
+
+      <tspan x="30" dy="25">
+	<a xlink:href="javascript:keyPressed('y')"><tspan class="key">y</tspan> : up</a>  
+	<a xlink:href="javascript:keyPressed('z')"><tspan class="key">z</tspan> : down</a>  
+	<a xlink:href="javascript:keyPressed('Z')">
+  	  <tspan class="key">Z</tspan> : hide other levels
+	</a>
+      </tspan>
+
+      <tspan x="30" dy="25">
+	<a xlink:href="javascript:keyPressed(' ')"><tspan class="key">Space</tspan> : move right</a>  
+	<a xlink:href="javascript:keyPressed('Enter')"><tspan class="key">Enter</tspan> : new line</a>
+      </tspan>
+
+      <tspan x="30" dy="25">
+	<tspan class="key">Arrows</tspan> : move  
+	<tspan class="key">Shift Arrows</tspan> : toggle floor
+      </tspan>
+
+      <tspan x="30" dy="25">
+	<a class="blue" xlink:href="javascript:textExport()">Text Export</a>  
+	<a xlink:href="javascript:textImport()"><tspan class="blue">Text Import</tspan> or
+	<tspan class="key">Ctrl Enter</tspan></a>
+      </tspan>
+    </text>
+
+    <foreignObject id="label" x="30" y="515" width="390" height="50">
+      <textarea xmlns="http://www.w3.org/1999/xhtml" id="exportarea" style="width: 100%; height: 100%"/>
+    </foreignObject>
+    
+    <text>
+      <tspan x="30" y="590">
+	<a id="download" class="blue" xlink:href="javascript:download()">Prepare Download</a>
+	<tspan id="format" class="invisible">
 	  Download
 	  <a id="download_svg" class="blue" download="gridmapper.svg">SVG</a>
 	  <a id="download_png" class="blue" download="gridmapper.png">PNG</a>
-	</span>  
-	<a id="export" class="blue" href="javascript:prepareLink()">Prepare Link</a>  
-	<a class="blue" href="https://github.com/kensanata/gridmapper#how-to-save">Learn More</a>
-	<br/>
-	<a id="save" class="blue" title="Save the map to the wiki" href="javascript:save()">Save</a>  
-	<a id="load" class="blue" title="Load a map from the wiki" href="javascript:load()">Load</a>  
-	<a id="host" class="blue" title="Host a map for your friends" href="javascript:host()">Host</a>  
-	<a id="join" class="blue" title="Join a map being hosted" href="javascript:join()">Join</a>
-	<br/>
-	<a class="blue" href="https://github.com/kensanata/gridmapper">Source</a>  
-	<a id="demo" class="blue" href="javascript:Demo.start()">Demo</a>
-      </p>
-      </body>
-    </foreignObject>
+	</tspan>  
+	<a id="export" class="blue" xlink:href="javascript:prepareLink()">Prepare Link</a>  
+	<a class="blue" xlink:href="https://github.com/kensanata/gridmapper#how-to-save">How to Save</a>
+      </tspan>
 
+      <tspan x="30" dy="20">
+	<a id="save" class="blue" title="Save the map to the wiki" xlink:href="javascript:save()">Save</a>  
+	<a id="load" class="blue" title="Load a map from the wiki" xlink:href="javascript:load()">Load</a>  
+	<a id="host" class="blue" title="Host a map for your friends" xlink:href="javascript:host()">Host</a>  
+	<a id="join" class="blue" title="Join a map being hosted" xlink:href="javascript:join()">Join</a>
+	
+      </tspan>
+      <tspan x="30" dy="20">
+	<a class="blue" xlink:href="https://github.com/kensanata/gridmapper">Source</a>  
+	<a id="demo" class="blue" xlink:href="javascript:Demo.start()">Demo</a>
+      </tspan>
+    </text>
+      
     <text id="level" x="460" y="110" style="font:30px 'Arial Narrow', sans-serif; font-weight: bold;">1</text>
     <text x="460" y="140" transform="rotate(90,460,140)">
       <a xlink:href="https://alexschroeder.ch/wiki/Gridmapper">
@@ -3082,7 +3131,6 @@ onload = initialize;
   <foreignObject id="label" x="10" y="10" width="40em" height="20" opacity="0">
     <input xmlns="http://www.w3.org/1999/xhtml" type="text" width="30"/>
   </foreignObject>
-
   <text id="messages" visibility="hidden">
     <tspan class="step1" x="0" y="0">Hello! This is the demo!</tspan>
     <tspan class="step1" x="0" dy="20">We're going to show you how to use this thing.</tspan>
