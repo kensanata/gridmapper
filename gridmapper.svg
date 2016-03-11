@@ -27,7 +27,8 @@ var xlinkNs    = 'http://www.w3.org/1999/xlink';
 var inkscapeNs = 'http://www.inkscape.org/namespaces/inkscape';
 var xhtmlNs    = 'http://www.w3.org/1999/xhtml';
 var wikiUrl    = 'https://campaignwiki.org/wiki/Gridmapper';
-var wsUrl      = 'https://campaignwiki.org/gridmapper-server';
+var serverUrl  = 'https://campaignwiki.org/gridmapper-server';
+var wsUrl      = 'wss://campaignwiki.org/gridmapper-server';
 
 /**
  * Stores everything about the map. The element members point to the
@@ -61,7 +62,8 @@ var Map = {
   websocket: null, // the websocket used to host or listen
   joined: false, // true when a map is joined (no input)
   hosting: false, // true when a map is hosting
-  
+  quit: false, // true when quitting to supress extra Chrome message
+
   /**
    * Initializes the datastructures if necessary. We only need to run
    * this at the very beginning. This does not reset the map in case
@@ -1094,7 +1096,7 @@ function save () {
     return;
   }
   saveIt(inputs[0],
-         inputs[1] || 'Gridmapper',
+         inputs[1] || 'Anonymous',
          inputs[2] || 'Map saved');
 }
 
@@ -1109,7 +1111,7 @@ function saveIt (title, username, summary) {
     title: title,
     text: '[[Gridmapper:' + title + ']]: '
       + (summary || '') + '\n{{{\n' + getSource() + '}}}\n',
-    username: Map.username,
+    username: username,
     summary: summary,
     frodo: 1,
   };
@@ -1325,7 +1327,9 @@ function host () {
     }
   };
   Map.websocket.onerror = function(evt) {
-    message('Hosting error: ' + evt.data);
+    if (Map.websocket.readyState === WebSocket.OPEN) {
+      message('Hosting error: ' + evt.data);
+    }
   };
 }
 
@@ -1347,52 +1351,54 @@ function stop () {
  */
 
 function join () {
-  var input = Map.exportarea.value.trim();
-  if (input === undefined || input === '' || input.split('\n').length > 1) {
+  var map = Map.exportarea.value.trim();
+  if (map === undefined || map === '' || map.split('\n').length > 1) {
     message('Please provide the name of a hosted map in the text area!');
     return;
   }
   if (Map.websocket !== null) {
     Map.websocket.close();
   }
-  Map.websocket = new WebSocket(wsUrl + '/join/' + encodeURIComponent(input));
+  Map.websocket = new WebSocket(wsUrl + '/join/' + encodeURIComponent(map));
   Map.websocket.onopen = function(evt) {
-    message('Joined ' + input);
+    message('Joined ' + map);
     Map.reset();
     Map.showLevelAnimation();
     Pen.update(null);
     Map.disable();
     Map.joined = true;
+    Map.quit = false;
     document.getElementById('host').setAttribute('class', 'invisible');
     var link = document.getElementById('join');
     link.firstChild.nodeValue = 'Leave Map';
     link.setAttributeNS(xlinkNs, 'href', 'javascript:leave()');
     Map.websocket.send('reset');
   };
-  Map.websocket.onclose = leave;
+  Map.websocket.onclose = null; // ignore?
   Map.websocket.onmessage = function(evt) {
     interpretCont(evt.data, 0); // skip the test for Map.joined in interpret()
   };
   Map.websocket.onerror = function(evt) {
     if (Map.websocket.readyState === WebSocket.OPEN) {
       message('Network error: ' + evt.data);
-    } else {
-      message('Could not join ' + input);
+    } else if (!Map.quit) {
+      message('Nobody is hosting ' + map);
     }
   };
 }
 
 function leave () {
-  if (Map.websocket !== null && Map.websocket.readyState === WebSocket.OPEN) {
+  if (Map.websocket.readyState === WebSocket.OPEN) {
     Map.websocket.close();
-    message('Left map'); // don't send msg if error is being sent
+    message('Left map');
   }
   Map.joined = false;
+  Map.quit = true;
   Map.enable();
   document.getElementById('host').setAttribute('class', 'blue');
   var link = document.getElementById('join');
   link.firstChild.nodeValue = 'Join';
-  link.setAttributeNS(xlinkNs, 'href', 'javascript:join()');
+  link.setAttributeNS(xlinkNs, 'href', serverUrl);
 }
 
 /**
@@ -2520,6 +2526,9 @@ function recreateModel () {
   var str = decodeURIComponent(window.location.search);
   if (str.substr(0, 6) === '?load=') {
     loadMap(wikiUrl + '/' + str.substr(6));
+  } else if (str.substr(0, 6) === '?join=') {
+    Map.exportarea.value = decodeURIComponent(str.substr(6));
+    join();
   } else if (str.charAt(0) === '?') {
     interpret(str.substring(1));
   }
@@ -2597,8 +2606,10 @@ function initialize () {
   if (window.location.hostname === 'localhost') {
     // testing
     wikiUrl = 'http://localhost/cgi-bin/wiki';
+    serverUrl = 'http://localhost:3000';
     wsUrl = 'ws://localhost:3000';
   }
+  document.getElementById('join').setAttribute('href', serverUrl);
   recreateModel(); // create model from SVG or URL
 }
 

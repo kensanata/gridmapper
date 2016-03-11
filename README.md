@@ -13,11 +13,35 @@ Here's
 [a Master Dungeon Mapping Key PDF](http://savevsdragon.blogspot.ch/2012/03/free-download-master-dungeon-mapping.html),
 if you want something more recent.
 
+<!-- markdown-toc start - Don't edit this section. Run M-x markdown-toc-generate-toc again -->
+**Table of Contents**
+
+- [Gridmapper](#gridmapper)
+    - [It's Free](#its-free)
+    - [No Internet Explorer](#no-internet-explorer)
+    - [Examples](#examples)
+- [How to Host](#how-to-host)
+- [How to Save](#how-to-save)
+    - [Upgrading your local copy of Gridmapper](#upgrading-your-local-copy-of-gridmapper)
+- [Scripting](#scripting)
+- [Editing Maps using a Text Editor](#editing-maps-using-a-text-editor)
+- [How to extend Gridmapper](#how-to-extend-gridmapper)
+- [Installation on your own Web Server](#installation-on-your-own-web-server)
+- [See Also](#see-also)
+
+<!-- markdown-toc end -->
+
+It's Free
+---------
+
 Also note that Gridmapper is totally free and gratis. It costs nothing
 to use, and you can do with it what you want. Using the appropriate
 download link you can save your work to a local file – and the local
 file comes with all the code to keep working on it, off line! A bit
 like [Tiddly Wiki](http://tiddlywiki.com/), I guess.﻿
+
+No Internet Explorer
+--------------------
 
 Written using [Vanilla JS](http://vanilla-js.com/). Unfortunately, it
 no longer works for Internet Explorer. That's because it mixes SVG and
@@ -29,7 +53,6 @@ Examples
 * [Gridmapper Logo](https://campaignwiki.org/gridmapper.svg?%0A%20f%20ss%20f%0A%20s%0A%20%20%20%20sss%0A%20fssss%20%20f)
 * [OSR Logo](https://campaignwiki.org/gridmapper.svg?%0A%20w.dfwwfwwfw%0A%20wftv%20fw.wfwwfww.dddfw%0A%20wfffwnnnn%20nn%20wfwwfwwfw%0A%20ww%20ww%20w.dfffwfn%20nnn%20w%0A%20%20%20ww%20ww%20ww%20wfnnnn%20fd%0A%20%20%20%20%20%20ww%20ww%20ww)
 * [Demo Dungeon](https://campaignwiki.org/gridmapper.svg?%2813%2C11%29ffff%0A%20%20%20%20%20%20%20%20%20%20%20ssss%20%20ff1ffdffssssv%0A%20%20%20%20%20%20%20%20%20%20%20%20%20ffff%0A%20%20%20%20%20%20%20%20%20%20%20%20%20ffffdfnn%0A%20%20%20%20%20%20%20%20%20%20%20%20%20ffffnnnn%20fff%0A%20%20%20%20%20%20%20%20%20%20%20%20%20%20fddvvvf%20%20%204ffdvvfff%0A%20%20%20%20%20%20%20%20%20%20%20%20%20%20ff%20%20%20%20%20f5fdddvf%0A%20%20%20%20%20%20%20%20%20%20%20p%20p%20p%20ffdvf%20%20%20%20fff%0A%20%20%20%20%20%20%20%20%20%20%20b%20t%20f2ffwf%0A%20%20%20%20%20%20%20%20%20%20%20p%20p%20p%20ffwfz%2821%2C11%29fwfwf%0A%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%206fddfddfddfdv%0A%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20ddfw.dfw.df)
-* [14 Levels](https://campaignwiki.org/gridmapper.svg?%0A%20ffffffffffffffffffffffffffff%0A%20f%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20f%0A%20f%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20f%0A%20f%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20f%0A%20f%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20f%0A%20f%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20f%0A%20f%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20f%0A%20f%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20f%0A%20f%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20f%0A%20f%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20f%0A%20f%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20f%0A%20f%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20f%0A%20f%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20f%0A%20f%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20f%0A%20f%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20f%0A%20f%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20f%0A%20f%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20f%0A%20f%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20f%0A%20f%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20f%0A%20f%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20f%0A%20f%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20f%0A%20f%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20f%0A%20f%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20f%0A%20f%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20f%0A%20f%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20f%0A%20f%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20f%0A%20f%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20f%0A%20ffffffffffffffffffffffffffff%0Az%0A%0A%20%20ffffffffffffffffffffffffff%0A%20%20f%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20f%0A%20%20f%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20f%0A%20%20f%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20f%0A%20%20f%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20f%0A%20%20f%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20f%0A%20%20f%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20f%0A%20%20f%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20f%0A%20%20f%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20f%0A%20%20f%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20f%0A%20%20f%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20f%0A%20%20f%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20f%0A%20%20f%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20f%0A%20%20f%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20f%0A%20%20f%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20f%0A%20%20f%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20f%0A%20%20f%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20f%0A%20%20f%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20f%0A%20%20f%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20f%0A%20%20f%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20f%0A%20%20f%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20f%0A%20%20f%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20f%0A%20%20f%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20f%0A%20%20f%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20f%0A%20%20f%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20f%0A%20%20ffffffffffffffffffffffffff%0Az%0A%0A%0A%20%20%20ffffffffffffffffffffffff%0A%20%20%20f%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20f%0A%20%20%20f%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20f%0A%20%20%20f%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20f%0A%20%20%20f%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20f%0A%20%20%20f%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20f%0A%20%20%20f%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20f%0A%20%20%20f%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20f%0A%20%20%20f%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20f%0A%20%20%20f%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20f%0A%20%20%20f%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20f%0A%20%20%20f%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20f%0A%20%20%20f%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20f%0A%20%20%20f%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20f%0A%20%20%20f%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20f%0A%20%20%20f%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20f%0A%20%20%20f%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20f%0A%20%20%20f%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20f%0A%20%20%20f%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20f%0A%20%20%20f%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20f%0A%20%20%20f%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20f%0A%20%20%20f%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20f%0A%20%20%20f%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20f%0A%20%20%20ffffffffffffffffffffffff%0Az%0A%0A%0A%0A%20%20%20%20ffffffffffffffffffffff%0A%20%20%20%20f%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20f%0A%20%20%20%20f%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20f%0A%20%20%20%20f%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20f%0A%20%20%20%20f%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20f%0A%20%20%20%20f%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20f%0A%20%20%20%20f%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20f%0A%20%20%20%20f%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20f%0A%20%20%20%20f%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20f%0A%20%20%20%20f%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20f%0A%20%20%20%20f%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20f%0A%20%20%20%20f%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20f%0A%20%20%20%20f%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20f%0A%20%20%20%20f%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20f%0A%20%20%20%20f%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20f%0A%20%20%20%20f%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20f%0A%20%20%20%20f%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20f%0A%20%20%20%20f%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20f%0A%20%20%20%20f%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20f%0A%20%20%20%20f%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20f%0A%20%20%20%20f%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20f%0A%20%20%20%20ffffffffffffffffffffff%0Az%0A%0A%0A%0A%0A%20%20%20%20%20ffffffffffffffffffff%0A%20%20%20%20%20f%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20f%0A%20%20%20%20%20f%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20f%0A%20%20%20%20%20f%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20f%0A%20%20%20%20%20f%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20f%0A%20%20%20%20%20f%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20f%0A%20%20%20%20%20f%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20f%0A%20%20%20%20%20f%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20f%0A%20%20%20%20%20f%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20f%0A%20%20%20%20%20f%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20f%0A%20%20%20%20%20f%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20f%0A%20%20%20%20%20f%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20f%0A%20%20%20%20%20f%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20f%0A%20%20%20%20%20f%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20f%0A%20%20%20%20%20f%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20f%0A%20%20%20%20%20f%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20f%0A%20%20%20%20%20f%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20f%0A%20%20%20%20%20f%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20f%0A%20%20%20%20%20f%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20f%0A%20%20%20%20%20ffffffffffffffffffff%0Az%0A%0A%0A%0A%0A%0A%20%20%20%20%20%20ffffffffffffffffff%0A%20%20%20%20%20%20f%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20f%0A%20%20%20%20%20%20f%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20f%0A%20%20%20%20%20%20f%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20f%0A%20%20%20%20%20%20f%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20f%0A%20%20%20%20%20%20f%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20f%0A%20%20%20%20%20%20f%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20f%0A%20%20%20%20%20%20f%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20f%0A%20%20%20%20%20%20f%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20f%0A%20%20%20%20%20%20f%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20f%0A%20%20%20%20%20%20f%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20f%0A%20%20%20%20%20%20f%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20f%0A%20%20%20%20%20%20f%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20f%0A%20%20%20%20%20%20f%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20f%0A%20%20%20%20%20%20f%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20f%0A%20%20%20%20%20%20f%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20f%0A%20%20%20%20%20%20f%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20f%0A%20%20%20%20%20%20ffffffffffffffffff%0Az%0A%0A%0A%0A%0A%0A%0A%20%20%20%20%20%20%20ffffffffffffffff%0A%20%20%20%20%20%20%20f%20%20%20%20%20%20%20%20%20%20%20%20%20%20f%0A%20%20%20%20%20%20%20f%20%20%20%20%20%20%20%20%20%20%20%20%20%20f%0A%20%20%20%20%20%20%20f%20%20%20%20%20%20%20%20%20%20%20%20%20%20f%0A%20%20%20%20%20%20%20f%20%20%20%20%20%20%20%20%20%20%20%20%20%20f%0A%20%20%20%20%20%20%20f%20%20%20%20%20%20%20%20%20%20%20%20%20%20f%0A%20%20%20%20%20%20%20f%20%20%20%20%20%20%20%20%20%20%20%20%20%20f%0A%20%20%20%20%20%20%20f%20%20%20%20%20%20%20%20%20%20%20%20%20%20f%0A%20%20%20%20%20%20%20f%20%20%20%20%20%20%20%20%20%20%20%20%20%20f%0A%20%20%20%20%20%20%20f%20%20%20%20%20%20%20%20%20%20%20%20%20%20f%0A%20%20%20%20%20%20%20f%20%20%20%20%20%20%20%20%20%20%20%20%20%20f%0A%20%20%20%20%20%20%20f%20%20%20%20%20%20%20%20%20%20%20%20%20%20f%0A%20%20%20%20%20%20%20f%20%20%20%20%20%20%20%20%20%20%20%20%20%20f%0A%20%20%20%20%20%20%20f%20%20%20%20%20%20%20%20%20%20%20%20%20%20f%0A%20%20%20%20%20%20%20f%20%20%20%20%20%20%20%20%20%20%20%20%20%20f%0A%20%20%20%20%20%20%20ffffffffffffffff%0Az%0A%0A%0A%0A%0A%0A%0A%0A%20%20%20%20%20%20%20%20ffffffffffffff%0A%20%20%20%20%20%20%20%20f%20%20%20%20%20%20%20%20%20%20%20%20f%0A%20%20%20%20%20%20%20%20f%20%20%20%20%20%20%20%20%20%20%20%20f%0A%20%20%20%20%20%20%20%20f%20%20%20%20%20%20%20%20%20%20%20%20f%0A%20%20%20%20%20%20%20%20f%20%20%20%20%20%20%20%20%20%20%20%20f%0A%20%20%20%20%20%20%20%20f%20%20%20%20%20%20%20%20%20%20%20%20f%0A%20%20%20%20%20%20%20%20f%20%20%20%20%20%20%20%20%20%20%20%20f%0A%20%20%20%20%20%20%20%20f%20%20%20%20%20%20%20%20%20%20%20%20f%0A%20%20%20%20%20%20%20%20f%20%20%20%20%20%20%20%20%20%20%20%20f%0A%20%20%20%20%20%20%20%20f%20%20%20%20%20%20%20%20%20%20%20%20f%0A%20%20%20%20%20%20%20%20f%20%20%20%20%20%20%20%20%20%20%20%20f%0A%20%20%20%20%20%20%20%20f%20%20%20%20%20%20%20%20%20%20%20%20f%0A%20%20%20%20%20%20%20%20f%20%20%20%20%20%20%20%20%20%20%20%20f%0A%20%20%20%20%20%20%20%20ffffffffffffff%0Az%0A%0A%0A%0A%0A%0A%0A%0A%0A%20%20%20%20%20%20%20%20%20ffffffffffff%0A%20%20%20%20%20%20%20%20%20f%20%20%20%20%20%20%20%20%20%20f%0A%20%20%20%20%20%20%20%20%20f%20%20%20%20%20%20%20%20%20%20f%0A%20%20%20%20%20%20%20%20%20f%20%20%20%20%20%20%20%20%20%20f%0A%20%20%20%20%20%20%20%20%20f%20%20%20%20%20%20%20%20%20%20f%0A%20%20%20%20%20%20%20%20%20f%20%20%20%20%20%20%20%20%20%20f%0A%20%20%20%20%20%20%20%20%20f%20%20%20%20%20%20%20%20%20%20f%0A%20%20%20%20%20%20%20%20%20f%20%20%20%20%20%20%20%20%20%20f%0A%20%20%20%20%20%20%20%20%20f%20%20%20%20%20%20%20%20%20%20f%0A%20%20%20%20%20%20%20%20%20f%20%20%20%20%20%20%20%20%20%20f%0A%20%20%20%20%20%20%20%20%20f%20%20%20%20%20%20%20%20%20%20f%0A%20%20%20%20%20%20%20%20%20ffffffffffff%0Az%0A%0A%0A%0A%0A%0A%0A%0A%0A%0A%20%20%20%20%20%20%20%20%20%20ffffffffff%0A%20%20%20%20%20%20%20%20%20%20f%20%20%20%20%20%20%20%20f%0A%20%20%20%20%20%20%20%20%20%20f%20%20%20%20%20%20%20%20f%0A%20%20%20%20%20%20%20%20%20%20f%20%20%20%20%20%20%20%20f%0A%20%20%20%20%20%20%20%20%20%20f%20%20%20%20%20%20%20%20f%0A%20%20%20%20%20%20%20%20%20%20f%20%20%20%20%20%20%20%20f%0A%20%20%20%20%20%20%20%20%20%20f%20%20%20%20%20%20%20%20f%0A%20%20%20%20%20%20%20%20%20%20f%20%20%20%20%20%20%20%20f%0A%20%20%20%20%20%20%20%20%20%20f%20%20%20%20%20%20%20%20f%0A%20%20%20%20%20%20%20%20%20%20ffffffffff%0Az%0A%0A%0A%0A%0A%0A%0A%0A%0A%0A%0A%20%20%20%20%20%20%20%20%20%20%20ffffffff%0A%20%20%20%20%20%20%20%20%20%20%20f%20%20%20%20%20%20f%0A%20%20%20%20%20%20%20%20%20%20%20f%20%20%20%20%20%20f%0A%20%20%20%20%20%20%20%20%20%20%20f%20%20%20%20%20%20f%0A%20%20%20%20%20%20%20%20%20%20%20f%20%20%20%20%20%20f%0A%20%20%20%20%20%20%20%20%20%20%20f%20%20%20%20%20%20f%0A%20%20%20%20%20%20%20%20%20%20%20f%20%20%20%20%20%20f%0A%20%20%20%20%20%20%20%20%20%20%20ffffffff%0Az%0A%0A%0A%0A%0A%0A%0A%0A%0A%0A%0A%0A%20%20%20%20%20%20%20%20%20%20%20%20ffffff%0A%20%20%20%20%20%20%20%20%20%20%20%20f%20%20%20%20f%0A%20%20%20%20%20%20%20%20%20%20%20%20f%20%20%20%20f%0A%20%20%20%20%20%20%20%20%20%20%20%20f%20%20%20%20f%0A%20%20%20%20%20%20%20%20%20%20%20%20f%20%20%20%20f%0A%20%20%20%20%20%20%20%20%20%20%20%20ffffff%0Az%0A%0A%0A%0A%0A%0A%0A%0A%0A%0A%0A%0A%0A%20%20%20%20%20%20%20%20%20%20%20%20%20ffff%0A%20%20%20%20%20%20%20%20%20%20%20%20%20f%20%20f%0A%20%20%20%20%20%20%20%20%20%20%20%20%20f%20%20f%0A%20%20%20%20%20%20%20%20%20%20%20%20%20ffff%0Az%0A%0A%0A%0A%0A%0A%0A%0A%0A%0A%0A%0A%0A%0A%20%20%20%20%20%20%20%20%20%20%20%20%20%20ff%0A%20%20%20%20%20%20%20%20%20%20%20%20%20%20ff%0Az)
 
 You will have noticed that those example URLs contain a lot of
 gibberish past the questionmark. This is the URL's **query string**.
@@ -37,8 +60,21 @@ It's a sort of code that's very close to a stream of keyboard
 commands. You can get this link by clicking on *Prepare Link* and then
 clicking on the resulting *Link*. Perfect for sharing and bookmarking.
 
+For more examples, check out this [Google+ Collection](https://plus.google.com/collection/wvkofB).
+
+How to Host
+===========
+
+If you want to share your map as you draw it, you can *host* it.
+It's not a [RPG Virtual Tabletop](http://rpgvirtualtabletop.wikidot.com/),
+so you still nead a way to talk or chat online. Gridmapper simply facilitates the job of the *mapper*. All the players can watch as the map grows, in real time.
+
+1. everybody opens [Gridmapper](https://campaignwiki.org/gridmapper.svg)
+2. the *mapper* provides a name in the text area and clicks **Host**
+3. everybody else clicks **Join** and follows the appropriate link
+
 How to Save
------------
+===========
 
 This being a very simple web application, it has no access to your
 file system. And worse: If you use "Save As..." in Firefox or Chrome
@@ -59,7 +95,7 @@ These are your options:
    recreating your dungeon. This is ideal for sharing while chatting
    with people or when posting a link on Facebook or Google+. You
    might have to use a URL shortener such as
-   [goo.https](gl://goo.gl/). As browsers and web sites have size
+   [goo.gl](https://goo.gl/). As browsers and web sites have size
    limitations on the length of a link, this will not work for *big*
    dungeons.
 
@@ -122,7 +158,7 @@ and **Text Import**.
 Check that everything works before deleting your old copy. :)
 
 Scripting
----------
+=========
 
 It's possible to use the text area for some simple scripting. Paste
 the following in the text area, for example, and use **Ctrl Enter** as
@@ -136,28 +172,28 @@ walls.
 Scripting works by typing the commands you would need to type, with
 the following additions:
 
-1. ```f``` will place a floor *and automatically advance* (like a
+1. `f` will place a floor *and automatically advance* (like a
    right arrow)
 
-1. ```-``` will move left by one (like a left arrow)
+1. `-` will move left by one (like a left arrow)
 
-1. ```.``` is used to stop rotations; thus ```ddd``` will place a door
-   and rotate it three times where as ```d.dd``` will place one door
+1. `.` is used to stop rotations; thus `ddd` will place a door
+   and rotate it three times where as `d.dd` will place one door
    and a second door, and rotate it once
 
-1. ```;``` is used to pause for half a second; it might be useful if
+1. `;` is used to pause for half a second; it might be useful if
    you're writing a demo for somebody else
 
-2. ```(x,y)``` will automatically move to the new position (be sure to
-   add 0.5 to either x or y in Wall Mode); note that ```(0,0)``` is
+2. `(x,y)` will automatically move to the new position (be sure to
+   add 0.5 to either x or y in Wall Mode); note that `(0,0)` is
    the top left corner and positive y is *down*
 
-3. ```[dx,dy]``` will move the current position relative to the
-   current position; given that positive y is *down*, ```[0,1]``` is
+3. `[dx,dy]` will move the current position relative to the
+   current position; given that positive y is *down*, `[0,1]` is
    the equivalent of moving one down
 
 Editing Maps using a Text Editor
---------------------------------
+================================
 
 Assume you have these two maps:
 [One](https://campaignwiki.org/gridmapper.svg?%0A%20w.dfwwfwwfw%0A%20wft%20fw.wfwwfww.dddfw%0A%20wfffwnnnn%20nn%20wfwwfwwfw%0A%20ww%20ww%20w.dfffwfn%20nnn%20w%0A%20%20%20ww%20ww%20ww%20wfnnnn%20fd%0A%20%20%20%20%20%20ww%20ww%20ww)
@@ -193,7 +229,7 @@ First, we need to shift it over by 10 spaces:
 ```
 
 Then we combine them, and we add a little extra: we can tell
-Gridmapper to return to the top left corner by providing ```(0,0)```.
+Gridmapper to return to the top left corner by providing `(0,0)`.
 Here's the combined map.
 
 ```
@@ -213,7 +249,7 @@ Paste it into the text area and click **Import Text**. That's it.
 Result: [Combined Map](https://campaignwiki.org/gridmapper.svg?%0A%20w.dfwwfwwfw%20%20%20%20%20%20%20ffnn%20n%20nn%20ffnn%0A%20wft%20fw.wfwwfww.dddfw%20%20%20%20dfb%20fdfwfwfb%20f%0A%20wfffwnnnn%20nn%20wfwwfwwfw%20%20ffnnn%20fwfdffnnn%0A%20ww%20ww%20w.dfffwfn%20nnn%20w%0A%20%20%20ww%20ww%20ww%20wfnnnn%20fd%0A%20%20%20%20%20%20ww%20ww%20ww)
 
 How to extend Gridmapper
-------------------------
+========================
 
 Let's assume you want to add *wells* as variants of *statues* to
 Gridmapper – and let's assume this had not yet been implemented. How
@@ -244,8 +280,8 @@ attribute.
 ```
 
 Step 2: Register the variants. What we need to do is tell Gridmapper
-that hitting ```v``` on a statue will turn it into a well and hitting
-```v``` on a well will turn it into a statue. Find the variants in the
+that hitting `v` on a statue will turn it into a well and hitting
+`v` on a well will turn it into a statue. Find the variants in the
 source code and add the following:
 
 ```
@@ -257,7 +293,7 @@ variants: {
 ```
 
 Step 3: Document it. Find the section at the end where all the tiles
-are documented. Search for ```#statue```. Then, append something like
+are documented. Search for `#statue`. Then, append something like
 the following:
 
 ```
@@ -270,7 +306,7 @@ the following:
 Save it, test it, you're done!
 
 Installation on your own Web Server
------------------------------------
+===================================
 
 Since the *query string* is of utmost importance, the limitations on
 request length probably needs to raised. By default,
@@ -283,8 +319,38 @@ LimitRequestLine      32000
 LimitRequestFieldSize 32000
 ```
 
+If you want hosting to work, you'll need to install
+`gridmapper-server.pl` as a Mojolicious app using
+[Hypnotoad](http://mojolicious.org/perldoc/Mojo/Server/Hypnotoad).
+You cannot use Toadfarm, because it's important that the server use
+only one instance. All the hosts and clients are in-memory. Nothing is
+saved to the disk. Remember to change the hostname and port at the top
+of the file.
+
+If you're using Apache 2.2.22 (Debian Wheezy) as a proxy, you're in
+trouble. The gridmapper-server itself is using HTTP on port 8082 and
+the /join and /draw URLs are using WebSocket. This requires
+**mod_proxy_wstunnel**. This required recompiling a patched Apache and
+copying both mod_proxy and mod_proxy_wstunnel. You can find some links
+[on my blog
+post](https://alexschroeder.ch/wiki/2016-03-06_Gridmapper_using_Web_Sockets).
+
+Apache config:
+
+```
+ProxyPass /gridmapper-server/join ws://campaignwiki.org:8082/join
+ProxyPass /gridmapper-server/draw ws://campaignwiki.org:8082/draw
+ProxyPass /gridmapper-server  http://campaignwiki.org:8082/
+```
+
+Starting Hypnotoad:
+
+```
+hypnotoad gridmapper-server.pl
+```
+
 See Also
---------
+========
 
 The project was the result of admiring Daniel R. Collins' [original
 GridMapper 1.0](http://www.superdan.net/software/gridmapper/).
