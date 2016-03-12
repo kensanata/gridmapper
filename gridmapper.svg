@@ -946,18 +946,14 @@ function download () {
   svg.getElementById('help').removeAttribute('class');
   svg.getElementById('pointer').removeAttribute('class');
 
-  // hide Prepare Download link
-  var prep = document.getElementById('download');
-  prep.setAttribute('class', 'invisible');
-
-  // show format span
-  var span = document.getElementById('format');
-  span.removeAttribute('class');
+  // hide Prepare Download link and show formats
+  document.getElementById('download').setAttribute('display', 'none');
+  document.getElementById('format').setAttribute('display', 'inline');
 
   // revert this change after 10s
   var t = setInterval(function() {
-    prep.setAttribute('class', 'blue');
-    span.setAttribute('class', 'invisible');
+    document.getElementById('download').setAttribute('display', 'inline');
+    document.getElementById('format').setAttribute('display', 'none');
     clearInterval(t);
   }, 10000);
 
@@ -3104,14 +3100,16 @@ onload = initialize;
     
     <text>
       <tspan x="30" y="590">
-	<a id="download" class="blue" xlink:href="javascript:download()">Prepare Download</a>
-	<tspan id="format" class="invisible">
+	<a class="blue" xlink:href="https://github.com/kensanata/gridmapper#how-to-save">How to Save</a>  
+	<tspan id="download">
+	  <a class="blue" xlink:href="javascript:download()">Prepare Download</a>
+	</tspan>
+	<tspan id="format" display="none">
 	  Download
 	  <a id="download_svg" class="blue" download="gridmapper.svg">SVG</a>
-	  <a id="download_png" class="blue" download="gridmapper.png">PNG</a>
+	  <a id="download_png" class="blue" target="_blank" download="gridmapper.png">PNG</a>
 	</tspan>  
-	<a id="export" class="blue" xlink:href="javascript:prepareLink()">Prepare Link</a>  
-	<a class="blue" xlink:href="https://github.com/kensanata/gridmapper#how-to-save">How to Save</a>
+	<a id="export" class="blue" xlink:href="javascript:prepareLink()">Prepare Link</a>
       </tspan>
 
       <tspan x="30" dy="20">
