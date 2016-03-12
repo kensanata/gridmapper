@@ -932,19 +932,6 @@ function disableLink(element) {
  * such download attribute for SVG or XHTML.
  */
 function download () {
-  var svg = document.querySelector('svg');
-
-  // SVG download includes user interface
-  var source = btoa(unescape(encodeURIComponent(new XMLSerializer().serializeToString(svg))));
-  var link  = document.getElementById('download_svg');
-  link.setAttributeNS(xlinkNs, 'href', 'data:image/svg+xml;base64,' + source);
-
-  // PNG download hides user interface
-  svg.getElementById('help').setAttribute('class', 'invisible');
-  svg.getElementById('pointer').setAttribute('class', 'invisible');
-  source = btoa(unescape(encodeURIComponent(new XMLSerializer().serializeToString(svg))));
-  svg.getElementById('help').removeAttribute('class');
-  svg.getElementById('pointer').removeAttribute('class');
 
   // hide Prepare Download link and show formats
   document.getElementById('download').setAttribute('display', 'none');
@@ -957,13 +944,33 @@ function download () {
     clearInterval(t);
   }, 10000);
 
+  var svg = document.querySelector('svg');
+
+  // SVG download includes user interface
+  var source = btoa(unescape(encodeURIComponent(new XMLSerializer().serializeToString(svg))));
+  var link  = document.getElementById('download_svg');
+  link.setAttributeNS(xlinkNs, 'href', 'data:image/svg+xml;base64,' + source);
+
+  // PNG download hides user interface. We must actually *remove* all
+  // the foreignObject elements because it causes a security exception
+  // in Safari.
+  // http://stackoverflow.com/questions/33972254/svgpng-from-canvas-todataurl-throws-dom-exception-18-security-error-in-safari-9
+  var clone = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+  var background = svg.getElementById('background');
+  clone.setAttribute('width', svg.getAttribute('width'));
+  clone.setAttribute('height', svg.getAttribute('width'));
+  clone.appendChild(svg.querySelector('defs').cloneNode(true));
+  clone.appendChild(svg.getElementById('background').cloneNode(true));
+  clone.appendChild(svg.getElementById('levels').cloneNode(true));
+  source = btoa(unescape(encodeURIComponent(new XMLSerializer().serializeToString(clone))));
+
   link  = document.getElementById('download_png');
   
   // SVG to PNG using canvas https://gist.github.com/gustavohenke/9073132
   var canvas = document.createElementNS(xhtmlNs, 'canvas');
-  var rect = svg.getBoundingClientRect();
-  canvas.width = rect.width;
-  canvas.height = rect.height;
+  var rect = Map.ui.getBoundingClientRect();
+  canvas.width = (Map.width + 2) * Map.tileWidth; // see resizeSVG
+  canvas.height = (Map.width + 2) * Map.tileWidth;
   var ctx = canvas.getContext('2d');
   var img = document.createElementNS(xhtmlNs, 'img');
   img.setAttribute('src', 'data:image/svg+xml;base64,' + source);
@@ -2801,7 +2808,7 @@ onload = initialize;
 
   <style><![CDATA[
   svg { overflow: visible }
-  text { font: 14px 'Courier New', Courier, monospace; fill="black" }
+  text { font: 14px 'Courier New', Courier, monospace }
   textarea { font: 10px 'Courier New', Courier, monospace }
   p { margin: 0 0 10px 0; padding: 0; }
   text { font: 14px 'Courier New', Courier, monospace; }
