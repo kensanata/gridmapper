@@ -875,7 +875,7 @@ function resizeSVG () {
       + level.getBBox().width // width of level indicator
   );
   document.rootElement.setAttribute(
-    'height', Math.max((Map.width + 2) * Map.tileWidth,
+    'height', Math.max((Map.height + 2) * Map.tileWidth,
                        2 * Map.tileWidth
                        + Number(help.getAttribute('height'))));
 }
