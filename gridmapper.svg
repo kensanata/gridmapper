@@ -3095,7 +3095,8 @@ onload = initialize;
     </text>
 
     <foreignObject id="label" x="30" y="515" width="390" height="50">
-      <textarea xmlns="http://www.w3.org/1999/xhtml" id="exportarea" style="width: 100%; height: 100%"/>
+      <textarea id="exportarea" xmlns="http://www.w3.org/1999/xhtml"
+		style="position: fixed; width: 100%; height: 100%; margin: 0; padding: 0"/>
     </foreignObject>
     
     <text>
