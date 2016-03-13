@@ -55,7 +55,7 @@ var Map = {
   floorElement: null, // the SVG element for the floor of the current level
   wallsElement: null, // the SVG element for the walls of the current level
   labelsElement: null, // the SVG element for the labels of the current level
-  hideOthers: false, // are the other levels hidden?
+  backgroundMode: 'lightgrey', // are the other levels hidden?
   lastUrl: null, // last URL loaded
   lastEtag: null, // last etag received
   username: null, // the name of the user (after saving to the wiki)
@@ -135,7 +135,7 @@ var Map = {
     Map.levels = [];
     createLevel(0);
     Map.setLevel(0);
-    Map.showLevelAnimation(0);
+    Map.showLevelAnimation();
     moveElements();
   },
   
@@ -268,6 +268,12 @@ var Map = {
     }
   },
 
+  setBackground: function(color) {
+    // default is light grey #d3d3d3
+    var bg = document.getElementById('background').firstElementChild;
+    fillElementTo(bg, color, linear, 500);
+  },
+  
   /**
    * Lists the replacement for a particular tile type.
    * This mapping must match the functionality of Map.code.
@@ -781,8 +787,8 @@ function linear (progress) {
   return progress;
 }
 
-function inverse (progress) {
-  return 1 - progress;
+function approach(progress) {
+  return 1 - Math.pow(progress, 2)
 }
 
 function bounce (progress) {
@@ -857,6 +863,29 @@ function fadeElementTo (element, opacity, delta, duration) {
       }
     }
   });
+};
+
+/**
+ * This changes the fill (background color) only for greyscale! If you
+ * need full color support, check out the LAB color model.
+ * https://software.intel.com/en-us/html5/hub/blogs/exploring-color-matching-in-javascript
+ **/
+function fillElementTo (element, fill, delta, duration) {
+  var str = element.getAttribute('fill');
+  var from = 211;
+  if (str.indexOf('rgb(') === 0)
+    from = parseInt(str.split("(")[1].split(")")[0].split(",")[0]); // red value
+  if (from !== fill)
+    animate({
+      delay: 10,
+      duration: duration || 1000, // 1 sec by default
+      delta: delta,
+      step: function(delta) {
+        // ~~ is for Math.floor: http://rocha.la/JavaScript-bitwise-operators-in-practice
+        var value = ~~ (from + (fill - from) * delta);
+        element.setAttribute('fill', 'rgb(' + value + ',' + value + ',' + value + ')');
+      }
+    });
 };
 
 /**
@@ -2334,14 +2363,19 @@ function keyPressed (evt) {
     break;
 
   case 'Z':
-    if (Map.hideOthers) {
-      Map.showLevelAnimation();
-    } else {
+    if (Map.backgroundMode === 'lightgrey') {
       Map.hideOtherLevels();
+      Map.backgroundMode = 'hidden';
+    } else if (Map.backgroundMode === 'hidden') {
+      Map.setBackground(0);
+      Map.backgroundMode = 'black';
+    } else {
+      Map.showLevelAnimation();
+      Map.setBackground(211); // #d3d3d3 is light grey
+      Map.backgroundMode = 'lightgrey';
     }
-    Map.hideOthers = !Map.hideOthers;
     break;
-
+    
   case '"':
   case "'": // for the "abc" link: " is processed by interpretCont
     showLabelField(Pen.x, Pen.y);
@@ -2800,7 +2834,7 @@ onload = initialize;
     </g>
   </defs>
   <g id="background" inkscape:groupmode="layer" inkscape:label="Background">
-    <rect x="20" y="20" width="0" height="0" fill="lightgrey" stroke="black" stroke-width="1"/>
+    <rect x="20" y="20" width="0" height="0" fill="rgb(211,211,211)" stroke="black" stroke-width="1"/>
   </g>
   <g id="levels" inkscape:groupmode="layer" inkscape:label="Levels"/>
   <use id="pointer" xlink:href="#cursor"/>
@@ -2833,7 +2867,7 @@ onload = initialize;
 
     <svg x="30" y="150">
       <a href="javascript:interpret('f')">
-	<text x="30" y="14" text-anchor="end"><tspan class="key">f</tspan> :</text>
+	<text y="14"><tspan class="key">f</tspan> :</text>
       </a>
       <a xlink:href="javascript:interpret('f')" title="floor">
 	<use x="50" xlink:href="#empty"/>
@@ -2849,7 +2883,7 @@ onload = initialize;
 
     <svg x="30" y="180">
       <a href="javascript:interpret('t')">
-	<text x="30" y="14" text-anchor="end"><tspan class="key">t</tspan> :</text>
+	<text y="14"><tspan class="key">t</tspan> :</text>
       </a>
       <a xlink:href="javascript:interpret('t')" title="covered pit">
 	<use x="50" xlink:href="#empty"/>
@@ -2875,7 +2909,7 @@ onload = initialize;
 
     <svg x="30" y="210">
       <a href="javascript:interpret('b')">
-	<text x="30" y="14" text-anchor="end"><tspan class="key">b</tspan> :</text>
+	<text y="14"><tspan class="key">b</tspan> :</text>
       </a>
       <a xlink:href="javascript:interpret('b')" title="statue">
 	<use x="50" xlink:href="#empty"/>
@@ -2893,7 +2927,7 @@ onload = initialize;
 
     <svg x="30" y="240">
       <a href="javascript:interpret('d')">
-	<text x="30" y="14" text-anchor="end"><tspan class="key">d</tspan> :</text>
+	<text y="14"><tspan class="key">d</tspan> :</text>
       </a>
       <a xlink:href="javascript:interpret('d')" title="door">
 	<use x="50" xlink:href="#empty"/>
@@ -2916,7 +2950,7 @@ onload = initialize;
 
     <svg x="30" y="270">
       <a href="javascript:interpret('s')">
-	<text x="30" y="14" text-anchor="end"><tspan class="key">s</tspan> :</text>
+	<text y="14"><tspan class="key">s</tspan> :</text>
       </a>
       <a xlink:href="javascript:interpret('s')" title="stairs">
 	<use x="50" xlink:href="#stair"/>
@@ -2937,7 +2971,7 @@ onload = initialize;
 
     <svg x="30" y="320">
       <a href="javascript:interpret('n')">
-	<text x="30" y="14" text-anchor="end"><tspan class="key">n</tspan> :</text>
+	<text y="14"><tspan class="key">n</tspan> :</text>
       </a>
       <a xlink:href="javascript:interpret('n')" title="diagonal">
 	<use x="50" y="10" xlink:href="#diagonal"/>
@@ -2953,9 +2987,9 @@ onload = initialize;
       </a>
     </svg>
 
-    <svg x="250" y="150">
+    <svg x="260" y="150">
       <a href="javascript:interpret('w')">
-	<text x="30" y="14" text-anchor="end"><tspan class="key">w</tspan> :</text>
+	<text y="14"><tspan class="key">w</tspan> :</text>
       </a>
       <a xlink:href="javascript:interpret('w')" title="wall">
 	<use x="50" xlink:href="#empty"/>
@@ -2971,9 +3005,9 @@ onload = initialize;
       </a>
     </svg>
 
-    <svg x="250" y="180">
+    <svg x="260" y="180">
       <a href="javascript:interpret('p')">
-	<text x="30" y="14" text-anchor="end"><tspan class="key">p</tspan> :</text>
+	<text y="14"><tspan class="key">p</tspan> :</text>
       </a>
       <a xlink:href="javascript:interpret('p')" title="pillar">
 	<use x="50" xlink:href="#empty"/>
@@ -2993,9 +3027,9 @@ onload = initialize;
       </a>
     </svg>
 
-    <svg x="250" y="210">
+    <svg x="260" y="210">
       <a href="javascript:interpret('c')">
-	<text x="30" y="14" text-anchor="end"><tspan class="key">c</tspan> :</text>
+	<text y="14"><tspan class="key">c</tspan> :</text>
       </a>
       <a xlink:href="javascript:interpret('c')" title="chest">
 	<use x="50" xlink:href="#empty"/>
@@ -3011,9 +3045,9 @@ onload = initialize;
       </a>
     </svg>
 
-    <svg x="250" y="240">
+    <svg x="260" y="240">
       <a href="javascript:interpret('&apos;')">
-	<text x="30" y="14" text-anchor="end"><tspan class="key">"abc"</tspan> :</text>
+	<text x="-34" y="14"><tspan class="key">"abc"</tspan> :</text>
 	<use x="50" xlink:href="#empty"/>
 	<g class="labels" title="labels">
 	  <text x="60" y="13.5">abc</text>
@@ -3021,17 +3055,17 @@ onload = initialize;
       </a>
     </svg>
 
-    <svg x="250" y="270">
-      <text x="30" y="14" text-anchor="end"><tspan class="key">0-9</tspan><tspan> :</tspan></text>
+    <svg x="260" y="270">
+      <text x="-17" y="14"><tspan class="key">0-9</tspan><tspan> :</tspan></text>
       <use x="50" xlink:href="#empty"/>
       <g class="labels" title="labels">
 	<text x="60" y="13.5">123</text>
       </g>
     </svg>
 
-    <svg x="250" y="300">
+    <svg x="260" y="300">
       <a xlink:href="javascript:interpret('m')">
-	<text x="30" y="14" text-anchor="end"><tspan class="key">m</tspan><tspan> :</tspan></text>
+	<text y="14"><tspan class="key">m</tspan><tspan> :</tspan></text>
       </a>
       <a xlink:href="javascript:interpret('m')" title="Wall Mode">
 	<use x="50" xlink:href="#empty"/>
@@ -3040,18 +3074,18 @@ onload = initialize;
       </a>
     </svg>
 
-    <svg x="250" y="330">
+    <svg x="260" y="330">
       <text>
 	<tspan x="0" y="14">Use arrow keys</tspan>
 	<tspan x="0" dy="20">or vi keys</tspan>
 	<tspan x="0" dy="20">to move around</tspan>
       </text>
-      <text x="150" y="14">
+      <text x="140" y="14">
 	<a xlink:href="javascript:interpret('k')" title="up">
 	  <tspan class="key">k</tspan>
 	</a>
       </text>
-      <text x="130" y="34">
+      <text x="120" y="34">
 	<a xlink:href="javascript:interpret('h')" title="left">
 	  <tspan class="key">h</tspan>
 	</a>
@@ -3060,7 +3094,7 @@ onload = initialize;
 	  <tspan class="key">l</tspan>
 	</a>
       </text>
-      <text x="150" y="54">
+      <text x="140" y="54">
 	<a xlink:href="javascript:interpret('j')" title="down">
 	  <tspan class="key">j</tspan>
 	</a>
@@ -3079,8 +3113,8 @@ onload = initialize;
       <tspan x="30" dy="25">
 	<a xlink:href="javascript:keyPressed('y')"><tspan class="key">y</tspan> : up</a>  
 	<a xlink:href="javascript:keyPressed('z')"><tspan class="key">z</tspan> : down</a>  
-	<a xlink:href="javascript:keyPressed('Z')">
-  	  <tspan class="key">Z</tspan> : hide other levels
+	<a xlink:href="javascript:keyPressed('Z')" title="hide other levels or black background">
+  	  <tspan class="key">Z</tspan> : hide / black / grey
 	</a>
       </tspan>
 
