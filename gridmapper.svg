@@ -989,6 +989,7 @@ function download () {
   clone.setAttribute('width', svg.getAttribute('width'));
   clone.setAttribute('height', svg.getAttribute('width'));
   clone.appendChild(svg.querySelector('defs').cloneNode(true));
+  clone.appendChild(svg.querySelector('style').cloneNode(true));
   clone.appendChild(svg.getElementById('background').cloneNode(true));
   clone.appendChild(svg.getElementById('levels').cloneNode(true));
   source = btoa(unescape(encodeURIComponent(new XMLSerializer().serializeToString(clone))));
