@@ -914,8 +914,21 @@ function resizeSVG () {
  * Makes sure the UI element covers it all.
  * Moves and resizes the grey background.
  * This should work for a different Map.tileWidth as well!
+ * We keep a timout around so that we can cancel future runs.
  */
+var moveElementsTs = 0;
+var moveElementsTimer = null;
 function moveElements () {
+  var duration = 500;
+  var now = (new Date()).getTime();
+  if (moveElementsTs > now) { // we still running an animation
+    if (moveElementsTimer === null)
+      clearTimeout(moveElementsTimer); // cancel any other planned animations
+    moveElementsTimer = setTimeout(moveElements, moveElementsTs - now); // plan new anim.
+    return;
+  } else {
+    moveElementsTs = now + duration; // record for how long we'll be running
+  }
   resizeSVG();
   Map.ui.setAttribute('x', Map.tileWidth);
   Map.ui.setAttribute('y', Map.tileWidth);
@@ -926,13 +939,13 @@ function moveElements () {
     resizeElement(child,
                   Map.width * Map.tileWidth,
                   Map.height * Map.tileWidth,
-                  linear, 600);
+                  linear, duration);
     moveElement(child,
                 parseInt(child.getAttribute('x')),
                 parseInt(child.getAttribute('y')),
                 Map.tileWidth, // an empty column to the left
                 Map.tileWidth, // an empty column at the top
-                linear, 500);
+                linear, duration);
   }
   var help = document.getElementById('help');
   moveElement(help,
@@ -942,7 +955,7 @@ function moveElements () {
               (Map.width + 2) * Map.tileWidth,
               // an empty column at the top
               Map.tileWidth,
-              linear, 500);
+              linear, duration);
 }
 
 /**
