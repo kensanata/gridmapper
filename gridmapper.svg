@@ -3168,7 +3168,7 @@ onload = initialize;
       </tspan>
     </text>
       
-    <text id="level" x="460" y="110" style="font:30px 'Arial Narrow', sans-serif; font-weight: bold;">1</text>
+    <text id="level" x="460" y="110" style="font:30px 'Arial Narrow', 'Futura Condensed', 'HelveticaNeue Condensed', sans-serif; font-weight: bold;">1</text>
     <text x="460" y="140" transform="rotate(90,460,140)">
       <a target="_blank" xlink:href="https://alexschroeder.ch/wiki/Gridmapper">
 	<tspan style="font-weight: bold;">Gridmapper</tspan>
