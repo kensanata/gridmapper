@@ -43,9 +43,10 @@ like [Tiddly Wiki](http://tiddlywiki.com/), I guess.﻿
 No Internet Explorer
 --------------------
 
-Written using [Vanilla JS](http://vanilla-js.com/). Unfortunately, it
-no longer works for Internet Explorer. That's because it mixes SVG and
-XHTML in the same document and that appears not to work for IE.
+Written using [Vanilla JS](http://vanilla-js.com/). Unfortunately,
+Internet Explorer isn't well supported. That's because it mixes SVG
+and XHTML in the same document and that appears not to work for IE.
+I'm trying to simply remove the stuff that doesn't work.
 
 Examples
 --------
@@ -88,20 +89,23 @@ These are your options:
 1. Click on **Text Export** and copy the content of the text area into
    a text file. When you come back later, paste the text file into the
    text area and click **Text Import**. This text file is basically a
-   little script recreating your dungeon.
+   little script recreating your dungeon. This does not work for
+   *Internet Explorer*.
 
 1. Click on **Link** and bookmark the new page. The link now basically
    contains a little script recreating your dungeon. You might have to
    use a URL shortener such as [goo.gl](https://goo.gl/) when pasting
    the URL into a chat window or when sharing it on social media. As
    browsers and web sites have size limitations on the length of a
-   link, this will not work for *big* dungeons.
+   link, this will not work for *big* dungeons. This seems to be the
+   only thing that works for *Internet Explorer*.
 
 2. Click on **Download**, right-click on the resulting **SVG** link
    and pick **Save As...**. This is also what you would use if you
    wanted to continue working on your dungeon using an SVG editor such
    as [Inkscape](https://inkscape.org/). This will also allow you to
-   save the map as a PDF file.
+   save the map as a PDF file. This does not work for *Internet
+   Explorer*.
 
 2. Click on **Download** and click on the resulting **PNG** link. This
    downloads or opens a bitmap image. This is what you would use if
@@ -109,14 +113,14 @@ These are your options:
    [Gimp](https://gimp.org/) or Photoshop. Remember, if you want to
    *print* the dungeon, you need 300 dpi or 300 pixels per inch.
    You're probably better off using the SVG file and converting it to
-   PDF.
+   PDF. This does not work for *Internet Explorer*.
 
 3. Click on **Save to Wiki**. This will make your wiki public, which
    is nice. It may also not be what you want if your players are
-   watching the wiki. In order for this to work, you need to provide
-   some information in the text area: put the dungeon name on the
-   first line, your name on the second line, and a description on the
-   third line. Example:
+   watching the wiki. This does not work for *Internet Explorer*. In
+   order for this to work, you need to provide some information in the
+   text area: put the dungeon name on the first line, your name on the
+   second line, and a description on the third line. Example:
 
 ```
 Demo Dungeon

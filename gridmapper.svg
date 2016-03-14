@@ -2652,7 +2652,24 @@ function initialize () {
     wsUrl = 'ws://localhost:3000';
   }
   document.getElementById('join').setAttributeNS(xlinkNs, 'href', serverUrl);
+
+  // Internet Explorer doesn't know how to handle XML.
+  if (document.documentMode > 0) {
+    remove(document.getElementById('label'));
+    remove(document.getElementById('textarea'));
+    // No text area means no saving and no loading
+    remove(document.getElementById('export'));
+    remove(document.getElementById('save'));
+    remove(document.getElementById('load'));
+    // No XML means no demo
+    remove(document.getElementById('demo').nextSibling); // whitespace
+    remove(document.getElementById('demo'));
+  }
   recreateModel(); // create model from SVG or URL
+}
+
+function remove(elem) {
+  elem.parentNode.removeChild(elem);
 }
 
 onload = initialize;
@@ -3133,14 +3150,14 @@ onload = initialize;
 	<tspan class="key">Shift Arrows</tspan> : toggle floor
       </tspan>
 
-      <tspan x="30" dy="25">
+      <tspan x="30" dy="25" id="export">
 	<a class="blue" xlink:href="javascript:textExport()">Text Export</a>  
 	<a xlink:href="javascript:textImport()"><tspan class="blue">Text Import</tspan> or
 	<tspan class="key">Ctrl Enter</tspan></a>
       </tspan>
     </text>
 
-    <foreignObject id="label" x="30" y="515" width="390" height="50">
+    <foreignObject id="textarea" x="30" y="515" width="390" height="50">
       <textarea id="exportarea" xmlns="http://www.w3.org/1999/xhtml"
 		style="position: fixed; width: 100%; height: 100%; margin: 0; padding: 0"/>
     </foreignObject>
