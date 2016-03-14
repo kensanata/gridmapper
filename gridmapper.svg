@@ -1026,22 +1026,13 @@ function download () {
 }
 
 /**
- * Stores the entire document in a link for the user to click.
+ * Stores the entire document in a link and clicks it.
  */
-function prepareLink () {
-  var link = document.getElementById('export');
-  var text = link.firstChild.nodeValue;
-  link.firstChild.nodeValue = 'Link';
-  var href = link.getAttributeNS(xlinkNs, 'href');
+function link () {
   var location = window.location.href.substr(
-    0, window.location.href.length - window.location.search.length)
-  link.setAttributeNS(xlinkNs, 'href', location + '?' + encodeURIComponent(getSource()));
-  // reset after 10s
-  var t = setInterval(function() {
-    link.setAttributeNS(xlinkNs, 'href', href);
-    link.firstChild.nodeValue = text;
-    clearInterval(t);
-  }, 10000);
+    0, window.location.href.length - window.location.search.length);
+  var url  = location + '?' + encodeURIComponent(getSource());
+  window.open(url, '_blank');
 }
 
 /**
@@ -3157,20 +3148,20 @@ onload = initialize;
     <text>
       <tspan x="30" y="590">
 	<a class="blue" target="_blank" xlink:href="https://github.com/kensanata/gridmapper#how-to-save">How to Save</a>  
+	<a id="export" class="blue" xlink:href="javascript:link()">Link</a>  
 	<tspan id="download">
-	  <a class="blue" xlink:href="javascript:download()">Prepare Download</a>
+	  <a class="blue" xlink:href="javascript:download()">Download</a>
 	</tspan>
 	<tspan id="format" display="none">
-	  Download
-	  <a id="download_svg" class="blue" download="gridmapper.svg">SVG</a>
+	  <a id="download_svg" class="blue" title="Use a right-click on the link to 'Save as...'" download="gridmapper.svg">SVG</a> 
 	  <a id="download_png" class="blue" target="_blank" download="gridmapper.png">PNG</a>
 	</tspan>  
-	<a id="export" class="blue" xlink:href="javascript:prepareLink()">Prepare Link</a>
+	<a id="save" class="blue" title="Save the map to the wiki" xlink:href="javascript:save()">Save</a>  
+	<a id="load" class="blue" title="Load a map from the wiki" xlink:href="javascript:load()">Load</a>  
       </tspan>
 
       <tspan x="30" dy="20">
-	<a id="save" class="blue" title="Save the map to the wiki" xlink:href="javascript:save()">Save</a>  
-	<a id="load" class="blue" title="Load a map from the wiki" xlink:href="javascript:load()">Load</a>  
+	<a class="blue" target="_blank" xlink:href="https://github.com/kensanata/gridmapper#how-to-host">How to Host</a>  
 	<a id="host" class="blue" title="Host a map for your friends" xlink:href="javascript:host()">Host</a>  
 	<a id="join" target="_blank" class="blue" title="Join a map being hosted" xlink:href="javascript:join()">Join</a>
 	
