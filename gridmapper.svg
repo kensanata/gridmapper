@@ -1203,10 +1203,12 @@ function load () {
  */
 function loadMenu (event) {
   var doc = event.target.responseXML;
-  var links = doc.getElementsByClassName('content')[0].getElementsByClassName('local');
-  for (var i = links.length - 1; i >= 0; i--) {
-    if (links[i].textContent === 'HomePage' || links[i].textContent.indexOf('Comments on ') === 0) {
-      links[i].remove();
+  var unfilteredLinks = doc.getElementsByClassName('content')[0].getElementsByClassName('local');
+  var links = [];
+  for (var i = unfilteredLinks.length - 1; i >= 0; i--) {
+    if (unfilteredLinks[i].textContent !== 'HomePage'
+        && unfilteredLinks[i].textContent.indexOf('Comments on ') !== 0) {
+      links.push(unfilteredLinks[i]);
     }
   }
   var g = document.createElementNS(svgNs, 'g');
@@ -2659,8 +2661,10 @@ function initialize () {
     remove(document.getElementById('textarea'));
     // No text area means no saving and no loading
     remove(document.getElementById('export'));
+    remove(document.getElementById('save').nextSibling); // whitespace
     remove(document.getElementById('save'));
-    remove(document.getElementById('load'));
+    // No XHTML means no canvas
+    remove(document.getElementById('download'));
     // No XML means no demo
     remove(document.getElementById('demo').nextSibling); // whitespace
     remove(document.getElementById('demo'));
@@ -3167,12 +3171,12 @@ onload = initialize;
 	<a class="blue" target="_blank" xlink:href="https://github.com/kensanata/gridmapper#how-to-save">How to Save</a>  
 	<a id="export" class="blue" xlink:href="javascript:link()">Link</a>  
 	<tspan id="download">
-	  <a class="blue" xlink:href="javascript:download()">Download</a>
+	  <a class="blue" xlink:href="javascript:download()">Download</a>  
 	</tspan>
 	<tspan id="format" display="none">
 	  <a id="download_svg" class="blue" title="Use a right-click on the link to 'Save as...'" download="gridmapper.svg">SVG</a> 
-	  <a id="download_png" class="blue" target="_blank" download="gridmapper.png">PNG</a>
-	</tspan>  
+	  <a id="download_png" class="blue" target="_blank" download="gridmapper.png">PNG</a>  
+	</tspan>
 	<a id="save" class="blue" title="Save the map to the wiki" xlink:href="javascript:save()">Save</a>  
 	<a id="load" class="blue" title="Load a map from the wiki" xlink:href="javascript:load()">Load</a>  
       </tspan>
