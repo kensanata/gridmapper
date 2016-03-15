@@ -78,12 +78,12 @@ How to Save
 ===========
 
 This being a very simple web application, it has no access to your
-file system. And worse: If you use "Save As..." in Firefox or Chrome
+file system. And worse: If you use "Save As..." in /Firefox/ or /Chrome/
 you'll save a copy *without* any of the changes you made!
 
 These are your options:
 
-1. If you're using Safari, you can just save the page. This will
+1. If you're using /Safari/, you can just save the page. This will
    create a [webarchive](https://en.wikipedia.org/wiki/Webarchive).
 
 1. Click on **Text Export** and copy the content of the text area into
