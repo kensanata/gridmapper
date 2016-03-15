@@ -962,8 +962,10 @@ function moveElements () {
  * Make sure the link element no longer looks like a link.
  */
 function disableLink(element) {
-  element.setAttribute('style', 'color:grey');
-  element.setAttribute('title', 'Your browser prevents this unless you’re loading the script from campaignwiki.org.');
+  if (element !== null) {
+    element.setAttribute('style', 'color:grey');
+    element.setAttribute('title', 'Your browser prevents this unless you’re loading the script from campaignwiki.org.');
+  }
 }
 
 /**
@@ -975,21 +977,33 @@ function disableLink(element) {
  */
 function download () {
 
-  // hide Prepare Download link and show formats
-  document.getElementById('download').setAttribute('display', 'none');
-  document.getElementById('format').setAttribute('display', 'inline');
+  if (document.documentMode > 0) {
+    // Internet Explorer
+  } else {
+    // hide Prepare Download link and show formats
+    document.getElementById('download').setAttribute('display', 'none');
+    document.getElementById('format').setAttribute('display', 'inline');
 
-  // revert this change after 10s
-  var t = setInterval(function() {
-    document.getElementById('download').setAttribute('display', 'inline');
-    document.getElementById('format').setAttribute('display', 'none');
-    clearInterval(t);
-  }, 10000);
+    // revert this change after 10s
+    var t = setInterval(function() {
+      document.getElementById('download').setAttribute('display', 'inline');
+      document.getElementById('format').setAttribute('display', 'none');
+      clearInterval(t);
+    }, 10000);
+  }
 
   var svg = document.querySelector('svg');
 
   // SVG download includes user interface
-  var source = btoa(unescape(encodeURIComponent(new XMLSerializer().serializeToString(svg))));
+  var str = new XMLSerializer().serializeToString(svg);
+  if (window.navigator.msSaveBlob !== null) {
+    // Internet Explorer: download immediately
+    window.navigator.msSaveBlob(new Blob([str]), 'gridmapper.svg');
+    // IE also raises security exception for canvas, so skip the PNG part
+    return;
+  } 
+
+  var source = btoa(unescape(encodeURIComponent(str)));
   var link  = document.getElementById('download_svg');
   link.setAttributeNS(xlinkNs, 'href', 'data:image/svg+xml;base64,' + source);
 
@@ -2661,23 +2675,22 @@ function initialize () {
     remove(document.getElementById('textarea'));
     // No text area means no exporting, saving or hosting
     remove(document.getElementById('export'));
-    remove(document.getElementById('save').nextSibling); // whitespace
     remove(document.getElementById('save'));
-    remove(document.getElementById('how-to-host').nextSibling); // whitespace
     remove(document.getElementById('how-to-host'));
-    remove(document.getElementById('host').nextSibling); // whitespace
     remove(document.getElementById('host'));
-    // No XHTML means no canvas
-    remove(document.getElementById('download'));
     // No XML means no demo
-    remove(document.getElementById('demo').nextSibling); // whitespace
     remove(document.getElementById('demo'));
   }
   recreateModel(); // create model from SVG or URL
 }
 
-function remove(elem) {
-  elem.parentNode.removeChild(elem);
+function remove (element) {
+  if (element !== null) {
+    if (element.nextSibling !== null && element.nextSibling.nodeType === Node.TEXT_NODE) {
+      element.parentNode.removeChild(element.nextSibling);
+    }
+    element.parentNode.removeChild(element);
+  }
 }
 
 onload = initialize;
