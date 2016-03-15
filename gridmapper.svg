@@ -2659,10 +2659,14 @@ function initialize () {
   if (document.documentMode > 0) {
     remove(document.getElementById('label'));
     remove(document.getElementById('textarea'));
-    // No text area means no saving and no loading
+    // No text area means no exporting, saving or hosting
     remove(document.getElementById('export'));
     remove(document.getElementById('save').nextSibling); // whitespace
     remove(document.getElementById('save'));
+    remove(document.getElementById('how-to-host').nextSibling); // whitespace
+    remove(document.getElementById('how-to-host'));
+    remove(document.getElementById('host').nextSibling); // whitespace
+    remove(document.getElementById('host'));
     // No XHTML means no canvas
     remove(document.getElementById('download'));
     // No XML means no demo
@@ -3182,7 +3186,7 @@ onload = initialize;
       </tspan>
 
       <tspan x="30" dy="20">
-	<a class="blue" target="_blank" xlink:href="https://github.com/kensanata/gridmapper#how-to-host">How to Host</a>  
+	<a id="how-to-host" class="blue" target="_blank" xlink:href="https://github.com/kensanata/gridmapper#how-to-host">How to Host</a>  
 	<a id="host" class="blue" title="Host a map for your friends" xlink:href="javascript:host()">Host</a>  
 	<a id="join" target="_blank" class="blue" title="Join a map being hosted" xlink:href="javascript:join()">Join</a>
 	
