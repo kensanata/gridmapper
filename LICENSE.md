@@ -1,6 +1,8 @@
 The License
 ===========
 
+*You can copy, modify, distribute and perform the work, even for commercial purposes, all without asking permission.*
+
 The author has dedicated Gridmapper to the **public domain** by
 waiving all of his rights to the work worldwide under copyright law,
 including all related and neighboring rights, to the extent allowed by
