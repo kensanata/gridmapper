@@ -3206,7 +3206,8 @@ onload = initialize;
       </tspan>
       <tspan x="30" dy="20">
 	<a id="demo" class="blue" xlink:href="javascript:Demo.start()">Demo</a>  
-	<a class="blue" target="_blank" xlink:href="https://github.com/kensanata/gridmapper">Source</a>
+	<a id="source" class="blue" target="_blank" title="Source code is available" xlink:href="https://github.com/kensanata/gridmapper">Source</a>  
+	<a id="license" class="blue" target="_blank" title="Dedicated to the Public Domain" xlink:href="https://github.com/kensanata/gridmapper/blob/master/LICENSE.md">License</a>
       </tspan>
     </text>
       
