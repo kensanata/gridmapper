@@ -34,11 +34,10 @@ if you want something more recent.
 It's Free
 ---------
 
-Also note that Gridmapper is totally free and gratis. It costs nothing
-to use, and you can do with it what you want. Using the appropriate
-download link you can save your work to a local file – and the local
-file comes with all the code to keep working on it, off line! A bit
-like [Tiddly Wiki](http://tiddlywiki.com/), I guess.﻿
+Also note that Gridmapper is totally [free and gratis](LICENSE.md). It
+costs nothing to use, and you can do with it what you want. You can
+copy, modify, distribute and perform the work, even for commercial
+purposes, all without asking permission.
 
 No Internet Explorer
 --------------------
