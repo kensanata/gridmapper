@@ -2738,10 +2738,10 @@ onload = initialize;
     <g id="archway" width="10">
       <path fill="black" stroke="black" stroke-width="1" d="M -1 0 A 1 1 0 0 0 1 0"/>
       <path fill="black" stroke="black" stroke-width="1" d="M -1 10 A 1 1 0 0 1 1 10"/>
-      <line x1="0" y1="0" x2="0" y2="3" stroke="black" stroke-width="2"/>
-      <line x1="-1.5" y1="3" x2="1.5" y2="3" stroke="black" stroke-width="1"/>
-      <line x1="0" y1="7" x2="0" y2="10" stroke="black" stroke-width="2"/>
-      <line x1="-1.5" y1="7" x2="1.5" y2="7" stroke="black" stroke-width="1"/>
+      <line x1="0" y1="0" x2="0" y2="2.5" stroke="black" stroke-width="1.5"/>
+      <line x1="-1.5" y1="2.5" x2="1.5" y2="2.5" stroke="black" stroke-width="1"/>
+      <line x1="0" y1="7.5" x2="0" y2="10" stroke="black" stroke-width="1.5"/>
+      <line x1="-1.5" y1="7.5" x2="1.5" y2="7.5" stroke="black" stroke-width="1"/>
     </g>
     <g id="pillar" width="10">
       <rect width="10" height="10" fill="white" stroke="black" stroke-width="1"/>
