@@ -306,7 +306,8 @@ var Map = {
     'dais-round': 'pillar',
     'wall': 'curtain',
     'curtain': 'portcullis',
-    'portcullis': 'wall',
+    'portcullis': 'window',
+    'window': 'wall',
     'chest': 'bed',
     'bed': 'table',
     'table': 'chest',
@@ -2716,6 +2717,10 @@ onload = initialize;
       <circle cx="2" cy="5" r="1" fill="black"/>
       <circle cx="2" cy="8" r="1" fill="black"/>
     </g>
+    <g id="window" width="10">
+      <line x1="0" y1="0" x2="0" y2="10" stroke="black" stroke-width="3" stroke-linecap="round"/>
+      <rect x="-1" y="2.5" width="2" height="5" fill="white"/>
+    </g>
     <g id="door" width="10">
       <rect x="-1.5" y="2" width="3" height="6" fill="white" stroke="black" stroke-width="1"/>
     </g>
@@ -3045,6 +3050,10 @@ onload = initialize;
       <a xlink:href="javascript:interpret('wvv')" title="portcullis">
 	<use x="110" xlink:href="#empty"/>
 	<use x="110" xlink:href="#portcullis"/>
+      </a>
+      <a xlink:href="javascript:interpret('wvvv')" title="window">
+	<use x="140" xlink:href="#empty"/>
+	<use x="140" xlink:href="#window"/>
       </a>
     </svg>
 
