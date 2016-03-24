@@ -2718,8 +2718,9 @@ onload = initialize;
       <circle cx="2" cy="8" r="1" fill="black"/>
     </g>
     <g id="window" width="10">
-      <line x1="0" y1="0" x2="0" y2="10" stroke="black" stroke-width="3" stroke-linecap="round"/>
-      <rect x="-1" y="2.5" width="2" height="5" fill="white"/>
+      <line x1="0" y1="0" x2="0" y2="2" stroke="black" stroke-width="3"/>
+      <line x1="0" y1="8" x2="0" y2="10" stroke="black" stroke-width="3"/>
+      <rect x="-0.75" y="2" width="1.5" height="6" fill="white" stroke="black" stroke-width="0.5"/>
     </g>
     <g id="door" width="10">
       <rect x="-1.5" y="2" width="3" height="6" fill="white" stroke="black" stroke-width="1"/>
