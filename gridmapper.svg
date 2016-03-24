@@ -287,7 +287,8 @@ var Map = {
     'door': 'secret',
     'secret': 'concealed',
     'concealed': 'gate',
-    'gate': 'door',
+    'gate': 'archway',
+    'archway': 'door',
     'diagonal': 'arc',
     'arc': 'arc2',
     'arc2': 'arc3',
@@ -2734,6 +2735,14 @@ onload = initialize;
     <g id="gate" width="10">
       <rect x="-2" y="4" width="4" height="12" fill="white" stroke="black" stroke-width="1"/>
     </g>
+    <g id="archway" width="10">
+      <path fill="black" stroke="black" stroke-width="1" d="M -1 0 A 1 1 0 0 0 1 0"/>
+      <path fill="black" stroke="black" stroke-width="1" d="M -1 10 A 1 1 0 0 1 1 10"/>
+      <line x1="0" y1="0" x2="0" y2="3" stroke="black" stroke-width="2"/>
+      <line x1="-1.5" y1="3" x2="1.5" y2="3" stroke="black" stroke-width="1"/>
+      <line x1="0" y1="7" x2="0" y2="10" stroke="black" stroke-width="2"/>
+      <line x1="-1.5" y1="7" x2="1.5" y2="7" stroke="black" stroke-width="1"/>
+    </g>
     <g id="pillar" width="10">
       <rect width="10" height="10" fill="white" stroke="black" stroke-width="1"/>
       <circle cx="5" cy="5" r="2" fill="black"/>
@@ -2994,6 +3003,10 @@ onload = initialize;
 	<use x="140" y="-20" xlink:href="#empty"/>
 	<use x="140" y="" xlink:href="#empty"/>
 	<use x="140" y="-20" xlink:href="#gate"/>
+      </a>
+      <a xlink:href="javascript:interpret('dvvv')" title="archway">
+	<use x="170" xlink:href="#empty"/>
+	<use x="170" xlink:href="#archway"/>
       </a>
     </svg>
 
