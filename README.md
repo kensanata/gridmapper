@@ -65,9 +65,11 @@ For more examples, check out this [Google+ Collection](https://plus.google.com/c
 How to Host
 ===========
 
-If you want to share your map as you draw it, you can *host* it.
-It's not a [RPG Virtual Tabletop](http://rpgvirtualtabletop.wikidot.com/),
-so you still nead a way to talk or chat online. Gridmapper simply facilitates the job of the *mapper*. All the players can watch as the map grows, in real time.
+If you want to share your map as you draw it, you can *host* it. It's
+not a [RPG Virtual Tabletop](http://rpgvirtualtabletop.wikidot.com/),
+so you still need a way to talk or chat online. Gridmapper simply
+facilitates the job of the *mapper*. All the players can watch as the
+map grows, in real time.
 
 1. everybody opens [Gridmapper](https://campaignwiki.org/gridmapper.svg)
 2. the *mapper* provides a name in the text area and clicks **Host**
