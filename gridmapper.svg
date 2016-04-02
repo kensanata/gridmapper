@@ -1227,6 +1227,10 @@ function loadMenu (event) {
       links.push(unfilteredLinks[i]);
     }
   }
+  links.sort(function(a, b) {
+    // localeCompare does not support locales and options arguments in Safari
+    return a.textContent.toLowerCase().localeCompare(b.textContent.toLowerCase());
+  });
   var g = document.createElementNS(svgNs, 'g');
   g.setAttribute('class', 'menu');
   var x = 2 * Map.tileWidth, y = 2 * Map.tileWidth;
