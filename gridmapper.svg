@@ -998,7 +998,7 @@ function download () {
 
   // SVG download includes user interface
   var str = new XMLSerializer().serializeToString(svg);
-  if (window.navigator.msSaveBlob !== null) {
+  if (window.navigator.msSaveBlob != null) {
     // Internet Explorer: download immediately
     window.navigator.msSaveBlob(new Blob([str]), 'gridmapper.svg');
     // IE also raises security exception for canvas, so skip the PNG part
