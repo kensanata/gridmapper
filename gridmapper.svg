@@ -1192,7 +1192,7 @@ function saveIt (title, username, summary) {
 function load () {
   message('Loading maps...');
   var XHR = new XMLHttpRequest();
-  XHR.addEventListener('load', loadMenu);
+  XHR.addEventListener('load', loadHtmlMenu);
   XHR.addEventListener('error', function(event) {
     message('Unfortunately the maps could not be loaded.');
   });
@@ -1204,7 +1204,58 @@ function load () {
 /**
  * Shows a menu of all the maps available.
  */
-function loadMenu (event) {
+function loadHtmlMenu (event) {
+  var doc = event.target.responseXML;
+  var unfilteredLinks = doc.getElementsByClassName('content')[0].getElementsByClassName('local');
+  var links = [];
+  for (var i = unfilteredLinks.length - 1; i >= 0; i--) {
+    if (unfilteredLinks[i].textContent !== 'HomePage'
+        && unfilteredLinks[i].textContent.indexOf('Comments on ') !== 0) {
+      links.push(unfilteredLinks[i]);
+    }
+  }
+  links.sort(function(a, b) {
+    // localeCompare does not support locales and options arguments in Safari
+    return a.textContent.toLowerCase().localeCompare(b.textContent.toLowerCase());
+  });
+  var g = document.createElementNS(svgNs, 'foreignObject');
+  g.setAttribute('class', 'menu');
+  g.setAttribute('x', 2 * Map.tileWidth);
+  g.setAttribute('y', 2 * Map.tileWidth);
+  g.setAttribute('z', 10);
+  g.setAttribute('width', Map.tileWidth * (Map.width - 2));
+  g.setAttribute('height', Map.tileWidth * (Map.height - 2));
+  var d = document.createElementNS(xhtmlNs, 'div');
+  g.appendChild(d);
+  d.setAttribute('style', 'height:' + Map.tileWidth * (Map.height - 3) + 'px');
+  for (var i = 0; i < links.length; i++) {
+    var s = document.createElementNS(xhtmlNs, 'span');
+    d.appendChild(s);
+    var a = document.createElementNS(xhtmlNs, 'a');
+    s.appendChild(a);
+    var href = links[i].getAttribute('href');
+    a.setAttribute('href', 'javascript:loadMap("' + href + '")');
+    a.textContent = links[i].textContent.substr(0,20);
+    if (links[i].textContent.length > 20) {
+      a.textContent += '…';
+      a.setAttribute('title', links[i].textContent);
+    }
+  }
+  document.rootElement.appendChild(g);
+  var t1 = setTimeout(function(){fadeElementTo(g, 0, linear, 1000);}, 5000);
+  var t2 = setTimeout(function(){document.rootElement.removeChild(g);}, 6000); // 1000 + 5000
+  g.onclick = function(evt) {
+    clearTimeout(t1);
+    clearTimeout(t2);
+    document.rootElement.removeChild(g);
+  }
+}
+
+/**
+ * Shows a menu of all the maps available. This doesn't scale because
+ * SVG has no scrollbars.
+ */
+function loadSvgMenu (event) {
   var doc = event.target.responseXML;
   var unfilteredLinks = doc.getElementsByClassName('content')[0].getElementsByClassName('local');
   var links = [];
@@ -2897,7 +2948,14 @@ onload = initialize;
   .key { color: forestgreen; fill: forestgreen; font-weight: bold; }
   .invisible { display: none; }
   #ui { -webkit-tap-highlight-color: rgba(0,0,0,0); }
-  .menu a rect:hover { opacity: 0.2; fill: forestgreen }
+  .menu div {
+      background: white;
+      padding: 10px;
+      overflow: scroll;
+      font: 14px 'Courier New', Courier, monospace
+  }
+  .menu span { display: inline-block; width: 32ex }
+  .menu a { color: blue }
   ]]></style>
 
   <g id="help">
