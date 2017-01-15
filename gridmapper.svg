@@ -87,10 +87,9 @@ var Map = {
     Map.ui.ondragstart = function() { return false };
     Map.enable();
     // cannot load or save unless sharing the domain!
-    if (window.location.hostname !== 'campaignwiki.org'
-        && window.location.hostname !== 'localhost') {
-      disableLink(document.getElementById('load'));
-      disableLink(document.getElementById('save'));
+    if (window.location.hostname !== 'campaignwiki.org') {
+      document.getElementById('load').setAttribute('display', 'none');
+      document.getElementById('save').setAttribute('display', 'none');
     }
     // http://javascript.info/tutorial/keyboard-events
     Map.exportarea = document.getElementById('exportarea');
