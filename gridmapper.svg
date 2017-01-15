@@ -1181,15 +1181,9 @@ function saveIt (title, username, summary) {
   XHR.addEventListener('error', function(event) {
     message('Unfortunately the map could not be saved.');
   });
-  try {
-    XHR.open('POST', wikiUrl);
-    XHR.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
-    XHR.send(urlEncodedData);
-  } catch (e) {
-    message('This did not work.\n'
-            + 'Perhaps you tried to save to the wiki\n'
-            + 'without loading the script from the wiki?');
-  }
+  XHR.open('POST', wikiUrl);
+  XHR.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
+  XHR.send(urlEncodedData);
 }
 
 /**
@@ -1202,15 +1196,9 @@ function load () {
   XHR.addEventListener('error', function(event) {
     message('Unfortunately the maps could not be loaded.');
   });
-  try {
-    XHR.open('GET', wikiUrl + '?search={{{;context=0');
-    XHR.responseType = 'document';
-    XHR.send();
-  } catch (e) {
-    message('This did not work.\n'
-            + 'Perhaps you tried to load from the wiki\n'
-            + 'without loading the script from the wiki?');
-  }
+  XHR.open('GET', wikiUrl + '?search={{{;context=0');
+  XHR.responseType = 'document';
+  XHR.send();
 }
 
 /**
@@ -1293,18 +1281,12 @@ function loadMap(url) {
   XHR.addEventListener('error', function(event) {
     message('Unfortunately the map could not be loaded.');
   });
-  try {
-    XHR.open('GET', url);
-    XHR.responseType = 'document';
-    if (Map.lastUrl === url) {
-      XHR.setRequestHeader('if-none-match', Map.lastEtag);
-    }
-    XHR.send();
-  } catch (e) {
-    message('This did not work.\n'
-            + 'Perhaps you tried to load a map\n'
-            + 'without loading the script from the wiki?');
+  XHR.open('GET', url);
+  XHR.responseType = 'document';
+  if (Map.lastUrl === url) {
+    XHR.setRequestHeader('if-none-match', Map.lastEtag);
   }
+  XHR.send();
 }
 
 /**
