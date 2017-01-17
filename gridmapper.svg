@@ -88,8 +88,8 @@ var Map = {
     Map.enable();
     // cannot load or save unless sharing the domain!
     if (window.location.hostname !== 'campaignwiki.org') {
-      document.getElementById('load').setAttribute('display', 'none');
-      document.getElementById('save').setAttribute('display', 'none');
+      remove(document.getElementById('load'));
+      remove(document.getElementById('save'));
     }
     // http://javascript.info/tutorial/keyboard-events
     Map.exportarea = document.getElementById('exportarea');
@@ -960,16 +960,6 @@ function moveElements () {
 }
 
 /**
- * Make sure the link element no longer looks like a link.
- */
-function disableLink(element) {
-  if (element !== null) {
-    element.setAttribute('style', 'color:grey');
-    element.setAttribute('title', 'Your browser prevents this unless you’re loading the script from campaignwiki.org.');
-  }
-}
-
-/**
  * Offer the current document for download. We store the entire
  * document in a data URI and offer it for downlod using the HTML5
  * download attribute. Chrome 40 will still load that file instead of
@@ -1452,19 +1442,8 @@ function join () {
   }
   Map.websocket = new WebSocket(wsUrl + '/join/' + encodeURIComponent(map));
   Map.websocket.onopen = function(evt) {
-    message('Joined ' + map);
-    Map.reset();
-    Map.showLevelAnimation();
-    Pen.update(null);
-    Map.disable();
-    Map.joined = true;
-    Map.quit = false;
-    document.getElementById('host').setAttribute('class', 'invisible');
-    var link = document.getElementById('join');
-    link.firstChild.nodeValue = 'Leave Map';
-    link.setAttributeNS(xlinkNs, 'href', 'javascript:leave()');
-    Map.websocket.send('reset');
-  };
+    joinMap(map);
+  }
   Map.websocket.onclose = null; // ignore?
   Map.websocket.onmessage = function(evt) {
     interpretCont(evt.data, 0); // skip the test for Map.joined in interpret()
@@ -1477,6 +1456,24 @@ function join () {
     }
   };
 }
+
+function joinMap (map) {
+  message('Joined ' + map);
+  Map.reset();
+  Map.showLevelAnimation();
+  Pen.update(null);
+  Map.disable();
+  Map.joined = true;
+  Map.quit = false;
+  var link = document.getElementById('join');
+  Map.websocket.send('reset');
+  document.getElementById('host').setAttribute('class', 'invisible');
+  // Internet Explorer doesn't know how to handle xlink created by Javascript?
+  if (document.documentMode > 0) {
+    link.firstChild.nodeValue = 'Leave Map';
+    link.setAttributeNS(xlinkNs, 'href', 'javascript:leave()');
+  }
+};
 
 function leave () {
   if (Map.websocket.readyState === WebSocket.OPEN) {
@@ -2707,12 +2704,13 @@ function initialize () {
   }
   document.getElementById('join').setAttributeNS(xlinkNs, 'href', serverUrl);
 
-  // Internet Explorer doesn't know how to handle XML.
+  // Internet Explorer doesn't know how to handle XHTML.
   if (document.documentMode > 0) {
     remove(document.getElementById('label'));
     remove(document.getElementById('textarea'));
     // No text area means no exporting, saving or hosting
     remove(document.getElementById('export'));
+    remove(document.getElementById('load'));
     remove(document.getElementById('save'));
     remove(document.getElementById('how-to-host'));
     remove(document.getElementById('host'));
@@ -2727,7 +2725,8 @@ function remove (element) {
     if (element.nextSibling !== null && element.nextSibling.nodeType === Node.TEXT_NODE) {
       element.parentNode.removeChild(element.nextSibling);
     }
-    element.parentNode.removeChild(element);
+    // do not remove elements because this may cause null pointers elsewhere
+    element.setAttribute('display', 'none');
   }
 }
 
