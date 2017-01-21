@@ -2419,16 +2419,20 @@ function keyPressed (evt) {
     break;
 
   case 'Z':
-    if (Map.backgroundMode === 'lightgrey') {
+    if (Map.backgroundMode === 'lightgrey' && Map.levels.length > 1) {
       Map.hideOtherLevels();
       Map.backgroundMode = 'hidden';
-    } else if (Map.backgroundMode === 'hidden') {
+      message("Hiding other levels");
+    } else if (Map.backgroundMode === 'lightgrey' // but just one level
+               || Map.backgroundMode === 'hidden') {
       Map.setBackground(0);
       Map.backgroundMode = 'black';
+      message("Black background");
     } else {
       Map.showLevelAnimation();
       Map.setBackground(211); // #d3d3d3 is light grey
       Map.backgroundMode = 'lightgrey';
+      message("Default background");
     }
     break;
     
