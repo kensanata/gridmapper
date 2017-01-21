@@ -52,6 +52,7 @@ var Map = {
   levels: [], // data array of level data (Tiles)
   level: 0, // the current level
   data: null, // the current level data (Tiles)
+  arcsElement: null, // the SVG element for the arcs of the current level
   floorElement: null, // the SVG element for the floor of the current level
   wallsElement: null, // the SVG element for the walls of the current level
   labelsElement: null, // the SVG element for the labels of the current level
@@ -157,6 +158,7 @@ var Map = {
       createLevel(z);
     }
     Map.level = z;
+    Map.arcsElement = document.getElementById('arcs' + z);
     Map.floorElement = document.getElementById('floor' + z);
     Map.wallsElement = document.getElementById('walls' + z);
     Map.labelsElement = document.getElementById('labels' + z);
@@ -288,10 +290,13 @@ var Map = {
     'concealed': 'gate',
     'gate': 'archway',
     'archway': 'door',
-    'diagonal': 'arc',
+    'diagonal': 'old-arc',
+    'old-arc': 'old-arc2',
+    'old-arc2': 'old-arc3',
+    'old-arc3': 'diagonal',
     'arc': 'arc2',
     'arc2': 'arc3',
-    'arc3': 'diagonal',
+    'arc3': 'arc',
     'trap': 'pit',
     'pit': 'trap-door-ceiling',
     'trap-door-ceiling': 'trap-door-floor',
@@ -321,7 +326,7 @@ var Map = {
   symbolInit: function(){
     var map = {
       door: 'd', wall: 'w', stair: 's', chest: 'c',
-      trap: 't', empty: 'f', pillar: 'p', statue: 'b', diagonal: 'n',
+      trap: 't', empty: 'f', pillar: 'p', statue: 'b', diagonal: 'n', arc: 'a',
     };
     var keys = Object.keys(map);
     for (var i = 0; i < keys.length; i++) {
@@ -371,7 +376,17 @@ var Map = {
               source += '"' + label.textContent + '"';
             }
           }
-          var tile = Map.data.get(x, y).floor;
+          var tile = Map.data.get(x, y).arcs;
+          if (tile !== null) {
+            if (tile.hasAttribute('rotate')) {
+              var rotate = tile.getAttribute('rotate') / 90;
+              var type = Map.symbols[tile.type];
+              source += type[0].repeat(1 + rotate) + type.substr(1);
+            } else {
+              source += Map.symbols[tile.type];
+            }
+          }
+          tile = Map.data.get(x, y).floor;
           if (tile !== null) {
             if (tile.hasAttribute('rotate')) {
               var rotate = tile.getAttribute('rotate') / 90;
@@ -409,7 +424,7 @@ var Map = {
  * Provides a matrix of Tiles. If you use the get method on
  * coordinates where no Tile exists, a new one will be created.
  */
-function Tiles() {
+function Tiles () {
   this.data = [];
 };
 
@@ -430,7 +445,8 @@ Tiles.prototype.has = function(x, y) {
 /**
  * Stores everything about a single square and its surrounding walls.
  */
-function Tile() {
+function Tile () {
+  this.arcs = null;
   this.floor = null;
   this.walls = [];
   this.label = null;
@@ -788,7 +804,7 @@ function linear (progress) {
   return progress;
 }
 
-function approach(progress) {
+function approach (progress) {
   return 1 - Math.pow(progress, 2)
 }
 
@@ -1316,7 +1332,7 @@ function loadSvgMenu (event) {
 /**
  * Loads map from the wiki page.
  */
-function loadMap(url) {
+function loadMap (url) {
   var XHR = new XMLHttpRequest();
   XHR.addEventListener('load', loadIt);
   XHR.addEventListener('error', function(event) {
@@ -1545,7 +1561,7 @@ function createTile (x, y, type) {
 /**
  * Add s to the label at (x,y).
  */
-function addToLabel(x, y, s) {
+function addToLabel (x, y, s) {
   setLabel(x, y, s, true); // append
 }
 
@@ -1623,7 +1639,7 @@ function saveLabel () {
  * Remove the last character from the label at (x,y).
  * Returns true if there was text to delete.
  */
-function deleteFromLabel(x, y) {
+function deleteFromLabel (x, y) {
   var tile = Map.data.get(x, y).label;
   if (tile !== null) {
     var text = tile.textContent;
@@ -1885,28 +1901,38 @@ function draw (x, y, type) {
 
 /**
  * Replaces the old tile on the floor with a new tile. The code
- * handles both the old tile and the new tile being null.
- * If both are null, nothing needs to be done.
+ * handles both the old tile and the new tile being null. If both are
+ * null, nothing needs to be done. If something was done, return true.
+ * This is used when hitting DEL to remove a wall, or a floor tile, or
+ * an arc.
  */
-function replaceFloor(x, y, old, tile) {
+function replace (data, element, x, y, old, tile) {
   if (old !== null || tile !== null) {
     Commands.do(
       function(){
         if (tile)
-          Map.floorElement.removeChild(tile);
+          element.removeChild(tile);
         if (old)
-          Map.floorElement.appendChild(old);
-        Map.data.get(x, y).floor = old;
+          element.appendChild(old);
+        Map.data.get(x,y)[data] = old;
       },
       function(){
-        if (old) {
-          Map.floorElement.removeChild(old);
-        }
+        if (old)
+          element.removeChild(old);
         if (tile)
-          Map.floorElement.appendChild(tile);
-        Map.data.get(x, y).floor = tile;
+          element.appendChild(tile);
+        Map.data.get(x,y)[data] = tile;
       });
+    return true;
   }
+}
+
+function replaceFloor (x, y, old, tile) {
+  return replace('floor', Map.floorElement, x, y, old, tile);
+}
+
+function replaceArc (x, y, old, tile) {
+  return replace('arcs', Map.arcsElement, x, y, old, tile);
 }
 
 /**
@@ -1914,11 +1940,13 @@ function replaceFloor(x, y, old, tile) {
  * is not a variant of b, returns undefined. From stairs to stairs is
  * 0, so this is not truthy! Use isVariantOf if you need that.
  */
-function variantOf(a, b) {
+function variantOf (a, b) {
   if (a === b)
     return 0;
   var matches = {};
-  for (var next = b, i = 1; next !== undefined && Map.variants[next] !== b; next = Map.variants[next], i++) {
+  for (var next = b, i = 1;
+       next !== undefined && Map.variants[next] !== b;
+       next = Map.variants[next], i++) {
     matches[next] = i;
   }
   return matches[a];
@@ -1927,7 +1955,7 @@ function variantOf(a, b) {
 /**
  * Returns whether a is a variant of b.
  */
-function isVariantOf(a, b) {
+function isVariantOf (a, b) {
   if (a === b)
     return true;
   return variantOf(a, b) !== undefined;
@@ -1945,7 +1973,7 @@ function variant (x, y) {
       y = Math.ceil(y);
     }
   }
-  tile = Map.data.get(x, y).floor;
+  tile = Map.data.get(x, y).floor || Map.data.get(x, y).arcs;
   if (Pen.type === 'wallMode'
       || isVariantOf(Pen.type, 'door')
       || isVariantOf(Pen.type, 'wall')
@@ -1973,10 +2001,10 @@ function variant (x, y) {
 }
 
 /**
- * Draws stairs and diagonals on the floor.
+ * Draws stairs, arcs and diagonals on the floor.
  */
-function floorRotate (x, y, type) {
-  var old = Map.data.get(x, y).floor;
+function rotate (data, x, y, type) {
+  var old = Map.data.get(x, y)[data];
   if (old && isVariantOf(old.type, type) !== null && old.hasAttribute('rotate')) {
     var angle = parseInt(old.getAttribute('rotate'));
     Commands.do(
@@ -1989,7 +2017,10 @@ function floorRotate (x, y, type) {
   } else {
     var tile = createTile(x, y, type);
     tile.setAttribute('rotate', 0);
-    replaceFloor(x, y, old, tile);
+    if (type === 'arc')
+      replace(data, Map.arcsElement, x, y, old, tile);
+    else
+      replace(data, Map.floorElement, x, y, old, tile);
   }
 }
 
@@ -2009,9 +2040,18 @@ function floor (x, y) {
  * Erase floor tile, if any.
  */
 function removeFloor (x, y) {
-  var old   = Map.data.get(x, y).floor;
+  var old = Map.data.get(x, y).floor;
   if (old)
-    replaceFloor(x, y, old, null);
+    return replaceFloor(x, y, old, null);
+}
+
+/**
+ * Erase arc tile, if any.
+ */
+function removeArc (x, y) {
+  var old = Map.data.get(x, y).arcs;
+  if (old)
+    return replaceArc(x, y, old, null);
 }
 
 /* This is where we draw (or erase) floor tiles. The key point to
@@ -2184,7 +2224,7 @@ function move (dir) {
  * Extract key from KeyboardEvent Basic source from
  * http://javascript.info/tutorial/keyboard-events#processing-the-character-keypress
  */
-function getChar(event) {
+function getChar (event) {
   if (event.which == null) {
     return String.fromCharCode(event.keyCode) // IE character keys
   } else if (event.which!=0 && event.charCode!=0) {
@@ -2332,12 +2372,14 @@ function keyPressed (evt) {
       if (!removeWall(Pen.x, Pen.y)) {
         wallModeOff();
         deleteFromLabel(Pen.x, Pen.y)
-          || removeFloor(Pen.x, Pen.y, null, null);
+          || removeFloor(Pen.x, Pen.y)
+          || removeArc(Pen.x, Pen.y);
       }
     } else {
       deleteFromLabel(Pen.x, Pen.y)
         || removeWall(Pen.x, Pen.y)
-        || removeFloor(Pen.x, Pen.y, null, null);
+        || removeFloor(Pen.x, Pen.y)
+        || removeArc(Pen.x, Pen.y);
     }
     key = 'x'; // record x
     break;
@@ -2394,7 +2436,7 @@ function keyPressed (evt) {
 
   case 's':
     wallModeOff();
-    floorRotate(Pen.x, Pen.y, 'stair');
+    rotate('floor', Pen.x, Pen.y, 'stair');
     break;
 
   case 'v':
@@ -2403,7 +2445,12 @@ function keyPressed (evt) {
 
   case 'n':
     wallModeOff();
-    floorRotate(Pen.x, Pen.y, 'diagonal');
+    rotate('floor', Pen.x, Pen.y, 'diagonal');
+    break;
+
+  case 'a':
+    wallModeOff();
+    rotate('arcs', Pen.x, Pen.y, 'arc');
     break;
 
   case 'z':
@@ -2605,10 +2652,11 @@ function interpretCont (code, i) {
  * used to simulate a little pause (to prevent doors from rotating).
  */
 function recreateModel () {
-  var re = /^([-a-z]+)_(\d+)_(\d+)$/;
+  var re = /^([-a-z0-9]+)_(\d+)_(\d+)$/;
   var z = 0;
   for (var map; map = document.getElementById('level'+z); z++) {
     var data = new Tiles();
+    recreateModelFor(re, data, document.getElementById('arcs'+z));
     recreateModelFor(re, data, document.getElementById('floor'+z));
     recreateModelFor(re, data, document.getElementById('labels'+z));
     recreateModelForDoors(re, data, document.getElementById('walls'+z));
@@ -2648,6 +2696,8 @@ function recreateModelFor (re, data, element) {
       var y = result[3];
       if (result[1] === 'label') {
         data.get(x, y).label = child;
+      } else if (result[1].indexOf('arc') === 0) { // startsWith
+        data.get(x, y).arcs = child;
       } else {
         data.get(x, y).floor = child;
       }
@@ -2680,12 +2730,15 @@ function createLevel (z) {
   level.setAttribute('id', 'level' + z);
   level.setAttributeNS(inkscapeNs, 'groupmode', 'layer');
   level.setAttributeNS(inkscapeNs, 'label', 'Level ' + (z + 1));
+  var arcs = document.createElementNS(svgNs, 'g');
+  arcs.setAttribute('id', 'arcs' + z);
   var floor = document.createElementNS(svgNs, 'g');
   floor.setAttribute('id', 'floor' + z);
   var labels = document.createElementNS(svgNs, 'g');
   labels.setAttribute('id', 'labels' + z);
   var walls = document.createElementNS(svgNs, 'g');
   walls.setAttribute('id', 'walls' + z);
+  level.appendChild(arcs);
   level.appendChild(floor);
   level.appendChild(labels);
   level.appendChild(walls);
@@ -2871,14 +2924,31 @@ onload = initialize;
       <path fill="black" d="M0,10 V0 H10 Z"/>
     </g>
     <g id="arc" width="10">
+      <path fill="white" d="M0,10 A10,10 0 0,1 10,0 v10 Z" stroke="black" stroke-width="1"/>
+    </g>
+    <g id="arc2" class="center" width="10">
+      <path fill="white" d="M0,20 A20,20 0 0,1 20,0 v20 Z" stroke="black" stroke-width="1"/>
+      <line x1="2.7" y1="10" x2="20" y2="10" stroke="black" stroke-width="1"/>
+      <line x1="10" y1="2.7" x2="10" y2="20" stroke="black" stroke-width="1"/>
+      <circle class="dot" cx="5" cy="5" r="1" fill="red" opacity="0"/>
+    </g>
+    <g id="arc3" class="center" width="10">
+      <path fill="white" d="M0,30 A30,30 0 0,1 30,0 v30 Z" stroke="black" stroke-width="1"/>
+      <line x1="7.6" y1="10" x2="30" y2="10" stroke="black" stroke-width="1"/>
+      <line x1="1.7" y1="20" x2="30" y2="20" stroke="black" stroke-width="1"/>
+      <line x1="10" y1="7.6" x2="10" y2="30" stroke="black" stroke-width="1"/>
+      <line x1="20" y1="1.7" x2="20" y2="30" stroke="black" stroke-width="1"/>
+      <circle class="dot" cx="5" cy="5" r="1" fill="red" opacity="0"/>
+    </g>
+    <g id="old-arc" width="10">
       <path fill="white" d="M0,10 A10,10 0 0,1 10,0 V10 Z" stroke="black" stroke-width="1"/>
     </g>
-    <g id="arc2" width="10">
+    <g id="old-arc2" width="10">
       <path fill="white" d="M-10,10 A20,20 0 0,1 10,-10 V10 Z" stroke="black" stroke-width="1"/>
       <line x1="-7.3" y1="0" x2="10" y2="0" stroke="black" stroke-width="1"/>
       <line x1="0" y1="-7.3" x2="0" y2="10" stroke="black" stroke-width="1"/>
     </g>
-    <g id="arc3" width="10">
+    <g id="old-arc3" width="10">
       <path fill="white" d="M-20,10 A30,30 0 0,1 10,-20 V10 Z" stroke="black" stroke-width="1"/>
       <line x1="-12.4" y1="-10" x2="10" y2="-10" stroke="black" stroke-width="1"/>
       <line x1="-18.3" y1="0" x2="10" y2="0" stroke="black" stroke-width="1"/>
@@ -2950,6 +3020,7 @@ onload = initialize;
   .blue { fill: blue; }
   .key { color: forestgreen; fill: forestgreen; font-weight: bold; }
   .invisible { display: none; }
+  .center:hover .dot { opacity: 1; }
   #ui { -webkit-tap-highlight-color: rgba(0,0,0,0); }
   .menu div {
       background: white;
@@ -3082,16 +3153,22 @@ onload = initialize;
 	<text y="14"><tspan class="key">n</tspan> :</text>
       </a>
       <a xlink:href="javascript:interpret('n')" title="diagonal">
-	<use x="50" y="10" xlink:href="#diagonal"/>
+	<use x="50" xlink:href="#diagonal"/>
       </a>
-      <a xlink:href="javascript:interpret('nv')" title="arc">
-	<use x="60" y="40" xlink:href="#arc"/>
+    </svg>
+    
+    <svg x="30" y="350">
+      <a href="javascript:interpret('a')">
+	<text y="14"><tspan class="key">a</tspan> :</text>
       </a>
-      <a xlink:href="javascript:interpret('nvv')" title="big arc">
-	<use x="110" y="41" xlink:href="#arc2"/>
+      <a xlink:href="javascript:interpret('a')" title="arc">
+	<use x="50" xlink:href="#arc"/>
       </a>
-      <a xlink:href="javascript:interpret('nvvv')" title="huge arc">
-	<use x="180" y="41" xlink:href="#arc3"/>
+      <a xlink:href="javascript:interpret('av')" title="big arc">
+	<use x="80" y="-20" xlink:href="#arc2"/>
+      </a>
+      <a xlink:href="javascript:interpret('avv')" title="huge arc">
+	<use x="130" y="-30" xlink:href="#arc3"/>
       </a>
     </svg>
 
