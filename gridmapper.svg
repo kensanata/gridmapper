@@ -273,17 +273,6 @@ var Map = {
     elementTo(bg, 'fill', color, linear, 500);
   },
   
-  getGrid: function() {
-    // default is light grey #d3d3d3
-    return document.getElementById('empty').getAttribute('stroke');
-  },
-
-  setGrid: function(color) {
-    // default is light grey #d3d3d3
-    elementTo(document.getElementById('empty'),
-              'stroke', color, linear, 500);
-  },
-  
   /**
    * Lists the replacement for a particular tile type.
    * This mapping must match the functionality of Map.code.
