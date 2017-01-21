@@ -270,7 +270,18 @@ var Map = {
   setBackground: function(color) {
     // default is light grey #d3d3d3
     var bg = document.getElementById('background').firstElementChild;
-    fillElementTo(bg, color, linear, 500);
+    elementTo(bg, 'fill', color, linear, 500);
+  },
+  
+  getGrid: function() {
+    // default is light grey #d3d3d3
+    return document.getElementById('empty').getAttribute('stroke');
+  },
+
+  setGrid: function(color) {
+    // default is light grey #d3d3d3
+    elementTo(document.getElementById('empty'),
+              'stroke', color, linear, 500);
   },
   
   /**
@@ -867,13 +878,13 @@ function fadeElementTo (element, opacity, delta, duration) {
 };
 
 /**
- * This changes the fill (background color) only for greyscale! If you
+ * This changes an attribute color for greyscale! If you
  * need full color support, check out the LAB color model.
  * https://software.intel.com/en-us/html5/hub/blogs/exploring-color-matching-in-javascript
  **/
-function fillElementTo (element, fill, delta, duration) {
-  var str = element.getAttribute('fill');
-  var from = 211;
+function elementTo (element, attribute, fill, delta, duration) {
+  var str = element.getAttribute(attribute);
+  var from = 211; // default is light grey
   if (str.indexOf('rgb(') === 0)
     from = parseInt(str.split("(")[1].split(")")[0].split(",")[0]); // red value
   if (from !== fill)
@@ -884,7 +895,7 @@ function fillElementTo (element, fill, delta, duration) {
       step: function(delta) {
         // ~~ is for Math.floor: http://rocha.la/JavaScript-bitwise-operators-in-practice
         var value = ~~ (from + (fill - from) * delta);
-        element.setAttribute('fill', 'rgb(' + value + ',' + value + ',' + value + ')');
+        element.setAttribute(attribute, 'rgb(' + value + ',' + value + ',' + value + ')');
       }
     });
 };
