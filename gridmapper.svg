@@ -3431,39 +3431,43 @@ onload = initialize;
     to place and rotate diagonals.</tspan>
     <code class="step11">(17,15);n;n;n;n(18,14);n;n</code>
 
-    <tspan class="step12" x="0" y="0">You can draw walls using
-    <tspan class="key">w</tspan>.</tspan>
-    <tspan class="step12" x="0" dy="20">Thus, walls work just like doors.</tspan>
-    <code class="step12">(16,18);dv(16,19);w(16,20);w</code>
+    <tspan class="step12" x="0" y="0">Use <tspan class="key">a</tspan>
+    to place and rotate arcs.</tspan>
+    <code class="step12">(18,16);a;a;a;a(13,9);a;v(16,9);a;a;v</code>
 
-    <tspan class="step13" x="0" y="0">This gets tedious very fast.</tspan>
-    <tspan class="step13" x="0" dy="20">Use
+    <tspan class="step13" x="0" y="0">You can draw walls using
+    <tspan class="key">w</tspan>.</tspan>
+    <tspan class="step13" x="0" dy="20">Thus, walls work just like doors.</tspan>
+    <code class="step13">(16,18);dv(16,19);w(16,20);w</code>
+
+    <tspan class="step14" x="0" y="0">This gets tedious very fast.</tspan>
+    <tspan class="step14" x="0" dy="20">Use
     <tspan class="key">m</tspan> to enter
     <tspan style="font-weight: bold">Wall Mode</tspan>.</tspan>
-    <tspan class="step13" x="0" dy="20">Note the shift by half a square!</tspan>
-    <code class="step13">z(21,11);m</code>
+    <tspan class="step14" x="0" dy="20">Note the shift by half a square!</tspan>
+    <code class="step14">z(21,11);m</code>
 
-    <tspan class="step14" x="0" y="0" style="font-weight: bold">Wall Mode</tspan>
-    <tspan class="step14">keeps the cursor on the walls.</tspan>
-    <tspan class="step14" x="0" dy="20">Doors and walls no longer rotate.</tspan>
-    <code class="step14"> w; w;(21.5,13)w; w</code>
+    <tspan class="step15" x="0" y="0" style="font-weight: bold">Wall Mode</tspan>
+    <tspan class="step15">keeps the cursor on the walls.</tspan>
+    <tspan class="step15" x="0" dy="20">Doors and walls no longer rotate.</tspan>
+    <code class="step15"> w; w;(21.5,13)w; w</code>
 
-    <tspan class="step15" x="0" y="0">Move from wall to wall and use
+    <tspan class="step16" x="0" y="0">Move from wall to wall and use
     <tspan class="key">d</tspan>,
     <tspan class="key">v</tspan> or
     <tspan class="key">w</tspan>.</tspan>
-    <tspan class="step15" x="0" dy="20">Use
-    <tspan class="key">m</tspan> to leave Wall Mode.</tspan>
-    <code class="step15">(21,11.5)d; d; d;(21,12.5)d; d; d;(23.5,12)dvm</code>
-
-    <tspan class="step16" x="0" y="0">Use the number keys
-    <tspan class="key">0-9</tspan> to add labels.</tspan>
     <tspan class="step16" x="0" dy="20">Use
-    <tspan class="key">Delete</tspan> to delete labels.</tspan>
-    <code class="step16">(20,12)6y(15,12)1(14,19)2(19,16)4(22,17)5</code>
+    <tspan class="key">m</tspan> to leave Wall Mode.</tspan>
+    <code class="step16">(21,11.5)d; d; d;(21,12.5)d; d; d;(23.5,12)dvm</code>
 
-    <tspan class="step17" x="0" y="0">Well, that's it. The rest is up to you.</tspan>
-    <tspan class="step17" x="0" dy="20">What lies beyond the secret doors to the east?</tspan>
+    <tspan class="step17" x="0" y="0">Use the number keys
+    <tspan class="key">0-9</tspan> to add labels.</tspan>
+    <tspan class="step17" x="0" dy="20">Use
+    <tspan class="key">Delete</tspan> to delete labels.</tspan>
+    <code class="step17">(20,12)6y(15,12)1(14,19)2(19,16)4(22,17)5</code>
+
+    <tspan class="step18" x="0" y="0">Well, that's it. The rest is up to you.</tspan>
+    <tspan class="step18" x="0" dy="20">What lies beyond the secret doors to the east?</tspan>
 
   </text>
 </svg>
