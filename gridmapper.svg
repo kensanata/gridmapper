@@ -666,6 +666,7 @@ var Demo = {
     Demo.link('Click to stop demo', 'Demo.stop()', false);
     Map.disable();
     Demo.element = document.getElementById('messages');
+    Demo.element.setAttribute('visibility', 'visible');
     moveElement(Demo.element,
                 Demo.element.getBBox().x,
                 Demo.element.getBBox().y,
