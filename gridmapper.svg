@@ -290,10 +290,9 @@ var Map = {
     'concealed': 'gate',
     'gate': 'archway',
     'archway': 'door',
-    'diagonal': 'old-arc',
-    'old-arc': 'old-arc2',
-    'old-arc2': 'old-arc3',
-    'old-arc3': 'diagonal',
+    'diagonal': 'walled-diagonal',
+    'walled-diagonal': 'diagonal-wall',
+    'diagonal-wall': 'diagonal',
     'arc': 'arc2',
     'arc2': 'arc3',
     'arc3': 'arc',
@@ -2923,6 +2922,14 @@ onload = initialize;
     <g id="diagonal" width="10">
       <path fill="white" stroke="black" stroke-width="1" stroke-linejoin="bevel" d="M0,10 H10 V0 Z"/>
     </g>
+    <g id="walled-diagonal" width="10">
+      <path fill="white" stroke="black" stroke-width="1" stroke-linejoin="bevel" d="M0,10 H10 V0 Z"/>
+      <line x1="0" y1="10" x2="10" y2="0" stroke="black" stroke-width="3" stroke-linecap="round"/>
+    </g>
+    <g id="diagonal-wall" width="10">
+      <rect width="10" height="10" fill="white" stroke="black" stroke-width="1"/>
+      <line x1="0" y1="10" x2="10" y2="0" stroke="black" stroke-width="3" stroke-linecap="round"/>
+    </g>
     <g id="arc" width="10">
       <path fill="white" d="M0,10 A10,10 0 0,1 10,0 v10 Z" stroke="black" stroke-width="1"/>
     </g>
@@ -2939,21 +2946,6 @@ onload = initialize;
       <line x1="10" y1="7.6" x2="10" y2="30" stroke="black" stroke-width="1"/>
       <line x1="20" y1="1.7" x2="20" y2="30" stroke="black" stroke-width="1"/>
       <circle class="dot" cx="5" cy="5" r="1" fill="red" opacity="0"/>
-    </g>
-    <g id="old-arc" width="10">
-      <path fill="white" d="M0,10 A10,10 0 0,1 10,0 V10 Z" stroke="black" stroke-width="1"/>
-    </g>
-    <g id="old-arc2" width="10">
-      <path fill="white" d="M-10,10 A20,20 0 0,1 10,-10 V10 Z" stroke="black" stroke-width="1"/>
-      <line x1="-7.3" y1="0" x2="10" y2="0" stroke="black" stroke-width="1"/>
-      <line x1="0" y1="-7.3" x2="0" y2="10" stroke="black" stroke-width="1"/>
-    </g>
-    <g id="old-arc3" width="10">
-      <path fill="white" d="M-20,10 A30,30 0 0,1 10,-20 V10 Z" stroke="black" stroke-width="1"/>
-      <line x1="-12.4" y1="-10" x2="10" y2="-10" stroke="black" stroke-width="1"/>
-      <line x1="-18.3" y1="0" x2="10" y2="0" stroke="black" stroke-width="1"/>
-      <line x1="-10" y1="-12.4" x2="-10" y2="10" stroke="black" stroke-width="1"/>
-      <line x1="0" y1="-18.3" x2="0" y2="10" stroke="black" stroke-width="1"/>
     </g>
     <g id="stair" width="10">
       <rect width="10" height="20" fill="white" stroke="black" stroke-width="1"/>
@@ -3148,24 +3140,30 @@ onload = initialize;
       </a>
     </svg>
 
-    <svg x="30" y="320">
+    <svg x="30" y="330">
       <a href="javascript:interpret('n')">
 	<text y="14"><tspan class="key">n</tspan> :</text>
       </a>
       <a xlink:href="javascript:interpret('n')" title="diagonal">
 	<use x="50" xlink:href="#diagonal"/>
       </a>
+      <a xlink:href="javascript:interpret('nv')" title="diagonal with wall">
+	<use x="80" xlink:href="#walled-diagonal"/>
+      </a>
+      <a xlink:href="javascript:interpret('nvv')" title="diagonal wall">
+	<use x="110" xlink:href="#diagonal-wall"/>
+      </a>
     </svg>
     
-    <svg x="30" y="350">
+    <svg x="30" y="370">
       <a href="javascript:interpret('a')">
 	<text y="14"><tspan class="key">a</tspan> :</text>
       </a>
       <a xlink:href="javascript:interpret('a')" title="arc">
-	<use x="50" xlink:href="#arc"/>
+	<use x="50" y="10" xlink:href="#arc"/>
       </a>
       <a xlink:href="javascript:interpret('av')" title="big arc">
-	<use x="80" y="-20" xlink:href="#arc2"/>
+	<use x="80" y="-10" xlink:href="#arc2"/>
       </a>
       <a xlink:href="javascript:interpret('avv')" title="huge arc">
 	<use x="130" y="-30" xlink:href="#arc3"/>
@@ -3291,7 +3289,7 @@ onload = initialize;
     </svg>
 
     <text>
-      <tspan x="30" y="410">
+      <tspan x="30" y="420">
 	<a xlink:href="javascript:keyPressed('u')"><tspan class="key">u</tspan> : undo</a>  
 	<a xlink:href="javascript:keyPressed('r')"><tspan class="key">r</tspan> : redo</a>  
 	<a xlink:href="javascript:keyPressed('x')">
@@ -3324,13 +3322,13 @@ onload = initialize;
       </tspan>
     </text>
 
-    <foreignObject id="textarea" x="30" y="515" width="390" height="50">
+    <foreignObject id="textarea" x="30" y="525" width="390" height="50">
       <textarea id="exportarea" xmlns="http://www.w3.org/1999/xhtml"
 		style="position: fixed; width: 100%; height: 100%; margin: 0; padding: 0"/>
     </foreignObject>
     
     <text>
-      <tspan x="30" y="590">
+      <tspan x="30" y="600">
 	<a class="blue" target="_blank" xlink:href="https://github.com/kensanata/gridmapper#how-to-save">How to Save</a>  
 	<a id="export" class="blue" xlink:href="javascript:link()">Link</a>  
 	<tspan id="download">
