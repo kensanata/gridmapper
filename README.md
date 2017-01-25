@@ -51,7 +51,7 @@ Examples
 --------
 
 * [Gridmapper Logo](https://campaignwiki.org/gridmapper.svg?%0A%20f%20ss%20f%0A%20s%0A%20%20%20%20sss%0A%20fssss%20%20f)
-* [OSR Logo](https://campaignwiki.org/gridmapper.svg?%0A%20w.dfwwfwwfw%0A%20wftv%20fw.wfwwfww.dddfw%0A%20wfffwnnnn%20nn%20wfwwfwwfw%0A%20ww%20ww%20w.dfffwfn%20nnn%20w%0A%20%20%20ww%20ww%20ww%20wfnnnn%20fd%0A%20%20%20%20%20%20ww%20ww%20ww)
+* [OSR Logo](https://campaignwiki.org/gridmapper.svg?%0A%20w.dfwwfwwfw%0A%20wftv%20fw.wfwwfww.dddfw%0A%20wfffwnnnnv%20wwnnv%20wfwwfwwfw%0A%20ww%20ww%20w.dfwwffwfw.wnv%20nnnv%0A%20%20%20ww%20ww%20ww%20wfwnnnnv%20wwfd%0A%20%20%20%20%20%20ww%20%20wwj)
 * [Demo Dungeon](https://campaignwiki.org/gridmapper.svg?%2813%2C11%29ffff%0A%20%20%20%20%20%20%20%20%20%20%20ssss%20%20ff1ffdffssssv%0A%20%20%20%20%20%20%20%20%20%20%20%20%20ffff%0A%20%20%20%20%20%20%20%20%20%20%20%20%20ffffdfnn%0A%20%20%20%20%20%20%20%20%20%20%20%20%20ffffnnnn%20fff%0A%20%20%20%20%20%20%20%20%20%20%20%20%20%20fddvvvf%20%20%204ffdvvfff%0A%20%20%20%20%20%20%20%20%20%20%20%20%20%20ff%20%20%20%20%20f5fdddvf%0A%20%20%20%20%20%20%20%20%20%20%20p%20p%20p%20ffdvf%20%20%20%20fff%0A%20%20%20%20%20%20%20%20%20%20%20b%20t%20f2ffwf%0A%20%20%20%20%20%20%20%20%20%20%20p%20p%20p%20ffwfz%2821%2C11%29fwfwf%0A%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%206fddfddfddfdv%0A%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20ddfw.dfw.df)
 
 You will have noticed that those example URLs contain a lot of
