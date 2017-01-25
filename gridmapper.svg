@@ -61,9 +61,6 @@ var Map = {
   lastEtag: null, // last etag received
   username: null, // the name of the user (after saving to the wiki)
   websocket: null, // the websocket used to host or listen
-  joined: false, // true when a map is joined (no input)
-  hosting: false, // true when a map is hosting
-  quit: false, // true when quitting to supress extra Chrome message
 
   /**
    * Initializes the datastructures if necessary. We only need to run
@@ -1362,17 +1359,11 @@ function loadIt (event) {
   } else {
     message('Loading');
     Map.reset();
+    record('\02');
     Map.lastEtag = event.target.getResponseHeader('etag');
     Map.lastUrl = doc.URL;
     var map = pre.textContent.replace('✎', '');
-    if (Map.hosting) {
-      Map.hosting = false;
-      interpret(map);
-      Map.hosting = true;
-      record('\01' + map + '\03'); // send in a single message
-    } else {
-      interpret(map);
-    }
+    interpret(map);
     Map.showLevelAnimation();
     Pen.update(null);
     var username = '';
@@ -1391,66 +1382,14 @@ function loadIt (event) {
 }
 
 /**
- * Hosts a map on Campaign Wiki. It reads the map name from the
- * exportarea multiline text field. Information is sent via record.
- */
-function host () {
-  var input = Map.exportarea.value.trim();
-  if (input === undefined || input === '' || input.split('\n').length > 1) {
-    message('Please provide a name for your map in the text area!');
-    return;
-  }
-  if (Map.websocket !== null) {
-    Map.websocket.close();
-  }
-  Map.websocket = new WebSocket(wsUrl + '/draw/' + encodeURIComponent(input));
-  Map.websocket.onopen = function(evt) {
-    Map.hosting = true;
-    message('Hosting ' + input);
-    document.getElementById('join').setAttribute('class', 'invisible');
-    var link = document.getElementById('host');
-    link.firstChild.nodeValue = 'Cancel Hosting';
-    link.setAttributeNS(xlinkNs, 'href', 'javascript:stop()');
-  };
-  Map.websocket.onclose = function(evt) {
-    Map.hosting = false;
-    message('Stopped hosting');
-  };
-  Map.websocket.onmessage = function(evt) {
-    if (evt.data === 'reset') {
-      Map.websocket.send('\02' + getSource() + '\03');
-    } else {
-      console.log('Ignoring message from host: ' + evt.data);
-    }
-  };
-  Map.websocket.onerror = function(evt) {
-    if (Map.websocket.readyState === WebSocket.OPEN) {
-      message('Hosting error: ' + evt.data);
-    }
-  };
-}
-
-function stop () {
-  record('\04');
-  if (Map.websocket !== null) {
-    Map.websocket.close();
-  }
-  message('Stopped Hosting');
-  document.getElementById('join').setAttribute('class', 'blue');
-  var link = document.getElementById('host');
-  link.firstChild.nodeValue = 'Host';
-  link.setAttributeNS(xlinkNs, 'href', 'javascript:host()');
-}
-
-/**
- * Join a hosted map on Campaign Wiki. It reads the map name from the
+ * Join a map on Campaign Wiki. It reads the map name from the
  * exportarea multiline text field.
  */
 
 function join () {
   var map = Map.exportarea.value.trim();
   if (map === undefined || map === '' || map.split('\n').length > 1) {
-    message('Please provide the name of a hosted map in the text area!');
+    message('Please provide the name of the map in the text area!');
     return;
   }
   if (Map.websocket !== null) {
@@ -1460,15 +1399,20 @@ function join () {
   Map.websocket.onopen = function(evt) {
     joinMap(map);
   }
-  Map.websocket.onclose = null; // ignore?
+  Map.websocket.onclose = function(evt) {
+    leave();
+  }
   Map.websocket.onmessage = function(evt) {
-    interpretCont(evt.data, 0); // skip the test for Map.joined in interpret()
+    if (evt.data === '\05') {
+      // requesting a new map using Ctrl-E gets sent with a Ctrl-B
+      Map.websocket.send('\02' + getSource());
+    } else {
+      interpretCont(evt.data, 0, false);
+    }
   };
   Map.websocket.onerror = function(evt) {
     if (Map.websocket.readyState === WebSocket.OPEN) {
       message('Network error: ' + evt.data);
-    } else if (!Map.quit) {
-      message('Nobody is hosting ' + map);
     }
   };
 }
@@ -1478,11 +1422,8 @@ function joinMap (map) {
   Map.reset();
   Map.showLevelAnimation();
   Pen.update(null);
-  Map.disable();
-  Map.joined = true;
-  Map.quit = false;
   var link = document.getElementById('join');
-  Map.websocket.send('reset');
+  Map.websocket.send('\05');
   document.getElementById('host').setAttribute('class', 'invisible');
   // Internet Explorer doesn't know how to handle xlink created by Javascript?
   if (document.documentMode > 0) {
@@ -1496,9 +1437,6 @@ function leave () {
     Map.websocket.close();
     message('Left map');
   }
-  Map.joined = false;
-  Map.quit = true;
-  Map.enable();
   document.getElementById('host').setAttribute('class', 'blue');
   var link = document.getElementById('join');
   link.firstChild.nodeValue = 'Join';
@@ -1508,10 +1446,10 @@ function leave () {
 /**
  * Record all commands for hosting. This is not the same as the
  * command undo/redo history! Recorded commands are sent to the
- * websocket if were're connected and we're not listening instead.
+ * websocket if were're connected.
  */
 function record (key) {
-  if (Map.hosting && Map.websocket !== null
+  if (Map.websocket !== null
       && Map.websocket.readyState === WebSocket.OPEN) {
     Map.websocket.send(key);
   }
@@ -2238,19 +2176,28 @@ function getChar (event) {
 }
 
 /**
+ * Handle key presses, recording them all.
+ */
+function keyPressed (evt) {
+  keyHandling (evt, true);
+}
+
+/**
  * Processes key press events and single character strings (in case
  * the interpreter is feeding us some). Many of the key commands need
  * a 'current' position. We determine it by looking at the Pen. It's
- * position is always tracked (onmousemove, Pen.update).
+ * position is always tracked (onmousemove, Pen.update). When
+ * interpreting code we received from a remote host, we don't want to
+ * be recording, which is why we need a flag.
  */
-function keyPressed (evt) {
+function keyHandling (evt, recording) {
   // We don't handly any meta keys.
   if (evt.metaKey)
     return;
   
   // Could be a string when running interpreted code.
   var key = evt;
-  var isRecorded = true;
+  var isRecorded = recording;
   
   // When running the demo, ignore key events from the browser.
   if (!Demo.running && evt instanceof KeyboardEvent) {
@@ -2524,24 +2471,16 @@ function keyPressed (evt) {
  * 'z' has an alternate implementation: when loading a map, going down
  * should not animate anything, unless we're looking at the demo.
  *
- * '-' moves point to the left (a shorthand for '[-1,0]') if we have not
- * joined a map and the next character is neither 'v' (a variation)
- * nor a newline.
+ * '-' moves point to the left (a shorthand for '[-1,0]') and the next
+ * character is neither 'v' (a variation) nor a newline.
  *
  * 'f' places a floor tile and moves to the right unless you're 
  *
- * '\01' or '\02' causes a map reset and is followed by a new map
- * until we get to the '\03' character (Ctrl-A is Start of Heading,
- * Ctrl-B is Start Of Text, Ctrl-C is End Of Text), because while the
- * map is being read, '-' and 'f' have the same meaning as while
- * loading a map...
- * 
- * '\04' cases the client to leave the map (Ctrl-D is End Of Transmission).
+ * '\02' causes a map reset; it is usually followed by a new map
+ * (Ctrl-B is Start Of Text).
  */
 function interpret (code) {
-  if (!Map.joined) {
-    interpretCont(code, 0);
-  }
+  interpretCont(code, 0, true);
 }
 
 /**
@@ -2550,13 +2489,13 @@ function interpret (code) {
  * This is because we want to interrupt the computation using
  * timeouts.
  */
-function interpretCont (code, i) {
+function interpretCont (code, i, recording) {
   for (; i < code.length; i++) {
     var advance = null;
     switch(code[i]) { // needs charAt?
     case ';':
       setTimeout(function() {
-        interpretCont(code, i + 1);
+        interpretCont(code, i + 1, recording);
       }, 500);
       return; // end!
     case '(':
@@ -2570,7 +2509,7 @@ function interpretCont (code, i) {
           if (Pen.moveTo({x: x, y: y})) {
             Pen.update(null);
             setTimeout(function() {
-              interpretCont(code, i);
+              interpretCont(code, i, recording);
             }, 100);
             return; // end!
           }
@@ -2579,8 +2518,6 @@ function interpretCont (code, i) {
           Pen.y = y;
           if (z >= 0)
             Map.jump(z);
-          if (Map.joined)
-            Pen.update(null);
         }
         i += match[0].length - 1; // will get incremented above
       }
@@ -2615,23 +2552,14 @@ function interpretCont (code, i) {
         Map.jump(Map.level + 1);
       }
       break;
-    case '\01': // Ctrl-A
     case '\02': // Ctrl-B
       Map.reset();
-      Map.joined = false; // start loading a map
-      break;
-    case '\03': // Ctrl-C
-      if (Map.websocket !== null && Map.websocket.readyState === WebSocket.OPEN)
-          Map.joined = true; // end of loading a map
-      break;
-    case '\04': // Ctrl-D
-      leave();
       break;
     case 'f':
-        advance = 'right';
+      advance = 'right';
       // fall through to default
     default:
-      keyPressed(code[i]);
+      keyHandling(code[i], recording);
     }
     // advance unless we're going to move elsewhere or switch a
     // variant (peek ahead); also don't advance when we joined a
@@ -2759,7 +2687,6 @@ function initialize () {
     serverUrl = 'http://localhost:3000';
     wsUrl = 'ws://localhost:3000';
   }
-  document.getElementById('join').setAttributeNS(xlinkNs, 'href', serverUrl);
 
   // Internet Explorer doesn't know how to handle XHTML.
   if (document.documentMode > 0) {
@@ -2770,7 +2697,6 @@ function initialize () {
     remove(document.getElementById('load'));
     remove(document.getElementById('save'));
     remove(document.getElementById('how-to-host'));
-    remove(document.getElementById('host'));
     // No XML means no demo
     remove(document.getElementById('demo'));
   }
@@ -3344,8 +3270,7 @@ onload = initialize;
 
       <tspan x="30" dy="20">
 	<a id="how-to-host" class="blue" target="_blank" xlink:href="https://github.com/kensanata/gridmapper#how-to-host">How to Host</a>  
-	<a id="host" class="blue" title="Host a map for your friends" xlink:href="javascript:host()">Host</a>  
-	<a id="join" target="_blank" class="blue" title="Join a map being hosted" xlink:href="javascript:join()">Join</a>
+	<a id="join" class="blue" title="Host or join a map" xlink:href="javascript:join()">Join</a>
 	
       </tspan>
       <tspan x="30" dy="20">

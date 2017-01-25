@@ -6,50 +6,85 @@ app->config(hypnotoad => {
 
 # API:
 # /join/The_Map -- listen to "The_Map"
-# -> the message "resend" will resend the entire map
+# -> your controller is stored in @{$clients{"The_Map"}}, making you a client
+# -> the message "resend" will resend the entire map from the first client
 # -> simply listening gets you the map as it is being drawn
-# /draw/The_Map -- write to "The_Map"
-# -> every message will get broadcast to anybody listening
+# -> writing to the map will broadcast your message to all but you
 
 my %clients;
-my %hosts;
 my %resets;
 
 get '/' => sub {
   my $c = shift;
   $c->render(template => 'main',
-	     maps => [keys %hosts]);
+	     maps => [keys %clients]);
 };
 
 websocket '/join/:map' => sub {
   my $c = shift;
   my $map = $c->stash('map');
-  if (not exists $clients{$map}) {
-    $c->reply->exception("Nobody is hosting $map");
-    return;
-  }
+
+  # Add client and number them
   push(@{$clients{$map}}, $c);
-  $c->app->log->debug('Joined ' . $map);
+  $c->stash(id => scalar @{$clients{$map}});
+  $c->app->log->debug("Client joined $map");
 
   # Increase inactivity timeout (seconds)
   $c->inactivity_timeout(300);
-  
+
   # Incoming message
   $c->on(message => sub {
     my ($c, $msg) = @_;
-    if ($msg eq 'reset' && $hosts{$map}) {
-      $hosts{$map}->send("$msg");
-      $resets{$c} = 1;
-      $c->app->log->debug("Listener for $map requesting $msg");
+    my $id = $c->stash('id');
+    if ($msg eq "\cE") {
+      # Ctrl-E is the Enquiry character. With it, a client requested a reset;
+      # pass it on to the first client.
+      if (@{$clients{$map}} > 1) {
+	if ($clients{$map}->[0] eq $c) {
+	  $clients{$map}->[1]->send("$msg");
+	  my $other = $clients{$map}->[1]->stash('id');
+	  $c->app->log->debug("$id is requesting a reset of $map, passing it to $other");
+	} else {
+	  $clients{$map}->[0]->send("$msg");
+	  my $other = $clients{$map}->[0]->stash('id');
+	  $c->app->log->debug("$id is requesting a reset of $map, passing it to $other");
+	}
+	$resets{$c} = 1;
+      } else {
+	$c->app->log->debug("$id is requesting a reset of $map but there are no other clients");
+      }
+    } elsif (substr($msg, 0, 1) eq "\cB") {
+      # If it starts with Ctrl-B, then it's a reset message that's only sent to
+      # the client(s) that requested it.
+      for my $listener (@{$clients{$map}}) {
+	if ($resets{$listener}) {
+	  # Resets are only sent to those that requested one
+	  delete($resets{$listener});
+	  $listener->send("$msg");
+	  my $other = $listener->stash('id');
+	  $c->app->log->debug("$id is sending a reset of $map to $other");
+	}
+      }
+      $c->app->log->debug("$id finished broadcasting the reset of $map");
+      $c->app->log->debug("$map:\n" . substr($msg, 1));
     } else {
-      $c->app->log->debug("Listener for $map ignoring message: $msg");
+      # Everything else is broadcast to all the clients except to the one who
+      # sent it
+      for my $listener (@{$clients{$map}}) {
+	if ($listener != $c) {
+	  $listener->send("$msg");
+	  my $other = $listener->stash('id');
+	  $c->app->log->debug("$id is sending $msg to $other");
+	}
+      }
+      $c->app->log->debug("$id finished broadcasting of $msg");
     }
   });
 
   # Closed
   $c->on(finish => sub {
     my ($c, $code, $reason) = @_;
-    if ($clients{$map}) {
+    if (@{$clients{$map}}) {
       my @listeners = @{$clients{$map}};
       my $index = 0;
       $index++ until $listeners[$index] == $c or $index > @listeners;
@@ -57,50 +92,10 @@ websocket '/join/:map' => sub {
       $clients{$map} = \@listeners;
       $c->app->log->debug("Left $map");
     }
-  });
-};
-  
-websocket '/draw/:map' => sub {
-  my $c = shift;
-  my $map = $c->stash('map');
-  if (exists $clients{$map}) {
-    $c->reply->exception("$map is already in use");
-  } else {
-    $hosts{$map} = $c;
-    $clients{$map} = ();
-  }
-
-  $c->app->log->debug('Hosting ' . $map);
-  
-  # Increase inactivity timeout (seconds)
-  $c->inactivity_timeout(300);
-  
-  # Incoming message: If it starts with Ctrl-B, then it's a reset message that's
-  # only sent to the client(s) that requested it.
-  $c->on(message => sub {
-    my ($c, $msg) = @_;
-    if (substr($msg, 0, 1) eq "\cB") {
-      for my $listener (@{$clients{$map}}) {
-	if ($resets{$listener}) {
-	  # Resets are only sent to those that requested one
-	  delete($resets{$listener});
-	  $listener->send("$msg");
-	}
-      }
-    } else {
-      for my $listener (@{$clients{$map}}) {
-	$listener->send("$msg");
-      }
+    if (not @{$clients{$map}}) {
+      delete($clients{$map});
+      $c->app->log->debug("Freeing $map");
     }
-    $c->app->log->debug("Drawing on $map: $msg");
-  });
-
-  # Closed
-  $c->on(finish => sub {
-    my ($c, $code, $reason) = @_;
-    delete($clients{$map});
-    delete($hosts{$map});
-    $c->app->log->debug("Freeing $map");
   });
 };
 
