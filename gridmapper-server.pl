@@ -24,10 +24,21 @@ websocket '/join/:map' => sub {
   my $c = shift;
   my $map = $c->stash('map');
 
-  # Add client and number them
+  # determine a number for the client
+  my $num = 1;
+ NUM:
+  while (1) {
+    for my $other (@{$clients{$map}}) {
+      if ($num == $other->stash('id')) {
+	$num++;
+	next NUM;
+      }
+    }
+    last;
+  }
+  $c->stash(id => $num);
   push(@{$clients{$map}}, $c);
-  $c->stash(id => scalar @{$clients{$map}});
-  $c->app->log->debug("Client joined $map");
+  $c->app->log->debug("Client $num joined $map");
 
   # Increase inactivity timeout (seconds)
   $c->inactivity_timeout(300);
@@ -69,15 +80,19 @@ websocket '/join/:map' => sub {
       $c->app->log->debug("$map:\n" . substr($msg, 1));
     } else {
       # Everything else is broadcast to all the clients except to the one who
-      # sent it
+      # sent it. Use Ctrl-A to introduce the message, send the client number (so
+      # that others can keep separate positions), then Ctrl-B to announce the
+      # end of the number and the beginning of the text, then the message
+      # itself, and Ctrl-C to indicate the end of the message for the
+      # interpreter.
       for my $listener (@{$clients{$map}}) {
 	if ($listener != $c) {
-	  $listener->send("$msg");
 	  my $other = $listener->stash('id');
+	  $listener->send("\cA$id\cB$msg\cC");
 	  $c->app->log->debug("$id is sending $msg to $other");
 	}
       }
-      $c->app->log->debug("$id finished broadcasting of $msg");
+      # $c->app->log->debug("$id finished broadcasting of $msg");
     }
   });
 

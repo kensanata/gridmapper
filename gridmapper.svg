@@ -27,7 +27,6 @@ var xlinkNs    = 'http://www.w3.org/1999/xlink';
 var inkscapeNs = 'http://www.inkscape.org/namespaces/inkscape';
 var xhtmlNs    = 'http://www.w3.org/1999/xhtml';
 var wikiUrl    = 'https://campaignwiki.org/wiki/Gridmapper';
-var serverUrl  = 'https://campaignwiki.org/gridmapper-server';
 var wsUrl      = 'wss://campaignwiki.org/gridmapper-server';
 
 /**
@@ -61,6 +60,7 @@ var Map = {
   lastEtag: null, // last etag received
   username: null, // the name of the user (after saving to the wiki)
   websocket: null, // the websocket used to host or listen
+  leaving: false, // used to supress multiple messages
 
   /**
    * Initializes the datastructures if necessary. We only need to run
@@ -460,6 +460,9 @@ var Pen = {
   type: null, // type of tile we last used
   dir: null, // last movement
 
+  pen: 0, // the pen we switched to when collaborating
+  pens: [], // other pens for collaboration with others (0 is ours)
+  
   /**
    * Determines the grid position based on a mouse event and returns
    * it. Remember that Wall Mode has one coordinate + 0.5. Also
@@ -538,13 +541,36 @@ var Pen = {
   },
 
   /**
-   * Resets the pen coordinates so that a file can no be loaded
-   * safely.
+   * Resets the pen coordinates so that a file can be loaded safely.
    */
   reset: function() {
     Pen.x = 0;
     Pen.y = 0;
+    Pen.ts = null;
     Pen.type = null;
+    Pen.dir = null;
+  },
+
+  /**
+   * Save the current pen to its position (the first pen has the
+   * number 0) and set the current pen to the saved pen in position n.
+   * Remember position n. In order to switch back to the original pen,
+   * call Pen.switchTo(0).
+   *
+   * Currently old pens aren't reaped.
+   */
+  switchTo: function(n) {
+    Pen.pens[Pen.pen] = [Pen.x, Pen.y, Pen.ts, Pen.type, Pen.dir];
+    if (Pen.pens[n]) {
+      Pen.x = Pen.pens[n][0];
+      Pen.y = Pen.pens[n][1];
+      Pen.ts = Pen.pens[n][2];
+      Pen.type = Pen.pens[n][3];
+      Pen.dir = Pen.pens[n][4];
+    } else {
+      Pen.reset();
+    }
+    Pen.pen = n;
   },
 };
 
@@ -1404,7 +1430,8 @@ function join () {
   }
   Map.websocket.onmessage = function(evt) {
     if (evt.data === '\05') {
-      // requesting a new map using Ctrl-E gets sent with a Ctrl-B
+      // Requesting a new map using Ctrl-E sends the map with a Ctrl-B
+      // prefix. This will get redistributed to all the clients.
       Map.websocket.send('\02' + getSource());
     } else {
       interpretCont(evt.data, 0, false);
@@ -1418,29 +1445,27 @@ function join () {
 }
 
 function joinMap (map) {
+  Map.websocket.send('\05'); // request a map reset using Ctrl-E
   message('Joined ' + map);
-  Map.reset();
-  Map.showLevelAnimation();
-  Pen.update(null);
   var link = document.getElementById('join');
-  Map.websocket.send('\05');
-  document.getElementById('host').setAttribute('class', 'invisible');
-  // Internet Explorer doesn't know how to handle xlink created by Javascript?
-  if (document.documentMode > 0) {
-    link.firstChild.nodeValue = 'Leave Map';
-    link.setAttributeNS(xlinkNs, 'href', 'javascript:leave()');
-  }
+  link.firstChild.nodeValue = 'Leave Map';
+  link.setAttributeNS(xlinkNs, 'href', 'javascript:leave()');
 };
 
 function leave () {
   if (Map.websocket.readyState === WebSocket.OPEN) {
-    Map.websocket.close();
+    Map.leaving = true;
+    setTimeout(function(){ Map.leaving = false }, 100);
+    Map.websocket.close(); // this will call leave again!
     message('Left map');
+  } else if (!Map.leaving) {
+    // if we didn't want to leave, this must be an error
+    message('Cannot connect to ' + wsUrl);
   }
-  document.getElementById('host').setAttribute('class', 'blue');
+  // this code might run twice in a row
   var link = document.getElementById('join');
   link.firstChild.nodeValue = 'Join';
-  link.setAttributeNS(xlinkNs, 'href', serverUrl);
+  link.setAttributeNS(xlinkNs, 'href', 'javascript:join()');
 }
 
 /**
@@ -2476,6 +2501,10 @@ function keyHandling (evt, recording) {
  *
  * 'f' places a floor tile and moves to the right unless you're 
  *
+ * '\01' introduces an edit made by another pen; it is followed by the
+ * pen number (Ctrl-A is Start Of Heading), followed by '\02' and the
+ * rest of the message (Ctrl-B is Start Of Text).
+ *
  * '\02' causes a map reset; it is usually followed by a new map
  * (Ctrl-B is Start Of Text).
  */
@@ -2487,7 +2516,7 @@ function interpret (code) {
  * Continues the interpretation where we left oft. The variables are
  * not initialized so that we can simply pick up where we left off.
  * This is because we want to interrupt the computation using
- * timeouts.
+ * timeouts (when running the demo, for example).
  */
 function interpretCont (code, i, recording) {
   for (; i < code.length; i++) {
@@ -2543,7 +2572,7 @@ function interpretCont (code, i, recording) {
     case 'z':
       // When loading from an URL, we need to reposition the Pen, and
       // we want to be quick. When running the Demo, we do not.
-      if (Demo.running || Map.joined) {
+      if (Demo.running) {
         Map.show(Map.level + 1);
       } else {
         Pen.x = 0;
@@ -2552,8 +2581,20 @@ function interpretCont (code, i, recording) {
         Map.jump(Map.level + 1);
       }
       break;
-    case '\02': // Ctrl-B
+    case '\01':
+      // Ctrl-A: interpret the rest of the message using a different
+      // Pen.
+      var match = code.substr(i).match(/^\01(\d+)\02/);
+      if (match) {
+        Pen.switchTo(Number(match[1]));
+        i += match[0].length - 1; // will get incremented in for loop
+      }
+      break;
+    case '\02': // a simple Ctrl-B means reset the map
       Map.reset();
+      break;
+    case '\03': // a simple Ctrl-C ends the use of a separate pen
+      Pen.switchTo(0);
       break;
     case 'f':
       advance = 'right';
@@ -2562,9 +2603,8 @@ function interpretCont (code, i, recording) {
       keyHandling(code[i], recording);
     }
     // advance unless we're going to move elsewhere or switch a
-    // variant (peek ahead); also don't advance when we joined a
-    // hosted map
-    if (!Map.joined && advance && code[i+1] !== 'v'
+    // variant (peek ahead)
+    if (advance && code[i+1] !== 'v'
         && code[i+1] !== '\n' && code[i] !== '(' && code[i] !== '[')
       move(advance);
   }
@@ -2684,7 +2724,6 @@ function initialize () {
   if (window.location.hostname === 'localhost') {
     // testing
     wikiUrl = 'http://localhost/cgi-bin/wiki';
-    serverUrl = 'http://localhost:3000';
     wsUrl = 'ws://localhost:3000';
   }
 
