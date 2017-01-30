@@ -569,8 +569,50 @@ var Pen = {
       Pen.dir = Pen.pens[n][4];
     } else {
       Pen.reset();
+      Pen.addPointer(n);
     }
     Pen.pen = n;
+    if (n > 0) {
+      Map.pointer = document.getElementById('pointer'+n); // the other pen
+    } else {
+      Map.pointer = document.getElementById('pointer'); // my pen
+    }
+  },
+
+  /**
+   * Remove the pen again, if it was inactive for 10s.
+   */
+  addPointer: function(n) {
+    var cursor = document.getElementById('cursor'); // invisible def
+    pointer = document.createElementNS(svgNs, 'use');
+    pointer.setAttribute('id', 'pointer' + n);
+    pointer.setAttributeNS(xlinkNs, 'href', '#others');
+    pointer.setAttribute('fill', 'black');
+    var p = document.getElementById('pointer'); // visible element
+    p.parentNode.insertBefore(pointer, p.nextSibling); // after
+    setTimeout(function(){Pen.checkPointer(n, pointer);}, 10000); // 10s
+  },
+
+  /**
+   * Remove the pen again, if it was inactive for 10s.
+   */
+  checkPointer: function(n, pointer) {
+    var now = new Date();
+    if (Pen.pens[n]) {
+      if (now - Pen.pens[n][2] < 10000) {
+        setTimeout(function(){Pen.checkPointer(n, pointer);}, 10000); // 10s
+      } else {
+        // this also happens if ts is undefined
+        var ms = 1000; // 1s
+        fadeElementTo(pointer, 0, linear, ms);
+        setTimeout(function(){document.rootElement.removeChild(pointer);}, ms);
+        Pen.pens[n] = null;
+      }
+    } else {
+      // this should not happen because if the pen data is removed
+      // when the element is removed
+      console.log('checkPointer: trying to check nonexisting pen ' + n);
+    }
   },
 };
 
@@ -2756,6 +2798,7 @@ onload = initialize;
 ]]></script>
   <defs>
     <rect id="cursor" width="10" height="10" fill="forestgreen" opacity="0.2"/>
+    <rect id="others" width="10" height="10" fill="black" opacity="0.2"/>
     <rect id="empty" width="10" height="10" fill="white" stroke="black" stroke-width="1"/>
     <rect id="void" width="10" height="10" fill="none" stroke="black" stroke-width="1"/>
     <g id="water" width="20">
