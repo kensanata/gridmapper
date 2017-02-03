@@ -20,7 +20,7 @@ if you want something more recent.
     - [It's Free](#its-free)
     - [No Internet Explorer](#no-internet-explorer)
     - [Examples](#examples)
-- [How to Host](#how-to-host)
+- [How to Collaborate](#how-to-collaborate)
 - [How to Save](#how-to-save)
     - [Upgrading your local copy of Gridmapper](#upgrading-your-local-copy-of-gridmapper)
 - [Scripting](#scripting)
@@ -62,18 +62,21 @@ clicking on the resulting *Link*. Perfect for sharing and bookmarking.
 
 For more examples, check out this [Google+ Collection](https://plus.google.com/collection/wvkofB).
 
-How to Host
-===========
+How to Collaborate
+==================
 
-If you want to share your map as you draw it, you can *host* it. It's
-not a [RPG Virtual Tabletop](http://rpgvirtualtabletop.wikidot.com/),
-so you still need a way to talk or chat online. Gridmapper simply
-facilitates the job of the *mapper*. All the players can watch as the
-map grows, in real time.
+> Note: At the moment, there is no protection against vandalism.
 
-1. everybody opens [Gridmapper](https://campaignwiki.org/gridmapper.svg)
-2. the *mapper* provides a name in the text area and clicks **Host**
-3. everybody else clicks **Join** and follows the appropriate link
+Gridmapper allows multiple people to draw on the same map. In order to
+do this, you must all type the same map name into the text area and
+click the **Join** link. You probably still need a way to talk or chat
+online.
+
+Alternatively, one of you
+opens [Gridmapper](https://campaignwiki.org/gridmapper.svg), provides
+a name in the text area and clicks **Join**. The others connect to
+the [Gridmapper Server](https://campaignwiki.org/gridmapper-server)
+and click on the map, there.
 
 How to Save
 ===========
