@@ -13,6 +13,8 @@ Here's
 [a Master Dungeon Mapping Key PDF](http://savevsdragon.blogspot.ch/2012/03/free-download-master-dungeon-mapping.html),
 if you want something more recent.
 
+![Screenshot](https://raw.githubusercontent.com/kensanata/gridmapper/master/images/gridmapper.png)
+
 <!-- markdown-toc start - Don't edit this section. Run M-x markdown-toc-generate-toc again -->
 **Table of Contents**
 
@@ -60,7 +62,8 @@ It's a sort of code that's very close to a stream of keyboard
 commands. You can get this link by clicking on *Prepare Link* and then
 clicking on the resulting *Link*. Perfect for sharing and bookmarking.
 
-For more examples, check out this [Google+ Collection](https://plus.google.com/collection/wvkofB).
+For more examples, check out
+this [Google+ Collection](https://plus.google.com/collection/wvkofB).
 
 How to Collaborate
 ==================
