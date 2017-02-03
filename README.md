@@ -72,6 +72,8 @@ do this, you must all type the same map name into the text area and
 click the **Join** link. You probably still need a way to talk or chat
 online.
 
+![Screenshot](https://raw.githubusercontent.com/kensanata/gridmapper/master/images/map-name.png)
+
 Alternatively, one of you
 opens [Gridmapper](https://campaignwiki.org/gridmapper.svg), provides
 a name in the text area and clicks **Join**. The others connect to
