@@ -5,6 +5,10 @@ Open the [gridmapper.svg](https://campaignwiki.org/gridmapper.svg)
 file using your browser and you have a very simple dungeon mapping
 tool.
 
+- quick keyboard navigation
+- support for multiple levels
+- collaboration with others
+
 The user interface comes with a help screen explaining all the
 details, and a link to a demo. The map icons are inspired by the icons
 in Moldvay's *Basic D&D*. There's a screenshot in
