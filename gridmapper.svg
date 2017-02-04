@@ -2199,7 +2199,6 @@ function move (dir) {
   // If we moved first right and then down, we would end up in the same
   // position.
   if (Pen.type === 'wallMode') {
-    var now = new Date();
     if (Pen.dir && Pen.ts && now - Pen.ts <= 500) {
       if (Pen.dir=='left' && dir=='down'
           || Pen.dir=='down' && dir=='left') {
@@ -2223,7 +2222,6 @@ function move (dir) {
   }
   Pen.update(null);
   Pen.dir = dir;
-  Pen.ts = now; // must come after Pen.update
 }
 
 /**
@@ -2669,7 +2667,7 @@ function interpretCont (code, i, advance, record) {
     }
     // advance unless we're going to move elsewhere or switch a
     // variant (peek ahead)
-    if (advance && code[i+1] !== 'v'
+    if (direction !== null && advance && code[i+1] !== 'v'
         && code[i+1] !== '\n' && code[i] !== '(' && code[i] !== '[')
       move(direction);
   }
