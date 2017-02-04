@@ -2006,7 +2006,8 @@ function variant (x, y) {
 }
 
 /**
- * Draws stairs, arcs and diagonals on the floor.
+ * Draws stairs, arcs and diagonals on the floor. 'data' is the key
+ * into Tile, ie. one of 'arcs', 'floor' or 'walls'.
  */
 function rotate (data, x, y, type) {
   var old = Map.data.get(x, y)[data];
@@ -2444,7 +2445,7 @@ function keyHandling (evt, recording) {
 
   case 'c':
     wallModeOff();
-    draw(Pen.x, Pen.y, 'chest');
+    rotate('floor', Pen.x, Pen.y, 'chest');
     break;
 
   case 's':
