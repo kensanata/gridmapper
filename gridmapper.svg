@@ -3374,7 +3374,7 @@ onload = initialize;
       <tspan x="30" dy="20">
 	<a id="how-to-host" class="blue" target="_blank" xlink:href="https://github.com/kensanata/gridmapper#how-to-collaborate">How to Collaborate</a>  
 	<a id="join" class="blue" title="Host or join a map" xlink:href="javascript:join()">Join</a>  
-	<a id="join" class="blue" title="List of hosted maps" xlink:href="https://campaignwiki.org/gridmapper-server">Server</a>
+	<a id="join" class="blue" target="_blank" title="List of hosted maps" xlink:href="https://campaignwiki.org/gridmapper-server">Server</a>
       </tspan>
       <tspan x="30" dy="20">
 	<a id="demo" class="blue" xlink:href="javascript:Demo.start()">Demo</a>  
