@@ -1206,7 +1206,7 @@ function save () {
             + 'and the third line for a summary.');
     return;
   }
-  var inputs = input.split('\n');
+  var inputs = input.trim().split('\n');
   if (inputs.length > 3) {
     message('Please use text area to provide some information.\n'
             + 'Use the first line for the wiki name,\n'
@@ -1456,7 +1456,7 @@ function loadIt (event) {
 
 function join () {
   var map = Map.exportarea.value.trim();
-  if (map === undefined || map === '' || map.split('\n').length > 1) {
+  if (map === undefined || map === '' || map.trim().split('\n').length > 1) {
     message('Please provide the name of the map in the text area!');
     return;
   }
