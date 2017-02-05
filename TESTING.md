@@ -1,4 +1,10 @@
-Things to Test
+Automated Testing
+=================
+
+1. Set up [DalekJS](http://dalekjs.com/pages/getStarted.html).
+
+
+Manual Testing
 ==============
 
 1. Do the example maps load?
@@ -7,6 +13,9 @@ Things to Test
 4. Can you download the map and open it?
 5. Run the demo.
 6. Test $, ? and 123 Backspace
+7. Type 'ww' and you should get a north wall
+8. Type 'wjwkw' and you should have a wall to the west and a wall to
+   the north (and not a gap in the west)
 
 file:///Users/alex/Source/gridmapper/gridmapper.svg?%0A%20w.dfwwfwwfw%0A%20wftv%20fw.wfwwfww.dddfw%0A%20wfffwnnnn%20nn%20wfwwfwwfw%0A%20ww%20ww%20w.dfffwfn%20nnn%20w%0A%20%20%20ww%20ww%20ww%20wfnnnn%20fd%0A%20%20%20%20%20%20ww%20ww%20ww
 

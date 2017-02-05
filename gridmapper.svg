@@ -223,7 +223,7 @@ var Map = {
   showLevelsTs: null,
   showLevelAnimation: function() {
     // animate it, smoothing it out
-    var now = new Date();
+    var now = Date.now();
     var duration = 500;
     if (Map.showLevelsTs !== null && Map.showLevelsTs > now) {
       setTimeout(Map.showLevelAnimation, Map.showLevelsTs - now);
@@ -456,7 +456,8 @@ function Tile () {
 var Pen = {
   x: 0,
   y: 0,
-  ts: null, // when was the pen last used to draw a door
+  lastMove: null, // when was the pen last moved
+  lastWall: null, // when was the pen last used to draw a wall or door
   type: null, // type of tile we last used
   dir: null, // last movement
 
@@ -506,7 +507,8 @@ var Pen = {
       evt.preventDefault(); /* for touch events: no scrolling */
       var pos = Pen.position(evt);
       if (Pen.x !== pos.x || Pen.y !== pos.y) {
-        Pen.ts = null;
+        Pen.lastMove = Date.now();
+        Pen.lastWall = null;
         Pen.x = pos.x;
         Pen.y = pos.y;
         record('(' + Pen.x + ',' + Pen.y + ')');
@@ -546,7 +548,8 @@ var Pen = {
   reset: function() {
     Pen.x = 0;
     Pen.y = 0;
-    Pen.ts = null;
+    Pen.lastWall = null;
+    Pen.lastMove = null;
     Pen.type = null;
     Pen.dir = null;
   },
@@ -560,13 +563,14 @@ var Pen = {
    * Currently old pens aren't reaped.
    */
   switchTo: function(n) {
-    Pen.pens[Pen.pen] = [Pen.x, Pen.y, Pen.ts, Pen.type, Pen.dir];
+    Pen.pens[Pen.pen] = [Pen.x, Pen.y, Pen.lastMove, Pen.lastWall, Pen.type, Pen.dir];
     if (Pen.pens[n]) {
       Pen.x = Pen.pens[n][0];
       Pen.y = Pen.pens[n][1];
-      Pen.ts = Pen.pens[n][2];
-      Pen.type = Pen.pens[n][3];
-      Pen.dir = Pen.pens[n][4];
+      Pen.lastMove = Pen.pens[n][2];
+      Pen.lastWall = Pen.pens[n][3];
+      Pen.type = Pen.pens[n][4];
+      Pen.dir = Pen.pens[n][5];
     } else {
       Pen.reset();
       Pen.addPointer(n);
@@ -597,9 +601,8 @@ var Pen = {
    * Remove the pen again, if it was inactive for 10s.
    */
   checkPointer: function(n, pointer) {
-    var now = new Date();
     if (Pen.pens[n]) {
-      if (now - Pen.pens[n][2] < 10000) {
+      if (Date.now() - Pen.pens[n][2] < 10000) { // Pen.lastMove
         setTimeout(function(){Pen.checkPointer(n, pointer);}, 10000); // 10s
       } else {
         // this also happens if ts is undefined
@@ -852,9 +855,9 @@ if (!String.prototype.repeat) {
  * http://javascript.info/tutorial/animation
  */
 function animate (opts) {
-  var start = new Date();
+  var start = Date.now();
   var id = setInterval(function() {
-    var timePassed = new Date() - start;
+    var timePassed = Date.now() - start;
     var progress = timePassed / opts.duration;
     if (progress > 1) progress = 1;
     var delta = opts.delta(progress);
@@ -1002,7 +1005,7 @@ var moveElementsTs = 0;
 var moveElementsTimer = null;
 function moveElements () {
   var duration = 500;
-  var now = (new Date()).getTime();
+  var now = Date.now();
   if (moveElementsTs > now) { // we still running an animation
     if (moveElementsTimer === null)
       clearTimeout(moveElementsTimer); // cancel any other planned animations
@@ -1712,14 +1715,16 @@ function rotateTile (tile, type, x, y, angle) {
 
 /**
  * Places a tile of the given type on a free section of the wall
- * around the given square.
+ * around the given square. Wall placement sets Pen.lastWall, because
+ * walls require timing. If you're quick, the wall is rotate. If
+ * you're slow, another wall is created.
  */
 function wallPlacement (x, y, type) {
-  var now = new Date();
+  var now = Date.now();
   var walls = Map.data.get(x, y).walls;
   if (Pen.type === type
       && walls  && walls.length > 0
-      && Pen.ts && now - Pen.ts <= 2000) {
+      && Pen.lastWall && now - Pen.lastWall <= 2000) {
     // we just placed a door: take the last one and rotate it
     var tile = walls[walls.length - 1];
     var old = tile.getAttribute('transform');
@@ -1751,7 +1756,7 @@ function wallPlacement (x, y, type) {
         });
     }
   }
-  Pen.ts = now;
+  Pen.lastWall = now;
 }
 
 /**
@@ -2122,7 +2127,8 @@ function penDown (evt) {
   } else {
     Pen.type = 'empty';
   }
-  // draw a tile unless we just touched the screen
+  // Draw a tile unless we just touched the screen. These variables
+  // are used in ontouchend below.
   if (evt.type === 'touchstart') {
     var ts = Date.now();
     var pos = Pen.x + "," + Pen.y;
@@ -2159,7 +2165,9 @@ function wallModeOff () {
 /**
  * Moves the pointer around. It handles both moving from square to
  * sqare as well as moving from wall to wall (where one of the
- * coordinates is off by 0.5).
+ * coordinates is off by 0.5). Moving from horizontal to vertical
+ * walls and back in wall mode is timing sensitive. That's why we need
+ * Pen.lastMove.
  */
 function move (dir) {
   switch (dir) {
@@ -2198,8 +2206,9 @@ function move (dir) {
   //
   // If we moved first right and then down, we would end up in the same
   // position.
+  var now = Date.now();
   if (Pen.type === 'wallMode') {
-    if (Pen.dir && Pen.ts && now - Pen.ts <= 500) {
+    if (Pen.dir && Pen.lastMove && now - Pen.lastMove <= 500) {
       if (Pen.dir=='left' && dir=='down'
           || Pen.dir=='down' && dir=='left') {
         Pen.x += 0.5;
@@ -2217,11 +2226,12 @@ function move (dir) {
         Pen.x -= 0.5;
         Pen.y += 0.5;
       }
-
     }
   }
   Pen.update(null);
   Pen.dir = dir;
+  Pen.lastMove = now; // must come after Pen.update
+  Pen.lastWall = null; // reset the wall counter
 }
 
 /**
@@ -2304,7 +2314,7 @@ function keyHandling (evt, recording) {
     break;
 
   case '.':
-    Pen.ts = null;
+    Pen.lastWall = null;
     break;
 
   case 'u':
