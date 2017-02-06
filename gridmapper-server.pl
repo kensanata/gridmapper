@@ -12,6 +12,7 @@ app->config(hypnotoad => {
 # -> writing to the map will broadcast your message to all but you
 
 my %clients;
+my %passwords;
 my %resets;
 
 get '/' => sub {
@@ -37,6 +38,7 @@ websocket '/join/:map' => sub {
     last;
   }
   $c->stash(id => $num);
+  $c->stash(identified => 0);
   push(@{$clients{$map}}, $c);
   $c->app->log->debug("Client $num joined $map");
 
@@ -47,52 +49,61 @@ websocket '/join/:map' => sub {
   $c->on(message => sub {
     my ($c, $msg) = @_;
     my $id = $c->stash('id');
-    if ($msg eq "\cE") {
+    my $identified = $c->stash('identified');
+    if (substr($msg, 0, 1) eq "\cE") {
+      my $pwd = substr($msg, 1);
       # Ctrl-E is the Enquiry character. With it, a client requested a reset;
-      # pass it on to the first client.
+      # pass it on to the first client. If we're the first client, pass it on to
+      # the second client. Also, verify the password if other clients exist.
       if (@{$clients{$map}} > 1) {
-	if ($clients{$map}->[0] eq $c) {
-	  $clients{$map}->[1]->send("$msg");
-	  my $other = $clients{$map}->[1]->stash('id');
-	  $c->app->log->debug("$id is requesting a reset of $map, passing it to $other");
-	} else {
-	  $clients{$map}->[0]->send("$msg");
-	  my $other = $clients{$map}->[0]->stash('id');
-	  $c->app->log->debug("$id is requesting a reset of $map, passing it to $other");
-	}
+	$c->app->log->debug("$id wants to join $map with password '$pwd'");
+	return $c->finish unless $passwords{$map} eq $pwd;
+	$c->stash(identified => 1);
+	my $n = 0;
+	$n = 1 if $clients{$map}->[0] eq $c;
+	$clients{$map}->[$n]->send("\cE"); # don't send the password in $msg
+	my $other = $clients{$map}->[$n]->stash('id');
+	$c->app->log->debug("$id is requesting a reset of $map, passing it to $other");
 	$resets{$c} = 1;
       } else {
-	$c->app->log->debug("$id is requesting a reset of $map but there are no other clients");
+	$passwords{$map} = $pwd;
+	$c->stash(identified => 1);
+	$c->app->log->debug("$id is hosting $map with password '$pwd'");
       }
-    } elsif (substr($msg, 0, 1) eq "\cB") {
-      # If it starts with Ctrl-B, then it's a reset message that's only sent to
-      # the client(s) that requested it.
-      for my $listener (@{$clients{$map}}) {
-	if ($resets{$listener}) {
-	  # Resets are only sent to those that requested one
-	  delete($resets{$listener});
-	  $listener->send("$msg");
-	  my $other = $listener->stash('id');
-	  $c->app->log->debug("$id is sending a reset of $map to $other");
+    } elsif ($identified) {
+      if (substr($msg, 0, 1) eq "\cB") {
+	# If it starts with Ctrl-B, then it's a reset message that's only sent to
+	# the client(s) that requested it.
+	for my $listener (@{$clients{$map}}) {
+	  if ($resets{$listener}) {
+	    # Resets are only sent to those that requested one
+	    delete($resets{$listener});
+	    $listener->send("$msg");
+	    my $other = $listener->stash('id');
+	    $c->app->log->debug("$id is sending a reset of $map to $other");
+	  }
 	}
+	$c->app->log->debug("$id finished broadcasting the reset of $map");
+	$c->app->log->debug("$map:\n" . substr($msg, 1));
+      } else {
+	# Everything else is broadcast to all the clients except to the one who
+	# sent it. Use Ctrl-A to introduce the message, send the client number (so
+	# that others can keep separate positions), then Ctrl-B to announce the
+	# end of the number and the beginning of the text, then the message
+	# itself, and Ctrl-C to indicate the end of the message for the
+	# interpreter.
+	for my $listener (@{$clients{$map}}) {
+	  if ($listener != $c) {
+	    my $other = $listener->stash('id');
+	    $listener->send("\cA$id\cB$msg\cC");
+	    $c->app->log->debug("$id is sending $msg to $other");
+	  }
+	}
+	# $c->app->log->debug("$id finished broadcasting of $msg");
       }
-      $c->app->log->debug("$id finished broadcasting the reset of $map");
-      $c->app->log->debug("$map:\n" . substr($msg, 1));
     } else {
-      # Everything else is broadcast to all the clients except to the one who
-      # sent it. Use Ctrl-A to introduce the message, send the client number (so
-      # that others can keep separate positions), then Ctrl-B to announce the
-      # end of the number and the beginning of the text, then the message
-      # itself, and Ctrl-C to indicate the end of the message for the
-      # interpreter.
-      for my $listener (@{$clients{$map}}) {
-	if ($listener != $c) {
-	  my $other = $listener->stash('id');
-	  $listener->send("\cA$id\cB$msg\cC");
-	  $c->app->log->debug("$id is sending $msg to $other");
-	}
-      }
-      # $c->app->log->debug("$id finished broadcasting of $msg");
+      $c->app->log->debug("$id is not identified, closing connection");
+      return $c->finish;
     }
   });
 
@@ -109,6 +120,7 @@ websocket '/join/:map' => sub {
     }
     if (not @{$clients{$map}}) {
       delete($clients{$map});
+      delete($passwords{$map});
       $c->app->log->debug("Freeing $map");
     }
   });

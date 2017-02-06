@@ -1458,9 +1458,17 @@ function loadIt (event) {
  */
 
 function join () {
-  var map = Map.exportarea.value.trim();
-  if (map === undefined || map === '' || map.trim().split('\n').length > 1) {
+  var inputs = Map.exportarea.value.trim().split('\n');
+  var map = inputs[0];
+  if (map === undefined || map === '') {
     message('Please provide the name of the map in the text area!');
+    return;
+  }
+  var pwd = inputs[1];
+  if (inputs.length > 2) {
+    message('Please provide the following in the text area\n'
+            + '• the name of the map\n'
+            + '• an optional password');
     return;
   }
   if (Map.websocket !== null) {
@@ -1468,7 +1476,7 @@ function join () {
   }
   Map.websocket = new WebSocket(wsUrl + '/join/' + encodeURIComponent(map));
   Map.websocket.onopen = function(evt) {
-    joinMap(map);
+    joinMap(map, pwd);
   }
   Map.websocket.onclose = function(evt) {
     leave();
@@ -1489,9 +1497,9 @@ function join () {
   };
 }
 
-function joinMap (map) {
-  Map.websocket.send('\05'); // request a map reset using Ctrl-E
-  message('Joined ' + map);
+function joinMap (map, pwd) {
+  Map.websocket.send('\05' + pwd); // request a map reset using Ctrl-E
+  message('Joined ' + (pwd ? 'protected' : 'public') + ' map ' + map);
   var link = document.getElementById('join');
   link.firstChild.nodeValue = 'Leave Map';
   link.setAttributeNS(xlinkNs, 'href', 'javascript:leave()');
