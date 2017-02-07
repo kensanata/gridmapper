@@ -73,8 +73,6 @@ this [Google+ Collection](https://plus.google.com/collection/wvkofB).
 How to Collaborate
 ==================
 
-> Note: At the moment, there is no protection against vandalism.
-
 Gridmapper allows multiple people to draw on the same map. In order to
 do this, you must all type the same map name into the text area and
 click the **Join** link. You probably still need a way to talk or chat
@@ -87,6 +85,8 @@ opens [Gridmapper](https://campaignwiki.org/gridmapper.svg), provides
 a name in the text area and clicks **Join**. The others connect to
 the [Gridmapper Server](https://campaignwiki.org/gridmapper-server)
 and click on the map, there.
+
+If you want to keep it private, put a password on the second line.
 
 How to Save
 ===========
