@@ -52,6 +52,7 @@ var Map = {
   level: 0, // the current level
   data: null, // the current level data (Tiles)
   arcsElement: null, // the SVG element for the arcs of the current level
+  rocksElement: null, // the SVG element for the rocks of the current level
   floorElement: null, // the SVG element for the floor of the current level
   wallsElement: null, // the SVG element for the walls of the current level
   labelsElement: null, // the SVG element for the labels of the current level
@@ -156,6 +157,7 @@ var Map = {
     }
     Map.level = z;
     Map.arcsElement = document.getElementById('arcs' + z);
+    Map.rocksElement = document.getElementById('rocks' + z);
     Map.floorElement = document.getElementById('floor' + z);
     Map.wallsElement = document.getElementById('walls' + z);
     Map.labelsElement = document.getElementById('labels' + z);
@@ -270,6 +272,10 @@ var Map = {
     // default is light grey #d3d3d3
     var bg = document.getElementById('background').firstElementChild;
     elementTo(bg, 'fill', color, linear, 500);
+    var elements = Demo.element.getElementsByClassName('background');
+    for (var i = 0; i < elements.length; i++) {
+      elementTo(bg, 'fill', color, linear, 500);
+    }
   },
   
   /**
@@ -444,6 +450,7 @@ Tiles.prototype.has = function(x, y) {
 function Tile () {
   this.arcs = null;
   this.floor = null;
+  this.rocks = [];
   this.walls = [];
   this.label = null;
 };
@@ -778,7 +785,7 @@ var Demo = {
     Demo.clean(step - 1);
     var wait = 5000;
     // show elements for this step and run its code
-    elements = Demo.element.getElementsByClassName('step' + step);
+    var elements = Demo.element.getElementsByClassName('step' + step);
     for (var i = 0; i < elements.length; i++) {
       if (elements[i].nodeName === 'tspan') {
         elements[i].setAttribute('visibility', 'visible');
@@ -1681,6 +1688,103 @@ function deleteFromLabel (x, y) {
 }
 
 /**
+ * Pick rocks matching the surrounding floor and wall tiles.
+ * Return a list of approriately rotated tiles.
+ */
+function getRocks (x, y) {
+  var rocks = [];
+  var rockface = [true, true, true, true]; // W N E S
+  // remove directions with a wall or door
+  var walls = Map.data.get(x, y).walls;
+  for (var i = 0; i < walls.length; i++) {
+    var tile = walls[i];
+    var rotate = tile.getAttribute('rotate') / 90;
+    rockface[rotate] = false;
+  }      
+  // remove directions without adjacent tile
+  for (var i = 0; i < 4; i++) {
+    if (rockface[i] && getFloorInDirection(x, y, i) !== null) {
+      rockface[i] = false;
+    }
+  }
+  // check for rock3
+  for (var i = 0; i < 4; i++) {
+    for (var j = 0; j < 3; j++) {
+      
+    }
+  }      
+  // check for rock2
+  for (var i = 0; i < 4; i++) {
+    var ok = true;
+    for (var j = 0; j < 2; j++) {
+      if (!rockface[(i+j) % 4]) {
+        ok = false;
+        break;
+      }
+    }
+    if (ok) {
+      var tile = createTile(x, y, "rock2");
+      rotateTile(tile, x, y, i * 90);
+      rocks.push(tile);
+      for (var j = 0; j < 2; j++) {
+        rockface[(i+j) % 4] = false;
+      }
+    }
+  }      
+  // check for rock1
+  for (var i = 0; i < 4; i++) {
+    if (rockface[i]) {
+      var tile = createTile(x, y, "rock1");
+      rotateTile(tile, x, y, i * 90);
+      rocks.push(tile);
+    }
+  }      
+  return rocks;
+}
+
+function getFloorInDirection(x, y, direction) {
+  if (direction === 0) {
+    return Map.data.get(x-1, y).floor;
+  } else if (direction === 1) {
+    return Map.data.get(x, y-1).floor;
+  } else if (direction === 2) {
+    return Map.data.get(x+1, y).floor;
+  } else if (direction === 3) {
+    return Map.data.get(x, y+1).floor;
+  } else {
+    console.log('isMapSet called for ('+x+','+y+') with direction '+direction+' is illegal');
+  }
+}
+
+/**
+ * Add rocks to the current tile.
+ */
+function rock (x, y) {
+  var rocks = getRocks(x, y);
+  var element = Map.rocksElement;
+  Commands.do(
+    function(){
+      if (rocks)
+        element.removeChild(tile);
+      if (old)
+        element.appendChild(old);
+      Map.data.get(x,y).rocks = old;
+    },
+    function(){
+      var old = Map.data.get(x,y).rocks;
+      while (old.length > 0) {
+        var o = old.pop();
+        element.removeChild(o);
+      }
+      Map.data.get(x,y).rocks = rocks;
+      while (rocks.length > 0) {
+        var o = rocks.pop();
+        element.appendChild(o);
+      }
+    });
+}
+
+/**
  * Returns an unused angle for wall tiles. Provide a preferred angle.
  * Possible values are 0, 90, 180, 270.
  */
@@ -1710,7 +1814,7 @@ function getUnusedAngle (x, y, rotate) {
  * Transforms the given tile such that it is rotated by the given
  * angle.
  */
-function rotateTile (tile, type, x, y, angle) {
+function rotateTile (tile, x, y, angle) {
   tile.setAttribute('rotate', angle);
   if (angle > 0) {
     var cx = (x + 1.5) * Map.tileWidth; // empty column to the left
@@ -1742,17 +1846,17 @@ function wallPlacement (x, y, type) {
       type = tile.type; // use 'concealed' instead of 'door' for example
       Commands.do(
         function(){
-          rotateTile(tile, type, x, y, angle);
+          rotateTile(tile, x, y, angle);
         },
         function(){
-          rotateTile(tile, type, x, y, rotate);
+          rotateTile(tile, x, y, rotate);
         });
     }
   } else {
     var rotate = getUnusedAngle(x, y, 0);
     if (rotate !== null) {
       var tile = createTile(x, y, type);
-      rotateTile(tile, type, x, y, rotate);
+      rotateTile(tile, x, y, rotate);
       Commands.do(
         function(){
           walls.pop();
@@ -1784,7 +1888,7 @@ function wallDraw (x, y, type) {
   var i, old;
   var tile = createTile(x, y, type);
   var walls = Map.data.get(x, y).walls;
-  rotateTile(tile, type, x, y, angle);
+  rotateTile(tile, x, y, angle);
   for (i = 0; i < walls.length; i++) {
     if (parseInt(walls[i].getAttribute('rotate')) == angle) {
       old = walls[i];
@@ -2028,10 +2132,10 @@ function rotate (data, x, y, type) {
     var angle = parseInt(old.getAttribute('rotate'));
     Commands.do(
       function(){
-        rotateTile(old, type, x, y, angle);
+        rotateTile(old, x, y, angle);
       },
       function() {
-        rotateTile(old, type, x, y, (angle + 90) % 360);
+        rotateTile(old, x, y, (angle + 90) % 360);
       });
   } else {
     var tile = createTile(x, y, type);
@@ -2419,6 +2523,11 @@ function keyHandling (evt, recording) {
     floor(Pen.x, Pen.y);
     break;
 
+  case 'o':
+    wallModeOff();
+    rock(Pen.x, Pen.y);
+    break;
+    
   case '\n':
   case 'Enter':
     if (evt.ctrlKey) {
@@ -2781,6 +2890,8 @@ function createLevel (z) {
   level.setAttributeNS(inkscapeNs, 'label', 'Level ' + (z + 1));
   var arcs = document.createElementNS(svgNs, 'g');
   arcs.setAttribute('id', 'arcs' + z);
+  var rocks = document.createElementNS(svgNs, 'g');
+  rocks.setAttribute('id', 'rocks' + z);
   var floor = document.createElementNS(svgNs, 'g');
   floor.setAttribute('id', 'floor' + z);
   var labels = document.createElementNS(svgNs, 'g');
@@ -2789,6 +2900,7 @@ function createLevel (z) {
   walls.setAttribute('id', 'walls' + z);
   level.appendChild(arcs);
   level.appendChild(floor);
+  level.appendChild(rocks);
   level.appendChild(labels);
   level.appendChild(walls);
   Map.levelsElement.insertBefore(level, Map.levelsElement.firstChild);
@@ -3038,6 +3150,21 @@ onload = initialize;
       <line x1="22" y1="78" x2="78" y2="22" stroke="black" stroke-width="7"/>
       <circle cx="50" cy="50" r="10" fill="white" stroke="black" stroke-width="7"/>
     </g>
+    <g id="rock1" width="10">
+      <path class="background" fill="rgb(211,211,211)" d="M0,10 L2,8 L1,6 L2,5 L1,4 L2,2 L0,0 Z" stroke-miterlimit="1" stroke="rgb(211,211,211)" stroke-width="1"/>
+      <path class="background" fill="none" d="M0,10 L2,8 L1,6 L2,5 L1,4 L2,2 L0,0" stroke-linecap="round" stroke="black" stroke-width="1"/>
+    </g>
+    <g id="rock2" width="10">
+      <path class="background" fill="rgb(211,211,211)" d="M0,10 L1,8 L1,7 L2,5 L1,4 L2,2 L4,1 L5,2 L7,2 L10,0 H0 Z" stroke-miterlimit="1" stroke="rgb(211,211,211)" stroke-width="1"/>
+      <rect class="background" fill="rgb(211,211,211)" x="-0.5" y="-0.5" width="1" height="1" />
+      <path class="background" fill="none" d="M0,10 L1,8 L1,7 L2,5 L1,4 L2,2 L4,1 L5,2 L7,2 L10,0" stroke-linecap="round" stroke="black" stroke-width="1"/>
+    </g>
+    <g id="rock3" width="10">
+      <path class="background" fill="rgb(211,211,211)" d="M0,10 v-1 L1,7 v-1 L2,5 v-1 L2,2 L4,1 L5,2 L7,2 L9,1 L10,3 L8,6 L8,7 L10,10 V0 H0 Z" stroke-miterlimit="1" stroke="rgb(211,211,211)" stroke-width="1"/>
+      <rect class="background" fill="rgb(211,211,211)" x="-0.5" y="-0.5" width="1" height="1" />
+      <rect class="background" fill="rgb(211,211,211)" x="9.5" y="-0.5" width="1" height="1" />
+      <path class="background" fill="none" d="M0,10 v-1 L1,7 v-1 L2,5 v-1 L2,2 L4,1 L5,2 L7,2 L9,1 L10,3 L8,6 L8,7 L10,10" stroke-linecap="round" stroke="black" stroke-width="1"/>
+    </g>
   </defs>
   <g id="background" inkscape:groupmode="layer" inkscape:label="Background">
     <rect x="20" y="20" width="0" height="0" fill="rgb(211,211,211)" stroke="black" stroke-width="1"/>
@@ -3286,6 +3413,16 @@ onload = initialize;
 	<g class="labels" title="labels">
 	  <text x="60" y="13.5">abc</text>
 	</g>
+      </a>
+      <a xlink:href="javascript:interpret('o')" title="rocks">
+	<text x="90" y="14"><tspan class="key">r</tspan> :</text>
+	<text x="120" y="14">rockify</text>
+	<use x="90" y="30" xlink:href="#empty"/>
+	<use x="90" y="30" xlink:href="#rock1"/>
+	<use x="120" y="30" xlink:href="#empty"/>
+	<use x="120" y="30" xlink:href="#rock2"/>
+	<use x="150" y="30" xlink:href="#empty"/>
+	<use x="150" y="30" xlink:href="#rock3"/>
       </a>
     </svg>
 
