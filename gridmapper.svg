@@ -1790,8 +1790,8 @@ function getFloorInDirection(x, y, direction) {
 function rock (x, y) {
   var undoBoundary = Commands.i;
   var old = Map.data.get(x, y).floor;
-  if (old !== null && old.type === 'rocks') {
-    floor(x, y);
+  if (old !== null && old.type.startsWith('rock')) {
+    replaceFloor(x, y, old, null);
   } else {
     replaceFloor(x, y, old, getRocks(x, y));
   }
