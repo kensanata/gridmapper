@@ -119,7 +119,7 @@ var Map = {
     document.onkeydown = null; // capture arrow keys
     document.onkeypress = null; // capture character keys
   },
-  
+
   /**
    * Reset the map. This collects the minimum we need to clean
    * everything up. We run this code before starting the demo, for
@@ -128,7 +128,7 @@ var Map = {
   reset: function() {
     Commands.reset();
     Pen.reset();
-    while (Map.levelsElement.lastChild) 
+    while (Map.levelsElement.lastChild)
       Map.levelsElement.removeChild(Map.levelsElement.lastChild);
     Map.levels = [];
     createLevel(0);
@@ -136,7 +136,7 @@ var Map = {
     Map.showLevelAnimation();
     moveElements();
   },
-  
+
   /**
    * Grows the data structures along the x axis, if necessary.
    * Animate the process.
@@ -277,7 +277,7 @@ var Map = {
       elementTo(bg, 'fill', color, linear, 500);
     }
   },
-  
+
   /**
    * Lists the replacement for a particular tile type.
    * This mapping must match the functionality of Map.code.
@@ -341,14 +341,14 @@ var Map = {
     }
     Map.symbols = map;
   },
-  
+
   /**
    * Produces the code necessary to reproduce the map. The characters
    * must be handled by interpretMap.
    */
   code: function() {
     var source = '';
-  
+
     for (var y = 0; y < Map.height; y++) {
       for (var x = 0; x < Map.width; x++) {
         if (Map.data.has(x, y)) {
@@ -368,7 +368,7 @@ var Map = {
                 source += '.';
             }
           }
-          
+
           // label must precede floor tiles which advance the position
           var label = Map.data.get(x, y).label;
 	  if (label !== null) {
@@ -470,7 +470,7 @@ var Pen = {
 
   pen: 0, // the pen we switched to when collaborating
   pens: [], // other pens for collaboration with others (0 is ours)
-  
+
   /**
    * Determines the grid position based on a mouse event and returns
    * it. Remember that Wall Mode has one coordinate + 0.5. Also
@@ -656,7 +656,7 @@ var Commands = {
     this.redoSteps.push(redoStep);
     this.i++;
   },
-  
+
   /**
    * Add two closures to the lists. The first one is how to undo a
    * change, the second one is how to do a change. This automatically
@@ -666,19 +666,19 @@ var Commands = {
     Commands.push(undoStep, redoStep);
     redoStep();
   },
-  
+
   undo: function() {
     if (this.i >= 0) {
       this.undoSteps[this.i--]();
     }
   },
-  
+
   redo: function() {
     if (this.i < this.redoSteps.length - 1) {
       this.redoSteps[++this.i]();
     }
   },
-  
+
   reset: function() {
     undoSteps = [];
     redoSteps = [];
@@ -774,7 +774,7 @@ var Demo = {
         elements[i].setAttribute('visibility', 'collapse');
     }
   },
-  
+
   /**
    * Demo one step and timeout. Note that it's confusing to have more
    * than one code element per step. These are started in order, but
@@ -988,11 +988,9 @@ function resizeSVG () {
   var help = document.getElementById('help').firstElementChild;
   var level = document.getElementById('level');
   document.rootElement.setAttribute(
-    'width', (Map.width + 2) * Map.tileWidth // map with + two empty columns
-      + Number(help.getAttribute('width'))
-      + Number(level.getAttribute('x'))    // distance between help
+    'width', (Map.width + 3) * Map.tileWidth // map with + 3 empty columns
+      + Number(help.getAttribute('width')) // width of help
       - Number(help.getAttribute('x'))     // rectangle and level
-      - Number(help.getAttribute('width')) // indicator
       + level.getBBox().width // width of level indicator
   );
   document.rootElement.setAttribute(
@@ -1083,7 +1081,7 @@ function download () {
     window.navigator.msSaveBlob(new Blob([str]), 'gridmapper.svg');
     // IE also raises security exception for canvas, so skip the PNG part
     return;
-  } 
+  }
 
   var source = btoa(unescape(encodeURIComponent(str)));
   var link  = document.getElementById('download_svg');
@@ -1104,7 +1102,7 @@ function download () {
   source = btoa(unescape(encodeURIComponent(new XMLSerializer().serializeToString(clone))));
 
   link  = document.getElementById('download_png');
-  
+
   // SVG to PNG using canvas https://gist.github.com/gustavohenke/9073132
   var canvas = document.createElementNS(xhtmlNs, 'canvas');
   var rect = Map.ui.getBoundingClientRect();
@@ -1657,7 +1655,7 @@ function saveLabel () {
   hideLabelField();
   setLabel(Pen.x, Pen.y, Map.labelfield.firstElementChild.value, false);
 }
-  
+
 /**
  * Remove the last character from the label at (x,y).
  * Returns true if there was text to delete.
@@ -1700,45 +1698,35 @@ function getRocks (x, y) {
     var tile = walls[i];
     var rotate = tile.getAttribute('rotate') / 90;
     rockface[rotate] = false;
-  }      
+  }
   // remove directions without adjacent tile
   for (var i = 0; i < 4; i++) {
     if (rockface[i] && getFloorInDirection(x, y, i) !== null) {
       rockface[i] = false;
     }
   }
-  // check for rock3
-  for (var i = 0; i < 4; i++) {
-    for (var j = 0; j < 3; j++) {
-      
-    }
-  }      
-  // check for rock2
-  for (var i = 0; i < 4; i++) {
-    var ok = true;
-    for (var j = 0; j < 2; j++) {
-      if (!rockface[(i+j) % 4]) {
-        ok = false;
-        break;
+  // check for rock<r>, biggest first
+  for (var r = 4; r > 0; r--) {
+    // check all four directions
+    for (var i = 0; i < 4; i++) {
+      var ok = true;
+      // check for r rockfaces
+      for (var j = 0; j < r; j++) {
+        if (!rockface[(i+j) % 4]) {
+          ok = false;
+          break;
+        }
+      }
+      if (ok) {
+        var tile = createTile(x, y, "rock" + r);
+        rotateTile(tile, x, y, i * 90);
+        rocks.push(tile);
+        for (var j = 0; j < r; j++) {
+          rockface[(i+j) % 4] = false;
+        }
       }
     }
-    if (ok) {
-      var tile = createTile(x, y, "rock2");
-      rotateTile(tile, x, y, i * 90);
-      rocks.push(tile);
-      for (var j = 0; j < 2; j++) {
-        rockface[(i+j) % 4] = false;
-      }
-    }
-  }      
-  // check for rock1
-  for (var i = 0; i < 4; i++) {
-    if (rockface[i]) {
-      var tile = createTile(x, y, "rock1");
-      rotateTile(tile, x, y, i * 90);
-      rocks.push(tile);
-    }
-  }      
+  }
   return rocks;
 }
 
@@ -2382,10 +2370,10 @@ function keyHandling (evt, recording) {
   // We don't handly any meta keys.
   if (evt.metaKey)
     return;
-  
+
   // Could be a string when running interpreted code.
   var key = evt;
-  
+
   // When running the demo, ignore key events from the browser.
   if (!Demo.running && evt instanceof KeyboardEvent) {
     key = getChar(evt);
@@ -2527,7 +2515,7 @@ function keyHandling (evt, recording) {
     wallModeOff();
     rock(Pen.x, Pen.y);
     break;
-    
+
   case '\n':
   case 'Enter':
     if (evt.ctrlKey) {
@@ -2621,7 +2609,7 @@ function keyHandling (evt, recording) {
       message("Default background");
     }
     break;
-    
+
   case '"':
   case "'": // for the "abc" link: " is processed by interpretCont
     showLabelField(Pen.x, Pen.y);
@@ -2650,8 +2638,8 @@ function keyHandling (evt, recording) {
  *
  * ';' will cause a pause (using a timeout). This is used for the
  * demo. This is why the real code runs as interpretCont – it has a
- * pointer into the code. 
- * 
+ * pointer into the code.
+ *
  * '(1,2)' will move the pointer to this position.
  *
  * '[0,-1]' will move the pointer by this vector.
@@ -2660,7 +2648,7 @@ function keyHandling (evt, recording) {
  * field). This is why the link in the help area sends a single quote
  * instead of a double quote. The double quote is already taken for
  * strings.
- * 
+ *
  * 'z' has an alternate implementation: when loading a map, going down
  * should not animate anything, unless we're looking at the demo.
  *
@@ -2786,6 +2774,8 @@ function interpretCont (code, i, advance, record) {
     case '\03': // a simple Ctrl-C ends the use of a separate pen
       Pen.switchTo(0);
       break;
+    case 'o':
+      direction = 'right';
     case 'f':
       direction = 'right';
       // fall through to default
@@ -2794,7 +2784,7 @@ function interpretCont (code, i, advance, record) {
     }
     // advance unless we're going to move elsewhere or switch a
     // variant (peek ahead)
-    if (direction !== null && advance && code[i+1] !== 'v'
+    if (direction !== null && advance && code[i+1] !== 'v' && code[i+1] !== 'o'
         && code[i+1] !== '\n' && code[i] !== '(' && code[i] !== '[')
       move(direction);
   }
@@ -2955,8 +2945,8 @@ onload = initialize;
     <g id="water" width="20">
       <rect width="20" height="20" fill="white" stroke="black" stroke-width="2"/>
       <path id="waves" fill="none" stroke="black" stroke-width="1" d="M3,5 v-1 A1,1 0 0,1 5,4 A1,1 0 1,0 7,4 A1,1 0 0,1 9,4 A1,1 0 1,0 11,4 A1,1 0 0,1 13,4 A1,1 0 1,0 15,4 A1,1 0 0,1 17,4 v1" />
-      <use xlink:href="#waves" transform="translate(0,6)"/> 
-      <use xlink:href="#waves" transform="translate(0,12)"/> 
+      <use xlink:href="#waves" transform="translate(0,6)"/>
+      <use xlink:href="#waves" transform="translate(0,12)"/>
     </g>
     <g id="wall" width="10">
       <line x1="0" y1="0" x2="0" y2="10" stroke="black" stroke-width="3" stroke-linecap="round"/>
@@ -3165,6 +3155,10 @@ onload = initialize;
       <rect class="background" fill="rgb(211,211,211)" x="9.5" y="-0.5" width="1" height="1" />
       <path class="background" fill="none" d="M0,10 v-1 L1,7 v-1 L2,5 v-1 L2,2 L4,1 L5,2 L7,2 L9,1 L10,3 L8,6 L8,7 L10,10" stroke-linecap="round" stroke="black" stroke-width="1"/>
     </g>
+    <g id="rock4" width="10">
+      <path class="background" fill="rgb(211,211,211)" fill-rule="evenodd" d="M0,0 h10 v10 h-10 v-10 M3,3 h5 v5 h-5 v-5" stroke-width="1"/>
+      <path class="background" fill="none" d="M3,3 h5 v5 h-5 Z" stroke-linecap="round" stroke="black" stroke-width="1"/>
+    </g>
   </defs>
   <g id="background" inkscape:groupmode="layer" inkscape:label="Background">
     <rect x="20" y="20" width="0" height="0" fill="rgb(211,211,211)" stroke="black" stroke-width="1"/>
@@ -3199,7 +3193,7 @@ onload = initialize;
   ]]></style>
 
   <g id="help">
-    <rect x="10" y="80" width="440" height="600" fill="ivory" stroke="black" stroke-width="1"/>
+    <rect x="10" y="80" width="470" height="600" fill="ivory" stroke="black" stroke-width="1"/>
     <text>
       <tspan x="30" y="102">Use the mouse to draw and erase floor tiles.</tspan>
       <tspan x="30" dy="17">Use the following keys to place or rotate</tspan>
@@ -3328,7 +3322,7 @@ onload = initialize;
 	<use x="110" xlink:href="#diagonal-wall"/>
       </a>
     </svg>
-    
+
     <svg x="30" y="370">
       <a href="javascript:interpret('a')">
 	<text y="14"><tspan class="key">a</tspan> :</text>
@@ -3423,6 +3417,8 @@ onload = initialize;
 	<use x="120" y="30" xlink:href="#rock2"/>
 	<use x="150" y="30" xlink:href="#empty"/>
 	<use x="150" y="30" xlink:href="#rock3"/>
+	<use x="180" y="30" xlink:href="#empty"/>
+	<use x="180" y="30" xlink:href="#rock4"/>
       </a>
     </svg>
 
@@ -3506,11 +3502,11 @@ onload = initialize;
       </tspan>
     </text>
 
-    <foreignObject id="textarea" x="30" y="525" width="390" height="50">
+    <foreignObject id="textarea" x="30" y="525" width="430" height="50">
       <textarea id="exportarea" xmlns="http://www.w3.org/1999/xhtml"
 		style="position: fixed; width: 100%; height: 100%; margin: 0; padding: 0"/>
     </foreignObject>
-    
+
     <text>
       <tspan x="30" y="600">
 	<a class="blue" target="_blank" xlink:href="https://github.com/kensanata/gridmapper#how-to-save">How to Save</a>  
@@ -3537,9 +3533,9 @@ onload = initialize;
 	<a id="license" class="blue" target="_blank" title="Dedicated to the Public Domain" xlink:href="https://github.com/kensanata/gridmapper/blob/master/LICENSE.md#the-license">License</a>
       </tspan>
     </text>
-      
-    <text id="level" x="460" y="110" style="font:30px 'Arial Narrow', 'Futura Condensed', 'HelveticaNeue Condensed', sans-serif; font-weight: bold;">1</text>
-    <text x="460" y="140" transform="rotate(90,460,140)">
+
+    <text id="level" x="490" y="110" style="font:30px 'Arial Narrow', 'Futura Condensed', 'HelveticaNeue Condensed', sans-serif; font-weight: bold;">1</text>
+    <text x="460" y="110" transform="rotate(90,460,140)">
       <a target="_blank" xlink:href="https://alexschroeder.ch/wiki/Gridmapper">
 	<tspan style="font-weight: bold;">Gridmapper</tspan>
       </a>
