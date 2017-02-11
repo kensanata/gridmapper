@@ -679,7 +679,27 @@ var Commands = {
   reset: function() {
     undoSteps = [];
     redoSteps = [];
+  },
+
+  /**
+   * Make sure we can merge multiple steps on the stack into a single
+   * undo/redo step.
+   */
+  merge: function (boundary) {
+    if (this.i - boundary > 1) {
+      var undoSteps = [];
+      var redoSteps = [];
+      for (var i = boundary; i < this.i; i++) {
+        undoSteps.push(this.undoSteps.pop());
+        redoSteps.unshift(this.redoSteps.pop());
+      }
+      this.i = boundary;
+      Commands.push(
+        function() { for(var i = 0; i < undoSteps.length; i++) { undoSteps[i]() }},
+        function() { for(var i = 0; i < redoSteps.length; i++) { redoSteps[i]() }});
+    }
   }
+
 };
 
 /**
@@ -853,6 +873,17 @@ if (!String.prototype.repeat) {
     }
     return rpt;
   }
+}
+
+/**
+ * Defining startsWith for strings.
+ * https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String/startsWith
+ */
+if (!String.prototype.startsWith) {
+    String.prototype.startsWith = function(searchString, position){
+      position = position || 0;
+      return this.substr(position, searchString.length) === searchString;
+  };
 }
 
 /* The animation code is taken from these examples:
@@ -1692,7 +1723,7 @@ function getRocks (x, y) {
   // remove directions with a wall or door
   var walls = Map.data.get(x, y).walls;
   for (var i = 0; i < walls.length; i++) {
-    var tile = walls[i];
+    tile = walls[i];
     var rotate = tile.getAttribute('rotate') / 90;
     rockface[rotate] = false;
   }
@@ -1702,8 +1733,11 @@ function getRocks (x, y) {
       rockface[i] = false;
     }
   }
-  // special case: two opposing sides only
-  if ([false, true, false, true].every(function(v,i) { return v === rockface[i]})) {
+  // special cases: no walls, or two opposing sides only
+  if ([false, false, false, false].every(function(v,i) { return v === rockface[i]})) {
+    // don't 
+    return createTile(x, y, "empty");
+  } else if ([false, true, false, true].every(function(v,i) { return v === rockface[i]})) {
     tile = createTile(x, y, "rockd");
     rotateTile(tile, x, y, 90);
   } else if ([true, false, true, false].every(function(v,i) { return v === rockface[i]})) {
@@ -1731,8 +1765,6 @@ function getRocks (x, y) {
       }
     }
   }
-  tile.setAttribute('id', 'rocks_' + x + '_' + y);
-  tile.type = 'rocks';
   return tile;
 }
 
@@ -1756,13 +1788,28 @@ function getFloorInDirection(x, y, direction) {
  * of tile.
  */
 function rock (x, y) {
+  var undoBoundary = Commands.i;
   var old = Map.data.get(x, y).floor;
   if (old !== null && old.type === 'rocks') {
     floor(x, y);
   } else {
     replaceFloor(x, y, old, getRocks(x, y));
   }
-  // FIXME: check status of surrounding tiles!
+  // check neighbors for adjustment
+  old = Map.data.get(x-1, y).floor;
+  if (old !== null && old.type.startsWith('rock'))
+    replaceFloor(x-1, y, old, getRocks(x-1, y));
+  old = Map.data.get(x, y-1).floor;
+  if (old !== null && old.type.startsWith('rock'))
+    replaceFloor(x, y-1, old, getRocks(x, y-1));
+  old = Map.data.get(x+1, y).floor;
+  if (old !== null && old.type.startsWith('rock'))
+    replaceFloor(x+1, y, old, getRocks(x+1, y));
+  old = Map.data.get(x, y+1).floor;
+  if (old !== null && old.type.startsWith('rock'))
+    replaceFloor(x, y+1, old, getRocks(x, y+1));
+  // make sure this is a single undo/redo command
+  Commands.merge(undoBoundary);
 }
 
 /**
@@ -2837,7 +2884,7 @@ function recreateModelFor (re, data, element) {
       var y = result[3];
       if (result[1] === 'label') {
         data.get(x, y).label = child;
-      } else if (result[1].indexOf('arc') === 0) { // startsWith
+      } else if (result[1].startsWith('arc')) {
         data.get(x, y).arcs = child;
       } else {
         data.get(x, y).floor = child;
