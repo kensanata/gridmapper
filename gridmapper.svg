@@ -52,7 +52,6 @@ var Map = {
   level: 0, // the current level
   data: null, // the current level data (Tiles)
   arcsElement: null, // the SVG element for the arcs of the current level
-  rocksElement: null, // the SVG element for the rocks of the current level
   floorElement: null, // the SVG element for the floor of the current level
   wallsElement: null, // the SVG element for the walls of the current level
   labelsElement: null, // the SVG element for the labels of the current level
@@ -157,7 +156,6 @@ var Map = {
     }
     Map.level = z;
     Map.arcsElement = document.getElementById('arcs' + z);
-    Map.rocksElement = document.getElementById('rocks' + z);
     Map.floorElement = document.getElementById('floor' + z);
     Map.wallsElement = document.getElementById('walls' + z);
     Map.labelsElement = document.getElementById('labels' + z);
@@ -450,7 +448,6 @@ Tiles.prototype.has = function(x, y) {
 function Tile () {
   this.arcs = null;
   this.floor = null;
-  this.rocks = [];
   this.walls = [];
   this.label = null;
 };
@@ -1690,7 +1687,7 @@ function deleteFromLabel (x, y) {
  * Return a list of approriately rotated tiles.
  */
 function getRocks (x, y) {
-  var rocks = [];
+  var tile;
   var rockface = [true, true, true, true]; // W N E S
   // remove directions with a wall or door
   var walls = Map.data.get(x, y).walls;
@@ -1705,29 +1702,38 @@ function getRocks (x, y) {
       rockface[i] = false;
     }
   }
-  // check for rock<r>, biggest first
-  for (var r = 4; r > 0; r--) {
-    // check all four directions
-    for (var i = 0; i < 4; i++) {
-      var ok = true;
-      // check for r rockfaces
-      for (var j = 0; j < r; j++) {
-        if (!rockface[(i+j) % 4]) {
-          ok = false;
-          break;
-        }
-      }
-      if (ok) {
-        var tile = createTile(x, y, "rock" + r);
-        rotateTile(tile, x, y, i * 90);
-        rocks.push(tile);
+  // special case: two opposing sides only
+  if ([false, true, false, true].every(function(v,i) { return v === rockface[i]})) {
+    tile = createTile(x, y, "rockd");
+    rotateTile(tile, x, y, 90);
+  } else if ([true, false, true, false].every(function(v,i) { return v === rockface[i]})) {
+    tile = createTile(x, y, "rockd");
+  } else {
+    // check for rock<r>, biggest first
+    for (var r = 4; r > 0; r--) {
+      // check all four directions
+      for (var i = 0; i < 4; i++) {
+        var ok = true;
+        // check for r rockfaces
         for (var j = 0; j < r; j++) {
-          rockface[(i+j) % 4] = false;
+          if (!rockface[(i+j) % 4]) {
+            ok = false;
+            break;
+          }
+        }
+        if (ok) {
+          tile = createTile(x, y, "rock" + r);
+          rotateTile(tile, x, y, i * 90);
+          for (var j = 0; j < r; j++) {
+            rockface[(i+j) % 4] = false;
+          }
         }
       }
     }
   }
-  return rocks;
+  tile.setAttribute('id', 'rocks_' + x + '_' + y);
+  tile.type = 'rocks';
+  return tile;
 }
 
 function getFloorInDirection(x, y, direction) {
@@ -1745,31 +1751,18 @@ function getFloorInDirection(x, y, direction) {
 }
 
 /**
- * Add rocks to the current tile.
+ * Draw rocks. If we already have rocks, draw a floor instead. This is
+ * very similar to the draw function except we create a special kind
+ * of tile.
  */
 function rock (x, y) {
-  var rocks = getRocks(x, y);
-  var element = Map.rocksElement;
-  Commands.do(
-    function(){
-      if (rocks)
-        element.removeChild(tile);
-      if (old)
-        element.appendChild(old);
-      Map.data.get(x,y).rocks = old;
-    },
-    function(){
-      var old = Map.data.get(x,y).rocks;
-      while (old.length > 0) {
-        var o = old.pop();
-        element.removeChild(o);
-      }
-      Map.data.get(x,y).rocks = rocks;
-      while (rocks.length > 0) {
-        var o = rocks.pop();
-        element.appendChild(o);
-      }
-    });
+  var old = Map.data.get(x, y).floor;
+  if (old !== null && old.type === 'rocks') {
+    floor(x, y);
+  } else {
+    replaceFloor(x, y, old, getRocks(x, y));
+  }
+  // FIXME: check status of surrounding tiles!
 }
 
 /**
@@ -2511,7 +2504,7 @@ function keyHandling (evt, recording) {
     floor(Pen.x, Pen.y);
     break;
 
-  case 'o':
+  case 'g':
     wallModeOff();
     rock(Pen.x, Pen.y);
     break;
@@ -2784,7 +2777,7 @@ function interpretCont (code, i, advance, record) {
     }
     // advance unless we're going to move elsewhere or switch a
     // variant (peek ahead)
-    if (direction !== null && advance && code[i+1] !== 'v' && code[i+1] !== 'o'
+    if (direction !== null && advance && code[i+1] !== 'v'
         && code[i+1] !== '\n' && code[i] !== '(' && code[i] !== '[')
       move(direction);
   }
@@ -2880,8 +2873,6 @@ function createLevel (z) {
   level.setAttributeNS(inkscapeNs, 'label', 'Level ' + (z + 1));
   var arcs = document.createElementNS(svgNs, 'g');
   arcs.setAttribute('id', 'arcs' + z);
-  var rocks = document.createElementNS(svgNs, 'g');
-  rocks.setAttribute('id', 'rocks' + z);
   var floor = document.createElementNS(svgNs, 'g');
   floor.setAttribute('id', 'floor' + z);
   var labels = document.createElementNS(svgNs, 'g');
@@ -2890,7 +2881,6 @@ function createLevel (z) {
   walls.setAttribute('id', 'walls' + z);
   level.appendChild(arcs);
   level.appendChild(floor);
-  level.appendChild(rocks);
   level.appendChild(labels);
   level.appendChild(walls);
   Map.levelsElement.insertBefore(level, Map.levelsElement.firstChild);
@@ -3140,25 +3130,11 @@ onload = initialize;
       <line x1="22" y1="78" x2="78" y2="22" stroke="black" stroke-width="7"/>
       <circle cx="50" cy="50" r="10" fill="white" stroke="black" stroke-width="7"/>
     </g>
-    <g id="rock1" width="10">
-      <path class="background" fill="rgb(211,211,211)" d="M0,10 L2,8 L1,6 L2,5 L1,4 L2,2 L0,0 Z" stroke-miterlimit="1" stroke="rgb(211,211,211)" stroke-width="1"/>
-      <path class="background" fill="none" d="M0,10 L2,8 L1,6 L2,5 L1,4 L2,2 L0,0" stroke-linecap="round" stroke="black" stroke-width="1"/>
-    </g>
-    <g id="rock2" width="10">
-      <path class="background" fill="rgb(211,211,211)" d="M0,10 L1,8 L1,7 L2,5 L1,4 L2,2 L4,1 L5,2 L7,2 L10,0 H0 Z" stroke-miterlimit="1" stroke="rgb(211,211,211)" stroke-width="1"/>
-      <rect class="background" fill="rgb(211,211,211)" x="-0.5" y="-0.5" width="1" height="1" />
-      <path class="background" fill="none" d="M0,10 L1,8 L1,7 L2,5 L1,4 L2,2 L4,1 L5,2 L7,2 L10,0" stroke-linecap="round" stroke="black" stroke-width="1"/>
-    </g>
-    <g id="rock3" width="10">
-      <path class="background" fill="rgb(211,211,211)" d="M0,10 v-1 L1,7 v-1 L2,5 v-1 L2,2 L4,1 L5,2 L7,2 L9,1 L10,3 L8,6 L8,7 L10,10 V0 H0 Z" stroke-miterlimit="1" stroke="rgb(211,211,211)" stroke-width="1"/>
-      <rect class="background" fill="rgb(211,211,211)" x="-0.5" y="-0.5" width="1" height="1" />
-      <rect class="background" fill="rgb(211,211,211)" x="9.5" y="-0.5" width="1" height="1" />
-      <path class="background" fill="none" d="M0,10 v-1 L1,7 v-1 L2,5 v-1 L2,2 L4,1 L5,2 L7,2 L9,1 L10,3 L8,6 L8,7 L10,10" stroke-linecap="round" stroke="black" stroke-width="1"/>
-    </g>
-    <g id="rock4" width="10">
-      <path class="background" fill="rgb(211,211,211)" fill-rule="evenodd" d="M0,0 h10 v10 h-10 v-10 M3,3 h5 v5 h-5 v-5" stroke-width="1"/>
-      <path class="background" fill="none" d="M3,3 h5 v5 h-5 Z" stroke-linecap="round" stroke="black" stroke-width="1"/>
-    </g>
+    <path id="rock1" width="10" fill="white" d="M0,10 v-1 L1,8 L0,6 v-1 L1,4 v-2 L0,1 L0,0 H10 V10 Z" stroke-miterlimit="1" stroke="black" stroke-width="1"/>
+    <path id="rock2" width="10" fill="white" d="M0,10 v-1 L1,8 L1,7 L2,5 L1,4 L2,2 L4,1 L5,2 L7,2 L10,0 V10 Z" stroke-miterlimit="1" stroke-linecap="round" stroke="black" stroke-width="1"/>
+    <path id="rock3" width="10" fill="white" d="M0,10 v-1 L1,7 v-1 L2,5 v-1 L2,2 L4,1 L5,2 L7,2 L9,1 L10,3 L8,6 L8,7 L10,10 Z" stroke-miterlimit="1" stroke-linecap="round" stroke="black" stroke-width="1"/>
+    <path id="rock4" width="10" fill="white" d="M3,3 L5,2 L7,3 L8,5 L7,7 v1 h-1 L4,9 L2,7 L2,5 Z" stroke-linecap="round" stroke="black" stroke-width="1"/>
+    <path id="rockd" width="10" fill="white" d="M0,10 v-1 L1,8 L0,6 v-1 L1,4 v-2 L0,1 L0,0 H10 v1 L9,2 v1 L8,6 L9,7 v1 L10,10 Z" stroke-miterlimit="1" stroke="black" stroke-width="1"/>
   </defs>
   <g id="background" inkscape:groupmode="layer" inkscape:label="Background">
     <rect x="20" y="20" width="0" height="0" fill="rgb(211,211,211)" stroke="black" stroke-width="1"/>
@@ -3408,16 +3384,12 @@ onload = initialize;
 	  <text x="60" y="13.5">abc</text>
 	</g>
       </a>
-      <a xlink:href="javascript:interpret('o')" title="rocks">
-	<text x="90" y="14"><tspan class="key">r</tspan> :</text>
-	<text x="120" y="14">rockify</text>
-	<use x="90" y="30" xlink:href="#empty"/>
+      <a xlink:href="javascript:interpret('g')" title="rocks">
+	<text x="90" y="14"><tspan class="key">g</tspan> :</text>
+	<text x="120" y="14">grotto</text>
 	<use x="90" y="30" xlink:href="#rock1"/>
-	<use x="120" y="30" xlink:href="#empty"/>
 	<use x="120" y="30" xlink:href="#rock2"/>
-	<use x="150" y="30" xlink:href="#empty"/>
 	<use x="150" y="30" xlink:href="#rock3"/>
-	<use x="180" y="30" xlink:href="#empty"/>
 	<use x="180" y="30" xlink:href="#rock4"/>
       </a>
     </svg>
