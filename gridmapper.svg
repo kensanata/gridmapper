@@ -1788,14 +1788,23 @@ function getFloorInDirection(x, y, direction) {
  * of tile.
  */
 function rock (x, y) {
-  var undoBoundary = Commands.i;
   var old = Map.data.get(x, y).floor;
   if (old !== null && old.type.startsWith('rock')) {
     replaceFloor(x, y, old, null);
   } else {
     replaceFloor(x, y, old, getRocks(x, y));
   }
+  checkRockyNeighbors(x, y);
+}
+
+/**
+ * Check whether any of the neibhbors need adjustments. This happens
+ * when adding a rock tile or when removing a normal tile surrounded
+ * by rock tiles.
+ */
+function checkRockyNeighbors(x, y) {
   // check neighbors for adjustment
+  var undoBoundary = Commands.i - 1;
   old = Map.data.get(x-1, y).floor;
   if (old !== null && old.type.startsWith('rock'))
     replaceFloor(x-1, y, old, getRocks(x-1, y));
@@ -2185,6 +2194,7 @@ function floor (x, y) {
   } else {
     replaceFloor(x, y, old, null);
   }
+  checkRockyNeighbors(x, y);
 }
 
 /**
@@ -2192,8 +2202,11 @@ function floor (x, y) {
  */
 function removeFloor (x, y) {
   var old = Map.data.get(x, y).floor;
-  if (old)
-    return replaceFloor(x, y, old, null);
+  if (old) {
+    replaceFloor(x, y, old, null);
+    checkRockyNeighbors(x, y);
+    return old;
+  }
 }
 
 /**
@@ -2220,10 +2233,12 @@ function drawToCommand (x, y, tile, type) {
   var remove = function(){
     Map.floorElement.removeChild(tile);
     Map.data.get(x, y).floor = null;
+    checkRockyNeighbors(x, y);
   };
   var add = function(){
     Map.data.get(x, y).floor = tile;
     Map.floorElement.appendChild(tile);
+    checkRockyNeighbors(x, y);
   };
   if (type === 'add') {
     Commands.do(remove, add); // add new tile
