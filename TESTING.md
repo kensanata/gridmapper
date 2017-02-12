@@ -1,8 +1,18 @@
 Automated Testing
 =================
 
-1. Set up [DalekJS](http://dalekjs.com/pages/getStarted.html).
-
+1. Install [Nightwatch](http://nightwatchjs.org/getingstarted#install-nightwatch).
+   I did not install globally.
+2. Install [Selenium](http://selenium-release.storage.googleapis.com/index.html)
+   and move `selenium-server-standalone-3.0.1.jar` into the bin directory.
+   If you did not get version 3.0.1 you need to fix the version number in the
+   `nightwatch.json` file.
+3. Install [GeckoDriver](http://nightwatchjs.org/getingstarted#geckodriver)
+   and move `geckodriver` into the bin directory.
+4. Install [ChromeDriver](https://sites.google.com/a/chromium.org/chromedriver/downloads)
+   and move `chromedriver` into the bin directory.
+5. Run tests for Firefox: `node_modules/.bin/nightwatch`
+6. Run tests for Chrome: `node_modules/.bin/nightwatch --env chrome`
 
 Manual Testing
 ==============

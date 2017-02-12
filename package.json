@@ -1,0 +1,23 @@
+{
+  "name": "Gridmapper",
+  "description": "A simple dungeon mapping tool",
+  "version": "1.1.1",
+  "license": "CC0-1.0",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/kensanata/gridmapper.git"
+  },
+  "homepage": "https://alexschroeder.ch/wiki/Gridmapper",
+  "author": {
+    "name": "Alex Schroeder",
+    "email": "kensanata@gmail.com",
+    "url": "https://alexschroeder.ch/"
+  },
+  "bugs": {
+    "url": "https://github.com/kensanata/gridmapper/issues",
+    "email": "kensanata@gmail.com"
+  },
+  "devDependencies": {
+    "nightwatch": "^0.9.12"
+  }
+}

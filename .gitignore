@@ -1,2 +1,7 @@
 *~
 .DS_Store
+/reports/
+/selenium-debug.log
+/bin/*driver
+/bin/*.jar
+/node_modules
