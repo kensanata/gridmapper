@@ -14,7 +14,8 @@
     "cli_args" : {
       "webdriver.chrome.driver" : "./bin/chromedriver",
       "webdriver.gecko.driver" : "./bin/geckodriver",
-      "webdriver.edge.driver" : ""
+      "webdriver.edge.driver" : "",
+      "webdriver.safari.driver" : "/usr/bin/safaridriver"
     }
   },
 
@@ -37,6 +38,12 @@
     "chrome" : {
       "desiredCapabilities": {
         "browserName": "chrome"
+      }
+    },
+
+    "safari" : {
+      "desiredCapabilities": {
+        "browserName": "safari"
       }
     }
   }
