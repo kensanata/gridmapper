@@ -137,12 +137,15 @@ var Map = {
   },
 
   /**
-   * Grows the data structures along the x axis, if necessary.
-   * Animate the process.
+   * Grows the data structures, if necessary. Animate the process.
    */
-  growWithAnimation: function(to_x) {
+  growWithAnimation: function(to_x, to_y) {
     if (to_x >= Map.width) {
       Map.width = to_x + 1;
+      moveElements();
+    }
+    if (to_y >= Map.height) {
+      Map.height = to_y + 1;
       moveElements();
     }
   },
@@ -2270,6 +2273,8 @@ function drawTo (evt) {
     }
   } while (Pen.moveTo(target));
   Pen.update(evt);
+  if (Pen.type === 'empty')
+    Map.growWithAnimation(Pen.x, Pen.y);
 }
 
 /**
@@ -2340,7 +2345,7 @@ function move (dir) {
       Pen.x--;
     break;
   case 'right':
-    Map.growWithAnimation(Pen.x + 1);
+    Map.growWithAnimation(Pen.x + 1, Pen.y);
     Pen.x++;
     break;
   case 'up':
@@ -2348,10 +2353,7 @@ function move (dir) {
       Pen.y--;
     break;
   case 'down':
-    if (Pen.y + 1 >= Map.height) {
-      Map.height++;
-      moveElements();
-    }
+    Map.growWithAnimation(Pen.x, Pen.y + 1);
     Pen.y++;
     break;
   }
