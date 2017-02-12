@@ -1739,9 +1739,11 @@ function getRocks (x, y) {
     return createTile(x, y, "empty");
   } else if ([false, true, false, true].every(function(v,i) { return v === rockface[i]})) {
     tile = createTile(x, y, "rockd");
-    rotateTile(tile, x, y, 90);
+    rotateTile(tile, x, y, 90 + 180 * (x%2));
   } else if ([true, false, true, false].every(function(v,i) { return v === rockface[i]})) {
     tile = createTile(x, y, "rockd");
+    if (y % 2 === 1)
+      rotateTile(tile, x, y, 180);
   } else {
     // check for rock<r>, biggest first
     for (var r = 4; r > 0; r--) {
