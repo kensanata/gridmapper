@@ -326,13 +326,17 @@ var Map = {
   symbolInit: function(){
     var map = {
       door: 'd', wall: 'w', stair: 's', chest: 'c',
-      trap: 't', empty: 'f', pillar: 'p', statue: 'b', diagonal: 'n', arc: 'a',
+      trap: 't', empty: 'f', pillar: 'p', statue: 'b',
+      diagonal: 'n', arc: 'a', rock1: 'g', rockd: 'g',
+      rock2: 'g', rock3: 'g', rock4: 'g',
     };
     var keys = Object.keys(map);
     for (var i = 0; i < keys.length; i++) {
       var first = keys[i];
       var sym = map[first];
-      for (var next = Map.variants[first]; next !== undefined && next !== first; next = Map.variants[next]) {
+      for (var next = Map.variants[first];
+           next !== undefined && next !== first;
+           next = Map.variants[next]) {
         sym += 'v';
         map[next] = sym;
       }
@@ -388,7 +392,7 @@ var Map = {
           }
           tile = Map.data.get(x, y).floor;
           if (tile !== null) {
-            if (tile.hasAttribute('rotate')) {
+            if (tile.hasAttribute('rotate') && !tile.type.startsWith('rock')) {
               var rotate = tile.getAttribute('rotate') / 90;
               var type = Map.symbols[tile.type];
               source += type[0].repeat(1 + rotate) + type.substr(1);
@@ -396,7 +400,7 @@ var Map = {
               source += Map.symbols[tile.type];
             }
             // the only floor tile that auto-advances is the empty floor
-            if (tile.type !== 'empty')
+            if (tile.type !== 'empty' && !tile.type.startsWith('rock'))
               source += ' ';
           } else {
             source += ' ';
@@ -1734,13 +1738,16 @@ function getRocks (x, y) {
     }
   }
   // special cases: no walls, or two opposing sides only
-  if ([false, false, false, false].every(function(v,i) { return v === rockface[i]})) {
+  if ([false, false, false, false]
+      .every(function(v,i) { return v === rockface[i]})) {
     // don't 
     return createTile(x, y, "empty");
-  } else if ([false, true, false, true].every(function(v,i) { return v === rockface[i]})) {
+  } else if ([false, true, false, true]
+             .every(function(v,i) { return v === rockface[i]})) {
     tile = createTile(x, y, "rockd");
     rotateTile(tile, x, y, 90 + 180 * (x%2));
-  } else if ([true, false, true, false].every(function(v,i) { return v === rockface[i]})) {
+  } else if ([true, false, true, false]
+             .every(function(v,i) { return v === rockface[i]})) {
     tile = createTile(x, y, "rockd");
     if (y % 2 === 1)
       rotateTile(tile, x, y, 180);
@@ -2712,7 +2719,7 @@ function keyHandling (evt, recording) {
  * '-' moves point to the left (a shorthand for '[-1,0]') and the next
  * character is neither 'v' (a variation) nor a newline.
  *
- * 'f' places a floor tile and moves to the right.
+ * 'f' and 'g' place floor tile and 'advance' to the right.
  *
  * '\01' introduces an edit made by another pen; it is followed by the
  * pen number (Ctrl-A is Start Of Heading), followed by '\02' and the
@@ -2726,16 +2733,16 @@ function interpretMap (code) {
 }
 
 /**
- * The same as interpretMap, but for remote commands. That is, 'f'
- * does not advance, and we are not recording.
+ * The same as interpretMap, but for remote commands. That is, floor
+ * tiles do not advance, and we are not recording.
  */
 function interpretRemote (code) {
   interpretCont(code, 0, false, false);
 }
 
 /**
- * The same as interpretMap, but for help keys. That is, 'f' does not
- * advance, but we are recording.
+ * The same as interpretMap, but for help keys. That is, floor tiles
+ * do not advance, but we are recording.
  */
 function interpret (code) {
   interpretCont(code, 0, false, true);
@@ -2746,8 +2753,8 @@ function interpret (code) {
  * not initialized so that we can simply pick up where we left off.
  * This is because we want to interrupt the computation using timeouts
  * (when running the demo, for example). 'advance' means we are
- * advancing after 'f'. 'recording' means we will send it the server
- * when interpreting the code.
+ * advancing after floor tiles. 'recording' means we will send it the
+ * server when interpreting the code.
  */
 function interpretCont (code, i, advance, record) {
   for (; i < code.length; i++) {
@@ -2834,6 +2841,7 @@ function interpretCont (code, i, advance, record) {
     case 'o':
       direction = 'right';
     case 'f':
+    case 'g':
       direction = 'right';
       // fall through to default
     default:
