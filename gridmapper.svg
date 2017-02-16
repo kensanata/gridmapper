@@ -273,10 +273,6 @@ var Map = {
     // default is light grey #d3d3d3
     var bg = document.getElementById('background').firstElementChild;
     elementTo(bg, 'fill', color, linear, 500);
-    var elements = Demo.element.getElementsByClassName('background');
-    for (var i = 0; i < elements.length; i++) {
-      elementTo(bg, 'fill', color, linear, 500);
-    }
   },
 
   /**
