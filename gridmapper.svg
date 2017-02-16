@@ -1306,7 +1306,7 @@ function load () {
   XHR.addEventListener('error', function(event) {
     message('Unfortunately the maps could not be loaded.');
   });
-  XHR.open('GET', wikiUrl + '?search={{{;context=0');
+  XHR.open('GET', wikiUrl + '?search=\{\{\{;context=0');
   XHR.responseType = 'document';
   XHR.send();
 }
