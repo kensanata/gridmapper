@@ -1352,12 +1352,11 @@ function loadHtmlMenu (event) {
     }
   }
   document.rootElement.appendChild(g);
-  var t1 = setTimeout(function(){fadeElementTo(g, 0, linear, 1000);}, 5000);
-  var t2 = setTimeout(function(){document.rootElement.removeChild(g);}, 6000); // 1000 + 5000
-  g.onclick = function(evt) {
-    clearTimeout(t1);
-    clearTimeout(t2);
+  // clicking anywhere will remove it
+  var oldclick = document.onclick;
+  document.onclick = function(evt) {
     document.rootElement.removeChild(g);
+    document.onclick = oldclick; // probably null anyway
   }
 }
 
