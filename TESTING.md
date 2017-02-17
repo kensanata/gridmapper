@@ -11,7 +11,9 @@ Automated Testing
    and move `geckodriver` into the bin directory.
 4. Install [ChromeDriver](https://sites.google.com/a/chromium.org/chromedriver/downloads)
    and move `chromedriver` into the bin directory.
-5. Run tests for Firefox: `node_modules/.bin/nightwatch`
+5. Run tests for Firefox: `node_modules/.bin/nightwatch` (currently
+   keyboard tests for Firefox are all failing because they need to be
+   rewritten: `.sendKeys('#ui', 'w')` instead of `.keys('w')`
 6. Run tests for Chrome: `node_modules/.bin/nightwatch --env chrome`
 
 Manual Testing
