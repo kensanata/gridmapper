@@ -311,7 +311,8 @@ var Map = {
     'wall': 'curtain',
     'curtain': 'portcullis',
     'portcullis': 'window',
-    'window': 'wall',
+    'window': 'gap',
+    'gap': 'wall',
     'chest': 'bed',
     'bed': 'table',
     'table': 'chest',
@@ -2951,6 +2952,19 @@ onload = initialize;
       <line x1="0" y1="8" x2="0" y2="10" stroke="black" stroke-width="3"/>
       <rect x="-0.75" y="2" width="1.5" height="6" fill="white" stroke="black" stroke-width="0.5"/>
     </g>
+    <g id="gap" width="10">
+      <line x1="0" y1="0" x2="0" y2="2" stroke="black" stroke-width="3" stroke-linecap="round"/>
+      <line x1="0" y1="8" x2="0" y2="10" stroke="black" stroke-width="3" stroke-linecap="round"/>
+      <circle cx="2" cy="2" r="0.5" fill="black"/>
+      <circle cx="-3" cy="3" r="0.5" fill="black"/>
+      <circle cx="3" cy="4" r="0.6" fill="black"/>
+      <circle cx="1.5" cy="4.5" r="0.5" fill="black"/>
+      <circle cx="-1.5" cy="5" r="0.5" fill="black"/>
+      <circle cx="2" cy="6" r="0.5" fill="black"/>
+      <circle cx="5" cy="6" r="0.5" fill="black"/>
+      <circle cx="-2" cy="6.5" r="0.5" fill="black"/>
+      <circle cx="3" cy="8" r="0.5" fill="black"/>
+    </g>
     <g id="door" width="10">
       <rect x="-1.5" y="2" width="3" height="6" fill="white" stroke="black" stroke-width="1"/>
     </g>
@@ -3330,6 +3344,10 @@ onload = initialize;
       <a xlink:href="javascript:interpret('wvvv')" title="window">
 	<use x="140" xlink:href="#empty"/>
 	<use x="140" xlink:href="#window"/>
+      </a>
+      <a xlink:href="javascript:interpret('wvvvv')" title="gap">
+	<use x="170" xlink:href="#empty"/>
+	<use x="170" xlink:href="#gap"/>
       </a>
     </svg>
 
