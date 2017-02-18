@@ -307,7 +307,8 @@ var Map = {
     'pillar': 'altar',
     'altar': 'dais',
     'dais': 'dais-round',
-    'dais-round': 'pillar',
+    'dais-round': 'rubble',
+    'rubble': 'pillar',
     'wall': 'curtain',
     'curtain': 'portcullis',
     'portcullis': 'window',
@@ -3065,7 +3066,7 @@ onload = initialize;
     <g id="gap" width="10">
       <line x1="0" y1="0" x2="0" y2="2" stroke="black" stroke-width="3" stroke-linecap="round"/>
       <line x1="0" y1="8" x2="0" y2="10" stroke="black" stroke-width="3" stroke-linecap="round"/>
-      <circle cx="2" cy="2" r="0.5" fill="black"/>
+      <circle cx="2.5" cy="2" r="0.5" fill="black"/>
       <circle cx="-3" cy="3" r="0.5" fill="black"/>
       <circle cx="3" cy="4" r="0.6" fill="black"/>
       <circle cx="1.5" cy="4.5" r="0.5" fill="black"/>
@@ -3116,6 +3117,19 @@ onload = initialize;
       <circle cx="5" cy="5" r="3" fill="none" stroke="black" stroke-width="0.5"/>
       <circle cx="5" cy="5" r="2" fill="none" stroke="black" stroke-width="0.5"/>
       <circle cx="5" cy="5" r="1" fill="none" stroke="black" stroke-width="0.5"/>
+    </g>
+    <g id="rubble" width="10">
+      <rect width="10" height="10" class="background" stroke="black" stroke-width="1"/>
+      <circle cx="7" cy="2" r="0.5" fill="black"/>
+      <circle cx="2" cy="3" r="0.5" fill="black"/>
+      <circle cx="4" cy="3" r="0.7" fill="black"/>
+      <circle cx="8" cy="4" r="0.6" fill="black"/>
+      <circle cx="6" cy="4" r="0.5" fill="black"/>
+      <circle cx="3" cy="5" r="0.7" fill="black"/>
+      <circle cx="5" cy="6" r="0.5" fill="black"/>
+      <circle cx="7" cy="6" r="0.7" fill="black"/>
+      <circle cx="4" cy="7" r="0.5" fill="black"/>
+      <circle cx="8" cy="8" r="0.5" fill="black"/>
     </g>
     <g id="statue" width="10">
       <rect width="10" height="10" class="background" stroke="black" stroke-width="1"/>
@@ -3324,23 +3338,18 @@ onload = initialize;
 	<text y="14"><tspan class="key">t</tspan> :</text>
       </a>
       <a xlink:href="javascript:interpret('t')" title="covered pit">
-	<use x="50" xlink:href="#empty"/>
 	<use x="50" xlink:href="#trap"/>
       </a>
       <a xlink:href="javascript:interpret('tv')" title="open pit">
-	<use x="80" xlink:href="#empty"/>
 	<use x="80" xlink:href="#pit"/>
       </a>
       <a xlink:href="javascript:interpret('tvv')" title="trap door in the ceiling">
-	<use x="110" xlink:href="#empty"/>
 	<use x="110" xlink:href="#trap-door-ceiling"/>
       </a>
       <a xlink:href="javascript:interpret('tvvv')" title="trap door in the floor">
-	<use x="140" xlink:href="#empty"/>
 	<use x="140" xlink:href="#trap-door-floor"/>
       </a>
       <a xlink:href="javascript:interpret('tvvvv')" title="secret trap door">
-	<use x="170" xlink:href="#empty"/>
 	<use x="170" xlink:href="#trap-door-secret"/>
       </a>
     </svg>
@@ -3350,15 +3359,12 @@ onload = initialize;
 	<text y="14"><tspan class="key">b</tspan> :</text>
       </a>
       <a xlink:href="javascript:interpret('b')" title="statue">
-	<use x="50" xlink:href="#empty"/>
 	<use x="50" xlink:href="#statue"/>
       </a>
       <a xlink:href="javascript:interpret('bv')" title="well">
-	<use x="80" xlink:href="#empty"/>
 	<use x="80" xlink:href="#well"/>
       </a>
       <a xlink:href="javascript:interpret('bvv')" title="fountain">
-	<use x="110" xlink:href="#empty"/>
 	<use x="110" xlink:href="#fountain"/>
       </a>
     </svg>
@@ -3485,20 +3491,19 @@ onload = initialize;
 	<text y="14"><tspan class="key">p</tspan> :</text>
       </a>
       <a xlink:href="javascript:interpret('p')" title="pillar">
-	<use x="50" xlink:href="#empty"/>
 	<use x="50" xlink:href="#pillar"/>
       </a>
       <a xlink:href="javascript:interpret('pv')" title="altar">
-	<use x="80" xlink:href="#empty"/>
 	<use x="80" xlink:href="#altar"/>
       </a>
       <a xlink:href="javascript:interpret('pvv')" title="dais">
-	<use x="110" xlink:href="#empty"/>
 	<use x="110" xlink:href="#dais"/>
       </a>
       <a xlink:href="javascript:interpret('pvvv')" title="round dais">
-	<use x="140" xlink:href="#empty"/>
 	<use x="140" xlink:href="#dais-round"/>
+      </a>
+      <a xlink:href="javascript:interpret('pvvvv')" title="rubble">
+	<use x="170" xlink:href="#rubble"/>
       </a>
     </svg>
 
@@ -3507,15 +3512,12 @@ onload = initialize;
 	<text y="14"><tspan class="key">c</tspan> :</text>
       </a>
       <a xlink:href="javascript:interpret('c')" title="chest">
-	<use x="50" xlink:href="#empty"/>
 	<use x="50" xlink:href="#chest"/>
       </a>
       <a xlink:href="javascript:interpret('cv')" title="bed">
-	<use x="80" xlink:href="#empty"/>
 	<use x="80" xlink:href="#bed"/>
       </a>
       <a xlink:href="javascript:interpret('cvv')" title="table">
-	<use x="110" xlink:href="#empty"/>
 	<use x="110" xlink:href="#table"/>
       </a>
     </svg>
