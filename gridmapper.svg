@@ -367,8 +367,12 @@ var Map = {
               if (type) {
                 source += type[0].repeat(1 + tile.getAttribute('rotate') / 90 - i) + type.substr(1);
               }
-              if (i < walls.length - 1)
+              if (tile.hasAttribute('class')
+                  && tile.getAttribute('class') !== 'white') {
+                source += Map.symbols[tile.getAttribute('class')] + '.';
+              } else if (i < walls.length - 1) {
                 source += '.';
+              }
             }
           }
 
@@ -397,17 +401,14 @@ var Map = {
               var rotate = tile.getAttribute('rotate') / 90;
               var type = Map.symbols[tile.type];
               source += type[0].repeat(1 + rotate) + type.substr(1);
-            } else if (tile.type === 'empty'
-                       && tile.hasAttribute('class')
-                       && tile.getAttribute('class') !== 'white') {
-              // use RGB intead of f (and advance)
-              source += Map.symbols[tile.getAttribute('class')] + ' ';
             } else {
               source += Map.symbols[tile.type];
               if (tile.hasAttribute('class')
                   && tile.getAttribute('class') !== 'white') {
-                // append RGB
+                // append RGB and advance
                 source += Map.symbols[tile.getAttribute('class')];
+                if (tile.type == 'empty' || tile.type.startsWith('rock'))
+                  source += ' ';
               }
             }
             // the only floor tile that auto-advances is the empty floor
@@ -1656,7 +1657,7 @@ function deleteFromLabel (x, y) {
 
 /**
  * Pick rocks matching the surrounding floor and wall tiles.
- * Return a list of approriately rotated tiles.
+ * Return an approriately rotated tile.
  */
 function getRocks (x, y) {
   var tile;
@@ -1682,12 +1683,13 @@ function getRocks (x, y) {
   } else if ([false, true, false, true]
              .every(function(v,i) { return v === rockface[i]})) {
     tile = createTile(x, y, "rockd");
-    rotateTile(tile, x, y, 90 + 180 * (x%2));
+    return rotateTile(tile, x, y, 90 + 180 * (x%2));
   } else if ([true, false, true, false]
              .every(function(v,i) { return v === rockface[i]})) {
     tile = createTile(x, y, "rockd");
     if (y % 2 === 1)
       rotateTile(tile, x, y, 180);
+    return tile;
   } else {
     // check for rock<r>, biggest first
     for (var r = 4; r > 0; r--) {
@@ -1703,10 +1705,7 @@ function getRocks (x, y) {
         }
         if (ok) {
           tile = createTile(x, y, "rock" + r);
-          rotateTile(tile, x, y, i * 90);
-          for (var j = 0; j < r; j++) {
-            rockface[(i+j) % 4] = false;
-          }
+          return rotateTile(tile, x, y, i * 90);
         }
       }
     }
@@ -1723,8 +1722,6 @@ function getFloorInDirection(x, y, direction) {
     return Map.data.get(x+1, y).floor;
   } else if (direction === 3) {
     return Map.data.get(x, y+1).floor;
-  } else {
-    console.log('isMapSet called for ('+x+','+y+') with direction '+direction+' is illegal');
   }
 }
 
@@ -1744,25 +1741,26 @@ function rock (x, y) {
 }
 
 /**
- * Check whether any of the neibhbors need adjustments. This happens
+ * Check whether any of the neighbors need adjustments. This happens
  * when adding a rock tile or when removing a normal tile surrounded
- * by rock tiles.
+ * by rock tiles. When adjusting neighbors in this way, make sure we
+ * keep their background color.
  */
 function checkRockyNeighbors(x, y) {
   // check neighbors for adjustment
   var undoBoundary = Commands.i - 1;
   old = Map.data.get(x-1, y).floor;
   if (old !== null && old.type.startsWith('rock'))
-    replaceFloor(x-1, y, old, getRocks(x-1, y));
+    replaceColoredFloor(x-1, y, old, getRocks(x-1, y));
   old = Map.data.get(x, y-1).floor;
   if (old !== null && old.type.startsWith('rock'))
-    replaceFloor(x, y-1, old, getRocks(x, y-1));
+    replaceColoredFloor(x, y-1, old, getRocks(x, y-1));
   old = Map.data.get(x+1, y).floor;
   if (old !== null && old.type.startsWith('rock'))
-    replaceFloor(x+1, y, old, getRocks(x+1, y));
+    replaceColoredFloor(x+1, y, old, getRocks(x+1, y));
   old = Map.data.get(x, y+1).floor;
   if (old !== null && old.type.startsWith('rock'))
-    replaceFloor(x, y+1, old, getRocks(x, y+1));
+    replaceColoredFloor(x, y+1, old, getRocks(x, y+1));
   // make sure this is a single undo/redo command
   Commands.merge(undoBoundary);
 }
@@ -1794,8 +1792,8 @@ function getUnusedAngle (x, y, rotate) {
 /* Drawing on the walls */
 
 /**
- * Transforms the given tile such that it is rotated by the given
- * angle.
+ * Modifies the given tile such that it is rotated by the given
+ * angle. The tile is also returned for convenience.
  */
 function rotateTile (tile, x, y, angle) {
   tile.setAttribute('rotate', angle);
@@ -1806,6 +1804,7 @@ function rotateTile (tile, x, y, angle) {
   } else {
     tile.removeAttribute('transform');
   }
+  return tile;
 }
 
 /**
@@ -2036,6 +2035,12 @@ function replaceFloor (x, y, old, tile) {
   return replace('floor', Map.floorElement, x, y, old, tile);
 }
 
+function replaceColoredFloor (x, y, old, tile) {
+  if (old.hasAttribute('class'))
+    tile.setAttribute('class', old.getAttribute('class'));
+  return replace('floor', Map.floorElement, x, y, old, tile);
+}
+
 function replaceArc (x, y, old, tile) {
   return replace('arcs', Map.arcsElement, x, y, old, tile);
 }
@@ -2058,7 +2063,14 @@ function background (x, y, color) {
       }
     }
   } else {
-    tile = Map.data.get(x, y).floor;
+    var now = Date.now();
+    var walls = Map.data.get(x, y).walls;
+    if (walls && walls.length > 0
+        && Pen.lastWall && now - Pen.lastWall <= 2000) {
+      tile = walls[walls.length - 1];
+    } else {
+      tile = Map.data.get(x, y).floor;
+    }
   }
   var undoBoundary = Commands.i;
   if (tile == null) {
@@ -2841,6 +2853,7 @@ function interpretCont (code, i, advance, record) {
     // advance unless we're going to move elsewhere or switch a
     // variant (peek ahead)
     if (direction !== null && advance && code[i+1] !== 'v'
+        && code[i+1] !== 'R' && code[i+1] !== 'G' && code[i+1] !== 'B'
         && code[i+1] !== '\n' && code[i] !== '(' && code[i] !== '[')
       move(direction);
   }
