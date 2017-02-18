@@ -3728,7 +3728,9 @@ onload = initialize;
 
     <tspan class="step12" x="0" y="0">Use <tspan class="key">a</tspan>
     to place and rotate arcs.</tspan>
-    <code class="step12">(18,16);a;a;a;a(13,9);a;v(16,9);a;a;v</code>
+    <tspan class="step12" x="0" dy="0">Use <tspan class="key">v</tspan>
+    use larger variants.</tspan>
+    <code class="step12">(13,9);a;v(16,9);a;a;v</code>
 
     <tspan class="step13" x="0" y="0">You can draw walls using
     <tspan class="key">w</tspan>.</tspan>
@@ -3755,14 +3757,26 @@ onload = initialize;
     <tspan class="key">m</tspan> to leave Wall Mode.</tspan>
     <code class="step16">(21,11.5)d; d; d;(21,12.5)d; d; d;(23.5,12)dvm</code>
 
-    <tspan class="step17" x="0" y="0">Use the number keys
-    <tspan class="key">0-9</tspan> to add labels.</tspan>
-    <tspan class="step17" x="0" dy="20">Use
-    <tspan class="key">Delete</tspan> to delete labels.</tspan>
-    <code class="step17">(20,12)6y(15,12)1(14,19)2(19,16)4(22,17)5</code>
+    <tspan class="step17" x="0" y="0">You can draw grottos (caves) using
+    <tspan class="key">g</tspan>.</tspan>
+    <code class="step17">(26,9)g;g(26,10)g;g(26,11)g(24,12)g;g;g</code>
 
-    <tspan class="step18" x="0" y="0">Well, that's it. The rest is up to you.</tspan>
-    <tspan class="step18" x="0" dy="20">What lies beyond the secret doors to the east?</tspan>
+    <tspan class="step18" x="0" y="0">Add colors using
+    <tspan class="key">R</tspan> (red),
+    <tspan class="key">G</tspan> (green) and
+    <tspan class="key">B</tspan> (blue).</tspan>
+    <tspan class="step14" x="0" dy="20">Use
+    <tspan class="key">W</tspan> (white) to undo the color.</tspan>
+    <code class="step18">(26,9)B B(26,10)B B;</code>
+    
+    <tspan class="step19" x="0" y="0">Use the number keys
+    <tspan class="key">0-9</tspan> to add labels.</tspan>
+    <tspan class="step19" x="0" dy="20">Use
+    <tspan class="key">Delete</tspan> to delete labels.</tspan>
+    <code class="step19">(20,12)6y(15,12)1(14,19)2(19,16)4(22,17)5</code>
+
+    <tspan class="step20" x="0" y="0">Well, that's it. The rest is up to you.</tspan>
+    <tspan class="step20" x="0" dy="20">What lies beyond the secret door to the east?</tspan>
 
   </text>
 </svg>
