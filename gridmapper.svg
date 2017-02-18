@@ -2669,6 +2669,10 @@ function keyHandling (evt, recording) {
       Map.setBackground(0);
       Map.backgroundMode = 'black';
       message("Black background");
+    } else if (Map.backgroundMode === 'black') {
+      Map.setBackground(255);
+      Map.backgroundMode = 'white';
+      message("White background");
     } else {
       Map.showLevelAnimation();
       Map.setBackground(211); // #d3d3d3 is light grey
@@ -3565,7 +3569,7 @@ onload = initialize;
 	<a xlink:href="javascript:keyPressed('y')"><tspan class="key">y</tspan> : up</a>  
 	<a xlink:href="javascript:keyPressed('z')"><tspan class="key">z</tspan> : down</a>  
 	<a xlink:href="javascript:keyPressed('Z')" title="hide other levels or black background">
-  	  <tspan class="key">Z</tspan> : hide / black / grey
+  	  <tspan class="key">Z</tspan> : switch background
 	</a>
       </tspan>
 
