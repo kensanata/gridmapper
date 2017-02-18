@@ -1645,18 +1645,24 @@ function saveLabel () {
 function deleteFromLabel (x, y) {
   var tile = Map.data.get(x, y).label;
   if (tile !== null) {
+    // https://mathiasbynens.be/notes/javascript-unicode
+    var endsWithAstralSymbol = /[\uD800-\uDBFF][\uDC00-\uDFFF]$/;
     var text = tile.textContent;
     if (text !== '') {
       Commands.do(
         function(){
-          if (text.length === 1) {
+          if (text.length === 1
+              || text.length === 2 && text.match(endsWithAstralSymbol)) {
             Map.labelsElement.appendChild(tile);
             Map.data.get(x, y).label = tile;
           }
           tile.textContent = text;
         },
         function(){
-          tile.textContent = tile.textContent.substr(0, tile.textContent.length - 1);
+          if (text.match(endsWithAstralSymbol))
+            tile.textContent = text.substr(0, text.length - 2);
+          else
+            tile.textContent = text.substr(0, text.length - 1);
           if (tile.textContent === '') {
             Map.labelsElement.removeChild(tile);
             Map.data.get(x, y).label = null;
