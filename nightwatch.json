@@ -24,13 +24,8 @@
       "launch_url" : "http://localhost",
       "selenium_port"  : 4444,
       "selenium_host"  : "localhost",
-      "silent": true,
-      "screenshots" : {
-        "enabled" : false,
-        "path" : ""
-      },
       "desiredCapabilities": {
-        "browserName": "firefox",
+        "browserName": "chrome",
         "marionette": true
       }
     },
@@ -38,6 +33,12 @@
     "chrome" : {
       "desiredCapabilities": {
         "browserName": "chrome"
+      }
+    },
+
+    "firefox" : {
+      "desiredCapabilities": {
+        "browserName": "firefox"
       }
     },
 
