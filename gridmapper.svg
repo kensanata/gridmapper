@@ -3535,6 +3535,35 @@ onload = initialize;
 	<text y="14"><tspan class="key">g</tspan> :</text>
 	<use x="50" xlink:href="#rock3"/>
       </a>
+      <text y="44">
+	<a xlink:href="javascript:interpret('&quot;🌳&quot;')" title="deciduous tree">
+	  <tspan>🌳</tspan>
+	</a>
+	<a xlink:href="javascript:interpret('&quot;🌲&quot;')" title="evergreen tree">
+	  <tspan>🌲</tspan>
+	</a>
+	<a xlink:href="javascript:interpret('&quot;🌴&quot;')" title="palm tree">
+	  <tspan>🌴</tspan>
+	</a>
+	<a xlink:href="javascript:interpret('&quot;🌵&quot;')" title="evergreen tree">
+	  <tspan>🌵</tspan>
+	</a>
+	<a xlink:href="javascript:interpret('&quot;🍄&quot;')" title="mushroom">
+	  <tspan>🍄</tspan>
+	</a>
+	<a xlink:href="javascript:interpret('&quot;⚔&quot;')" title="evergreen tree">
+	  <tspan>⚔</tspan>
+	</a>
+	<a xlink:href="javascript:interpret('&quot;☠&quot;')" title="evergreen tree">
+	  <tspan>☠</tspan>
+	</a>
+	<a xlink:href="javascript:interpret('&quot;👽&quot;')" title="evergreen tree">
+	  <tspan>👽</tspan>
+	</a>
+	<a xlink:href="javascript:interpret('&quot;☓&quot;')" title="evergreen tree">
+	  <tspan>☓</tspan>
+	</a>
+      </text>
     </svg>
 
     <svg x="390" y="240">
