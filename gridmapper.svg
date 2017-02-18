@@ -3064,8 +3064,8 @@ onload = initialize;
     </g>
     <g id="well" width="10">
       <rect width="10" height="10" class="background" stroke="black" stroke-width="1"/>
-      <circle cx="5" cy="5" r="2.5" fill="black"/>
-      <circle cx="5" cy="5" r="1.5" fill="black" stroke="white" stroke-width="1"/>
+      <circle cx="5" cy="5" r="2.25" fill="none" stroke="black" stroke-width="0.5"/>
+      <circle cx="5" cy="5" r="1" fill="black"/>
     </g>
     <g id="fountain" width="10">
       <rect width="10" height="10" class="background" stroke="black" stroke-width="1"/>
