@@ -2041,9 +2041,28 @@ function replaceArc (x, y, old, tile) {
 }
 
 function background (x, y, color) {
+  var tile;
+  if (Pen.type === 'wallMode') {
+    var angle = 0;
+    if (y % 1 === 0) {
+      x = Math.ceil(x);
+    } else {
+      angle = 90;
+      y = Math.ceil(y);
+    }
+    var walls = Map.data.get(x, y).walls;
+    for (var i = 0; i < walls.length; i++) {
+      if (parseInt(walls[i].getAttribute('rotate')) == angle) {
+        tile = walls[i];
+        break;
+      }
+    }
+  } else {
+    tile = Map.data.get(x, y).floor;
+  }
   var undoBoundary = Commands.i;
-  var tile = Map.data.get(x, y).floor;
   if (tile == null) {
+    wallModeOff();
     floor(x, y);
     tile = Map.data.get(x, y).floor;
   }
@@ -2612,22 +2631,18 @@ function keyHandling (evt, recording) {
     break;
 
   case 'W':
-    wallModeOff();
     background(Pen.x, Pen.y, 'white');
     break;
 
   case 'R':
-    wallModeOff();
     background(Pen.x, Pen.y, 'red');
     break;
 
   case 'G':
-    wallModeOff();
     background(Pen.x, Pen.y, 'green');
     break;
 
   case 'B':
-    wallModeOff();
     background(Pen.x, Pen.y, 'blue');
     break;
 
@@ -3088,17 +3103,17 @@ onload = initialize;
     <g id="trap-door-ceiling" width="10" class="labels">
       <rect width="10" height="10" class="background" stroke="black" stroke-width="1"/>
       <circle cx="5" cy="5" r="3.5" fill="none" stroke="black" stroke-width="0.5"/>
-      <text x="8.3" y="12" transform="scale(0.6,0.6)">C</text>
+      <text x="8.3" y="12" fill="black" transform="scale(0.6,0.6)">C</text>
     </g>
     <g id="trap-door-floor" width="10" class="labels">
       <rect width="10" height="10" class="background" stroke="black" stroke-width="1"/>
       <circle cx="5" cy="5" r="3.5" fill="none" stroke="black" stroke-width="0.5"/>
-      <text x="8.3" y="12" transform="scale(0.6,0.6)">F</text>
+      <text x="8.3" y="12" fill="black" transform="scale(0.6,0.6)">F</text>
     </g>
     <g id="trap-door-secret" width="10" class="labels">
       <rect width="10" height="10" class="background" stroke="black" stroke-width="1"/>
       <circle cx="5" cy="5" r="3.5" fill="none" stroke="black" stroke-width="0.5"/>
-      <text x="8.3" y="12" transform="scale(0.6,0.6)">S</text>
+      <text x="8.3" y="12" fill="black" transform="scale(0.6,0.6)">S</text>
     </g>
     <g id="chest" width="10">
       <rect width="10" height="10" class="background" stroke="black" stroke-width="1"/>
