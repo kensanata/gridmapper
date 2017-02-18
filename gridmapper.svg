@@ -2080,7 +2080,7 @@ function background (x, y, color) {
         && Pen.lastWall && now - Pen.lastWall <= 2000) {
       tile = walls[walls.length - 1];
     } else {
-      tile = Map.data.get(x, y).floor;
+      tile = Map.data.get(x, y).floor || Map.data.get(x, y).arcs;
     }
   }
   var undoBoundary = Commands.i;
