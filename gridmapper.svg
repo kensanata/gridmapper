@@ -3314,7 +3314,7 @@ onload = initialize;
     <text>
       <tspan x="30" y="102">Use the mouse to draw and erase floor tiles.</tspan>
       <tspan x="30" dy="17">Use the following keys to place or rotate</tspan>
-      <tspan x="30" dy="17">tiles. <a xlink:href="javascript:interpret('v')">Use <tspan class="key">v</tspan> to use variants</a>.</tspan>
+      <tspan x="30" dy="17">tiles. <a xlink:href="javascript:interpret('v')">Use <tspan class="key">v</tspan> to pick variants</a>.</tspan>
     </text>
 
     <svg x="30" y="150">
@@ -3523,20 +3523,6 @@ onload = initialize;
     </svg>
 
     <svg x="260" y="240">
-      <a href="javascript:interpret('&apos;')">
-	<text x="-34" y="14"><tspan class="key">"abc"</tspan> :</text>
-	<use x="50" xlink:href="#empty"/>
-	<g class="labels" title="labels">
-	  <text x="60" y="13.5">abc</text>
-	</g>
-	<text x="80" y="14"><tspan class="key">'abc'</tspan> :</text>
-	<g class="labels" title="labels">
-	  <text x="160" y="14" class="left">abc</text>
-	</g>
-      </a>
-    </svg>
-
-    <svg x="260" y="270">
       <text x="-17" y="14"><tspan class="key">0-9</tspan><tspan> :</tspan></text>
       <use x="50" xlink:href="#empty"/>
       <g class="labels" title="labels">
@@ -3544,10 +3530,24 @@ onload = initialize;
       </g>
     </svg>
 
-    <svg x="260" y="300">
+    <svg x="260" y="270">
       <a xlink:href="javascript:interpret('g')" title="rocks">
 	<text y="14"><tspan class="key">g</tspan> :</text>
 	<use x="50" xlink:href="#rock3"/>
+      </a>
+    </svg>
+
+    <svg x="390" y="240">
+      <a href="javascript:interpret('&apos;')">
+	<text x="-34" y="14"><tspan class="key">"abc"</tspan> :</text>
+	<use x="40" xlink:href="#empty"/>
+	<g class="labels" title="labels">
+	  <text x="50" y="13.5">abc</text>
+	</g>
+	<text x="-34" y="44"><tspan class="key">'abc'</tspan> :</text>
+	<g class="labels" title="labels">
+	  <text x="40" y="44" class="left">abc</text>
+	</g>
       </a>
     </svg>
 
