@@ -5,3 +5,4 @@
 /bin/*driver
 /bin/*.jar
 /node_modules
+/tests/firefox/
