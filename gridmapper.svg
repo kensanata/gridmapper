@@ -382,6 +382,8 @@ var Map = {
 	  if (label !== null) {
 	    if (label.textContent.search(/^[0-9]*$/) === 0) {
               source += label.textContent;
+            } else if (label.getAttribute('class') === 'left') {
+              source += "'" + label.textContent + "'";
             } else {
               source += '"' + label.textContent + '"';
             }
