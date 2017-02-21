@@ -523,11 +523,15 @@ var Pen = {
    * Moves the pointer to the current Pen position. If passed a
    * non-null mouse event, determine the new position, first. We call
    * this onmousemove even if we're not drawing because of possible
-   * keypress events (which don't come with a position).
+   * keypress events (which don't come with a position). Exception:
+   * When pressing the shift key while moving the mouse, don't update
+   * our position.
    */
   update: function(evt) {
     if (evt) {
       evt.preventDefault(); /* for touch events: no scrolling */
+      if (evt.shiftKey)
+        return;
       var pos = Pen.position(evt);
       if (Pen.x !== pos.x || Pen.y !== pos.y) {
         Pen.lastMove = Date.now();
