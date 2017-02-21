@@ -24,7 +24,8 @@ if you want something more recent.
 
 - [Gridmapper](#gridmapper)
     - [It's Free](#its-free)
-    - [No Internet Explorer](#no-internet-explorer)
+    - [Internet Explorer Issues](#internet-explorer-issues)
+    - [Chrome Issues](#chrome-issues)
     - [Examples](#examples)
 - [How to Collaborate](#how-to-collaborate)
 - [How to Save](#how-to-save)
@@ -46,13 +47,20 @@ use, and you can do with it what you want. You can copy, modify,
 distribute and perform the work, even for commercial purposes, all
 without asking permission.
 
-No Internet Explorer
---------------------
+Internet Explorer Issues
+------------------------
 
 Written using [Vanilla JS](http://vanilla-js.com/). Unfortunately,
 Internet Explorer isn't well supported. That's because it mixes SVG
 and XHTML in the same document and that appears not to work for IE.
 I'm trying to simply remove the stuff that doesn't work.
+
+Chrome Issues
+-------------
+
+When zooming in or out, the text area will not get moved along with
+all the other elements. As far as I am concerned, this is a Chrome
+bug.
 
 Examples
 --------
