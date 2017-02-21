@@ -24,6 +24,7 @@ if you want something more recent.
 
 - [Gridmapper](#gridmapper)
     - [It's Free](#its-free)
+    - [Keyboard Focus](#keyboard-focus)
     - [Internet Explorer Issues](#internet-explorer-issues)
     - [Chrome Issues](#chrome-issues)
     - [Examples](#examples)
@@ -46,6 +47,22 @@ totally [free and gratis](LICENSE.md#the-license). It costs nothing to
 use, and you can do with it what you want. You can copy, modify,
 distribute and perform the work, even for commercial purposes, all
 without asking permission.
+
+Keyboard Focus
+--------------
+
+Gridmapper was designed to be usable with the keyboard. And yet, the
+mouse can be important to move around on a large map and to draw rough
+outlines.
+
+The help screen is supposed to help mouse users. You can click most
+tiles and they'll get inserted at the current position. If you use the
+mouse to position the pointer on the map, the pointer will follow the
+mouse as you move to the right in order to pick a tile. Press the
+Shift key to prevent the pointer from following the mouse.
+
+Remember that sometimes you need to click the *letter* in order to
+rotate an element.
 
 Internet Explorer Issues
 ------------------------
