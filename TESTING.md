@@ -3,18 +3,32 @@ Automated Testing
 
 1. Install [Nightwatch](http://nightwatchjs.org/getingstarted#install-nightwatch).
    I did not install globally.
-2. Install [Selenium](http://selenium-release.storage.googleapis.com/index.html)
+2. Install [Selenium](https://selenium-release.storage.googleapis.com/index.html)
    and move `selenium-server-standalone-3.0.1.jar` into the bin directory.
    If you did not get version 3.0.1 you need to fix the version number in the
    `nightwatch.json` file.
-3. Install [GeckoDriver](http://nightwatchjs.org/getingstarted#geckodriver)
+3. Check the name of the selenium server jar file in `nightwatch.json`
+   and change it if necessary.
+4. Install [GeckoDriver](http://nightwatchjs.org/getingstarted#geckodriver)
    and move `geckodriver` into the bin directory.
-4. Install [ChromeDriver](https://sites.google.com/a/chromium.org/chromedriver/downloads)
+5. Install [ChromeDriver](https://sites.google.com/a/chromium.org/chromedriver/downloads)
    and move `chromedriver` into the bin directory.
-5. Run tests for Firefox: `node_modules/.bin/nightwatch` (currently
+6. If you're on Windows, change the driver names in `nightwatch.json`
+   and append `.exe` to the drivers.
+7. Install IEDriverServer from the same directory where you got the
+   Selenium server from. Make sure you follow
+   the
+   [instructions on the wiki](https://github.com/SeleniumHQ/selenium/wiki/InternetExplorerDriver#required-configuration).
+   Also check out
+   the
+   [troubleshooting section](https://github.com/seleniumQuery/seleniumQuery/wiki/seleniumQuery-and-IE-Driver#throubleshooting-internetexplorerdriver).
+   Sadly, you'll the windows open and close, but all the tests fail as
+   it times out while waiting for elements to be present.
+8. Run `make test ` to create the firefox tests from the chrome tests
+9. Run tests for Firefox: `node_modules/.bin/nightwatch` (currently
    keyboard tests for Firefox are all failing because they need to be
    rewritten: `.sendKeys('#ui', 'w')` instead of `.keys('w')`
-6. Run tests for Chrome: `node_modules/.bin/nightwatch --env chrome`
+10. Run tests for Chrome: `node_modules/.bin/nightwatch --env chrome`
 
 Manual Testing
 ==============
