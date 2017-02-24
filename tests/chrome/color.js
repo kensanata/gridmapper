@@ -8,12 +8,9 @@ module.exports = {
       .assert.elementPresent('#empty_1_0')
       .assert.attributeEquals('#empty_0_0', 'class', 'green')
       .assert.attributeEquals('#empty_1_0', 'class', 'green')
-      .end();
-  },
-  'grotto' : function (browser) {
-    browser
-      .url('file://' + process.cwd() + '/gridmapper.svg')
-      .assert.elementPresent('#floor0')
+      .execute(function(data){
+        window.Map.reset();
+      }, [])
       .keys('gG gG gG')
       .waitForElementPresent('#rock3_0_0', 1000)
       .assert.attributeEquals('#rock3_0_0', 'class', 'green')
@@ -24,6 +21,28 @@ module.exports = {
       .assert.elementPresent('#rock3_2_0')
       .assert.attributeEquals('#rock3_2_0', 'class', 'green')
       .assert.attributeEquals('#rock3_2_0', 'rotate', '90')
+      .execute(function(data){
+        window.Map.reset();
+      }, [])
+      .keys('fB wfB wfB')
+      .waitForElementPresent('#empty_0_0', 1000)
+      .assert.attributeEquals('#empty_0_0', 'class', 'blue')
+      .assert.attributeEquals('#empty_1_0', 'class', 'blue')
+      .assert.attributeEquals('#empty_2_0', 'class', 'blue')
+      .execute(function(data){
+        window.Map.reset();
+      }, [])
+      .keys('fB dBfB dfB')
+      .waitForElementPresent('#empty_0_0', 1000)
+      .assert.attributeEquals('#empty_0_0', 'class', 'blue')
+      .assert.attributeEquals('#empty_1_0', 'class', 'blue')
+      .assert.attributeEquals('#empty_2_0', 'class', 'blue')
+      .assert.attributeEquals('#door_1_0', 'rotate', '0')
+      .assert.attributeEquals('#door_1_0', 'class', 'blue')
+      .assert.attributeEquals('#door_2_0', 'rotate', '0')
+      .getAttribute("#door_2_0", "class", function(result) {
+        this.assert.strictEqual(result.value, null, 'class is null');
+      })
       .end();
   }
 };

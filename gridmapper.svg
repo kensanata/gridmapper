@@ -2051,6 +2051,7 @@ function replace (data, element, x, y, old, tile) {
           element.appendChild(tile);
         Map.data.get(x,y)[data] = tile;
       });
+    Pen.lastWall = null;
     return true;
   }
 }
@@ -2181,7 +2182,10 @@ function variant (x, y) {
 
 /**
  * Draws stairs, arcs and diagonals on the floor. 'data' is the key
- * into Tile, ie. one of 'arcs', 'floor' or 'walls'.
+ * into Tile, ie. one of 'arcs', 'floor' or 'walls'. Set Pen.lastWall
+ * to null when calling rotateTile. We can't do it there because
+ * rotateTile is also called by wallPlacement. We don't need to do it
+ * when calling replace because we'll do it there.
  */
 function rotate (data, x, y, type) {
   var old = Map.data.get(x, y)[data];
@@ -2194,6 +2198,7 @@ function rotate (data, x, y, type) {
       function() {
         rotateTile(old, x, y, (angle + 90) % 360);
       });
+    Pen.lastWall = null;
   } else {
     var tile = createTile(x, y, type);
     tile.setAttribute('rotate', 0);
@@ -2344,7 +2349,8 @@ function wallModeOff () {
  * sqare as well as moving from wall to wall (where one of the
  * coordinates is off by 0.5). Moving from horizontal to vertical
  * walls and back in wall mode is timing sensitive. That's why we need
- * Pen.lastMove.
+ * Pen.lastMove. We also set Pen.lastWall to null, so timing sensitive
+ * wall placement also works as intended.
  */
 function move (dir) {
   switch (dir) {
