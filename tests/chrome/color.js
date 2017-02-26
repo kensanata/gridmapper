@@ -43,6 +43,21 @@ module.exports = {
       .getAttribute("#door_2_0", "class", function(result) {
         this.assert.strictEqual(result.value, null, 'class is null');
       })
+      .execute(function(data){
+        window.Map.reset();
+      }, [])
+      .keys('cR nR')
+      .waitForElementPresent('#chest_0_0', 1000)
+      .assert.attributeEquals('#chest_0_0', 'class', 'red')
+      .assert.attributeEquals('#diagonal_1_0', 'class', 'red')
+      .assert.attributeEquals('#diagonal_1_0', 'rotate', '0')
+      .setValue("#exportarea", 'test')
+      // this doesn't work for some reason
+      // .click('#export')
+      .execute(function(data){
+        window.textExport();
+      }, [])
+      .assert.valueContains("#exportarea", 'cR nR')
       .end();
   }
 };

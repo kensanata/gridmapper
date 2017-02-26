@@ -406,13 +406,12 @@ var Map = {
               source += type[0].repeat(1 + rotate) + type.substr(1);
             } else {
               source += Map.symbols[tile.type];
-              if (tile.hasAttribute('class')
-                  && tile.getAttribute('class') !== 'white') {
-                // append RGB and advance
-                source += Map.symbols[tile.getAttribute('class')];
-                if (tile.type == 'empty' || tile.type.startsWith('rock'))
-                  source += ' ';
-              }
+            }
+            if (tile.hasAttribute('class') && tile.getAttribute('class') !== 'white') {
+              // append RGB and advance
+              source += Map.symbols[tile.getAttribute('class')];
+              if (tile.type == 'empty' || tile.type.startsWith('rock'))
+                source += ' ';
             }
             // the only floor tile that auto-advances is the empty floor
             if (tile.type !== 'empty' && !tile.type.startsWith('rock'))
@@ -3032,7 +3031,7 @@ function initialize () {
     remove(document.getElementById('label'));
     remove(document.getElementById('textarea'));
     // No text area means no exporting, saving or hosting
-    remove(document.getElementById('export'));
+    remove(document.getElementById('import-export'));
     remove(document.getElementById('load'));
     remove(document.getElementById('save'));
     remove(document.getElementById('how-to-host'));
@@ -3662,9 +3661,9 @@ onload = initialize;
 	<tspan class="key">Shift Arrows</tspan> : toggle floor
       </tspan>
 
-      <tspan x="30" dy="25" id="export">
-	<a class="blue" xlink:href="javascript:textExport()">Text Export</a>  
-	<a xlink:href="javascript:textImport()"><tspan class="blue">Text Import</tspan> or
+      <tspan x="30" dy="25" id="import-export">
+	<a id="export" class="blue" xlink:href="javascript:textExport()">Text Export</a>  
+	<a id="import" xlink:href="javascript:textImport()"><tspan class="blue">Text Import</tspan> or
 	<tspan class="key">Ctrl Enter</tspan></a>
       </tspan>
     </text>
