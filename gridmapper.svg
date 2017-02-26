@@ -329,7 +329,7 @@ var Map = {
       door: 'd', wall: 'w', stair: 's', chest: 'c',
       trap: 't', empty: 'f', pillar: 'p', statue: 'b',
       diagonal: 'n', arc: 'a', rock1: 'g', rockd: 'g',
-      rock2: 'g', rock3: 'g', rock4: 'g', red: 'R',
+      rock2a: 'g', rock2b: 'g', rock3: 'g', rock4: 'g', red: 'R',
       green: 'G', blue: 'B',
     };
     var keys = Object.keys(map);
@@ -1727,7 +1727,11 @@ function getRocks (x, y) {
           }
         }
         if (ok) {
-          tile = createTile(x, y, "rock" + r);
+          if (document.getElementById("rock" + r)) {
+            tile = createTile(x, y, "rock" + r);
+          } else {
+            tile = createTile(x, y, "rock" + r + (x % 2 === 1 ? "a" : "b"));
+          }
           return rotateTile(tile, x, y, i * 90);
         }
       }
@@ -3283,7 +3287,8 @@ onload = initialize;
       <circle cx="50" cy="50" r="10" class="background" stroke="black" stroke-width="7"/>
     </g>
     <path id="rock1" width="10" class="background" d="M0,10 v-1 L1,8 L0,6 v-1 L1,4 v-2 L0,1 L0,0 H10 V10 Z" stroke-miterlimit="1" stroke="black" stroke-width="1"/>
-    <path id="rock2" width="10" class="background" d="M0,10 v-1 L1,8 L1,7 L2,5 L1,4 L2,2 L4,1 L5,2 L7,2 L10,0 V10 Z" stroke-miterlimit="1" stroke-linecap="round" stroke="black" stroke-width="1"/>
+    <path id="rock2a" width="10" class="background" d="M0,10 v-1 L1,8 L1,7 L2,5 L1,4 L2,2 L4,1 L5,2 L7,2 L10,0 V10 Z" stroke-miterlimit="1" stroke-linecap="round" stroke="black" stroke-width="1"/>
+    <path id="rock2b" width="10" class="background" d="M0,10 v-1 L1,8 L1,7 L2,5 v-1 L3,3 h1 L5,2 L7,2 L10,0 V10 Z" stroke-miterlimit="1" stroke-linecap="round" stroke="black" stroke-width="1"/>
     <path id="rock3" width="10" class="background" d="M0,10 v-1 L1,7 v-1 L2,5 v-1 L2,2 L4,1 L5,2 L7,2 L9,1 L10,3 L8,6 L8,7 L10,10 Z" stroke-miterlimit="1" stroke-linecap="round" stroke="black" stroke-width="1"/>
     <path id="rock4" width="10" class="background" d="M3,3 L5,2 L7,3 L8,5 L7,7 v1 h-1 L4,9 L2,7 L2,5 Z" stroke-linecap="round" stroke="black" stroke-width="1"/>
     <path id="rockd" width="10" class="background" d="M0,10 v-1 L1,8 L0,6 v-1 L1,4 v-2 L0,1 L0,0 H10 v1 L9,2 v1 L8,6 L9,7 v1 L10,10 Z" stroke-miterlimit="1" stroke="black" stroke-width="1"/>
