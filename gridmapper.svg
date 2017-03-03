@@ -316,7 +316,9 @@ var Map = {
     'gap': 'wall',
     'chest': 'bed',
     'bed': 'table',
-    'table': 'chest',
+    'table': 'chair',
+    'chair': 'screen',
+    'screen': 'chest',
     'empty': 'void',
     'void': 'water',
     'water': 'empty',
@@ -3215,6 +3217,15 @@ onload = initialize;
       <circle cx="6.5" cy="4" r="0.5" fill="black"/>
       <circle cx="6.5" cy="6" r="0.5" fill="black"/>
     </g>
+    <g id="chair" width="10">
+      <rect width="10" height="10" class="background" stroke="black" stroke-width="1"/>
+      <rect x="2.5" y="3.5" width="5" height="3.5" fill="none" stroke="black" stroke-width="0.5"/>
+      <rect x="3.5" y="3.5" width="3" height="2.5" fill="none" stroke="black" stroke-width="0.5"/>
+    </g>
+    <g id="screen" width="10">
+      <rect width="10" height="10" class="background" stroke="black" stroke-width="1"/>
+      <rect x="2" y="3" width="6" height="4" fill="none" stroke="black" stroke-width="0.5"/>
+    </g>
     <g id="diagonal" width="10">
       <path class="background" stroke="black" stroke-width="1" stroke-linejoin="bevel" d="M0,10 H10 V0 Z"/>
     </g>
@@ -3542,6 +3553,12 @@ onload = initialize;
       </a>
       <a xlink:href="javascript:interpret('cvv')" title="table">
 	<use x="110" xlink:href="#table"/>
+      </a>
+      <a xlink:href="javascript:interpret('cvvv')" title="chair">
+	<use x="140" xlink:href="#chair"/>
+      </a>
+      <a xlink:href="javascript:interpret('cvvvv')" title="screen">
+	<use x="170" xlink:href="#screen"/>
       </a>
     </svg>
 
