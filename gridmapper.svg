@@ -1218,6 +1218,7 @@ function getSource () {
 
 function message (str) {
   var element = document.createElementNS(svgNs, 'g');
+  element.setAttribute('data-content', str);
   var rect = document.createElementNS(svgNs, 'rect');
   rect.setAttribute('fill', 'white');
   rect.setAttribute('stroke', 'black');
@@ -3124,8 +3125,8 @@ onload = initialize;
     <g id="altar" width="10">
       <rect width="10" height="10" class="background" stroke="black" stroke-width="1"/>
       <rect x="2" y="3" width="6" height="4" fill="none" stroke="black" stroke-width="0.5"/>
-      <circle cx="3.5" cy="5" r="0.5"/>
-      <circle cx="6.5" cy="5" r="0.5"/>
+      <circle cx="3.5" cy="5" r="0.5" fill="black"/>
+      <circle cx="6.5" cy="5" r="0.5" fill="black"/>
     </g>
     <g id="dais" width="10">
       <rect width="10" height="10" class="background" stroke="black" stroke-width="1"/>
@@ -3209,10 +3210,10 @@ onload = initialize;
     <g id="table" width="10">
       <rect width="10" height="10" class="background" stroke="black" stroke-width="1"/>
       <rect x="2" y="3" width="6" height="4" fill="none" stroke="black" stroke-width="0.5"/>
-      <circle cx="3.5" cy="4" r="0.5"/>
-      <circle cx="3.5" cy="6" r="0.5"/>
-      <circle cx="6.5" cy="4" r="0.5"/>
-      <circle cx="6.5" cy="6" r="0.5"/>
+      <circle cx="3.5" cy="4" r="0.5" fill="black"/>
+      <circle cx="3.5" cy="6" r="0.5" fill="black"/>
+      <circle cx="6.5" cy="4" r="0.5" fill="black"/>
+      <circle cx="6.5" cy="6" r="0.5" fill="black"/>
     </g>
     <g id="diagonal" width="10">
       <path class="background" stroke="black" stroke-width="1" stroke-linejoin="bevel" d="M0,10 H10 V0 Z"/>
