@@ -6,6 +6,37 @@
      xmlns:xlink="http://www.w3.org/1999/xlink">
   <desc>Gridmapper, a simple tool to create dungeon maps</desc>
 
+  <style><![CDATA[
+svg { overflow: visible }
+text { font: 14px 'Courier New', Courier, monospace }
+textarea { font: 10px 'Courier New', Courier, monospace }
+p { margin: 0 0 10px 0; padding: 0; }
+.line {  }
+.line svg { display: inline; vertical-align: middle }
+.labels text, #levels text, #label { text-anchor: middle; font: 10px 'Arial Narrow', sans-serif; font-weight: bold; }
+.labels text.left, #levels text.left { text-anchor: start; font-size: 14px; }
+a { color: black; text-decoration: none; }
+.blue { fill: blue; }
+/* http://paletton.com/palette.php?uid=30f0u0kk8qbaaFtfwuQo4mgswhv */
+.background { fill: inherit; }
+use.red { fill: #F6A17F; }
+use.green { fill: #A1DB71; }
+use.blue { fill: #88A9C2; }
+use { fill: white; }
+.key { color: forestgreen; fill: forestgreen; font-weight: bold; }
+.invisible { display: none; }
+.center:hover .dot { opacity: 1; }
+#ui { -webkit-tap-highlight-color: rgba(0,0,0,0); }
+.menu div {
+    background: white;
+    padding: 10px;
+    overflow: scroll;
+    font: 14px 'Courier New', Courier, monospace
+}
+.menu span { display: inline-block; width: 32ex }
+.menu a { color: blue }
+  ]]></style>
+
   <script type="application/javascript"><![CDATA[
 
 /* The original author (Alex Schroeder) has dedicated Gridmapper to
@@ -3311,37 +3342,6 @@ onload = initialize;
   <g id="levels" inkscape:groupmode="layer" inkscape:label="Levels"/>
   <use id="pointer" xlink:href="#cursor"/>
   <rect id="ui" opacity="0"/>
-
-  <style><![CDATA[
-  svg { overflow: visible }
-  text { font: 14px 'Courier New', Courier, monospace }
-  textarea { font: 10px 'Courier New', Courier, monospace }
-  p { margin: 0 0 10px 0; padding: 0; }
-  .line {  }
-  .line svg { display: inline; vertical-align: middle }
-  .labels text, #levels text, #label { text-anchor: middle; font: 10px 'Arial Narrow', sans-serif; font-weight: bold; }
-      .labels text.left, #levels text.left { text-anchor: start; font-size: 14px; }
-  a { color: black; text-decoration: none; }
-  .blue { fill: blue; }
-  /* http://paletton.com/palette.php?uid=30f0u0kk8qbaaFtfwuQo4mgswhv */
-  .background { fill: inherit; }
-  use.red { fill: #F6A17F; }
-  use.green { fill: #A1DB71; }
-  use.blue { fill: #88A9C2; }
-  use { fill: white; }
-  .key { color: forestgreen; fill: forestgreen; font-weight: bold; }
-  .invisible { display: none; }
-  .center:hover .dot { opacity: 1; }
-  #ui { -webkit-tap-highlight-color: rgba(0,0,0,0); }
-  .menu div {
-      background: white;
-      padding: 10px;
-      overflow: scroll;
-      font: 14px 'Courier New', Courier, monospace
-  }
-  .menu span { display: inline-block; width: 32ex }
-  .menu a { color: blue }
-  ]]></style>
 
   <g id="help">
     <rect x="10" y="80" width="470" height="600" fill="ivory" stroke="black" stroke-width="1"/>
