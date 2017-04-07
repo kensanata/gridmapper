@@ -1157,7 +1157,8 @@ function download () {
   var svg = document.querySelector('svg');
 
   // SVG download includes user interface
-  var str = new XMLSerializer().serializeToString(svg);
+  var str = '<?xml version="1.0" encoding="UTF-8" standalone="no"?>\n'
+      + new XMLSerializer().serializeToString(svg);
   if (window.navigator.msSaveBlob != null) {
     // Internet Explorer: download immediately
     window.navigator.msSaveBlob(new Blob([str]), 'gridmapper.svg');
