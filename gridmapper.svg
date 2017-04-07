@@ -1154,18 +1154,28 @@ function download () {
     }, 10000);
   }
 
-  var svg = document.querySelector('svg');
+  // create a clone but don't append it anywhere
+  var clone = document.firstElementChild.cloneNode(false); // shallow
+  var background = document.getElementById('background');
+  clone.setAttribute('width', background.getBBox().width + 2 * Map.tileWidth);
+  clone.setAttribute('height', background.getBBox().height + 2 * Map.tileWidth);
+  clone.appendChild(document.querySelector('defs').cloneNode(true));
+  clone.appendChild(document.querySelector('style').cloneNode(true));
+  clone.appendChild(background.cloneNode(true));
+  clone.appendChild(document.getElementById('levels').cloneNode(true));
 
-  // SVG download includes user interface
+  // serialize
   var str = '<?xml version="1.0" encoding="UTF-8" standalone="no"?>\n'
-      + new XMLSerializer().serializeToString(svg);
+      + new XMLSerializer().serializeToString(clone);
+
+  // Internet Explorer: download immediately
   if (window.navigator.msSaveBlob != null) {
-    // Internet Explorer: download immediately
     window.navigator.msSaveBlob(new Blob([str]), 'gridmapper.svg');
     // IE also raises security exception for canvas, so skip the PNG part
     return;
   }
 
+  // Other browsers use data URI with base64 encoding
   var source = btoa(unescape(encodeURIComponent(str)));
   var link  = document.getElementById('download_svg');
   link.setAttributeNS(xlinkNs, 'href', 'data:image/svg+xml;base64,' + source);
@@ -1174,16 +1184,7 @@ function download () {
   // the foreignObject elements because it causes a security exception
   // in Safari.
   // http://stackoverflow.com/questions/33972254/svgpng-from-canvas-todataurl-throws-dom-exception-18-security-error-in-safari-9
-  var clone = document.createElementNS("http://www.w3.org/2000/svg", "svg");
-  var background = svg.getElementById('background');
-  clone.setAttribute('width', svg.getAttribute('width'));
-  clone.setAttribute('height', svg.getAttribute('width'));
-  clone.appendChild(svg.querySelector('defs').cloneNode(true));
-  clone.appendChild(svg.querySelector('style').cloneNode(true));
-  clone.appendChild(svg.getElementById('background').cloneNode(true));
-  clone.appendChild(svg.getElementById('levels').cloneNode(true));
-  source = btoa(unescape(encodeURIComponent(new XMLSerializer().serializeToString(clone))));
-
+  source = btoa(unescape(encodeURIComponent(str)));
   link  = document.getElementById('download_png');
 
   // SVG to PNG using canvas https://gist.github.com/gustavohenke/9073132
