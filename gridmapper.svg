@@ -27,6 +27,14 @@ use { fill: white; }
 .invisible { display: none; }
 .center:hover .dot { opacity: 1; }
 #ui { -webkit-tap-highlight-color: rgba(0,0,0,0); }
+
+/* http://www.color-hex.com/color/add8e6
+   https://de.wikipedia.org/wiki/Non-Photo_Blue */
+svg.blue defs * { stroke: #566c73; }
+svg.blue defs *[fill=black], a, text, tspan { stroke: none; fill: #566c73; }
+svg.blue .key { fill: white; }
+svg.blue .blue { text-decoration: underline; fill: inherit; }
+
 .menu div {
     background: white;
     padding: 10px;
@@ -303,6 +311,12 @@ var Map = {
   setBackground: function(color) {
     // default is light grey #d3d3d3
     var bg = document.getElementById('background').firstElementChild;
+    elementTo(bg, 'fill', color, linear, 500);
+  },
+
+  setHelp: function(color) {
+    // default is ivory #fffff0
+    var bg = document.getElementById('help').firstElementChild;
     elementTo(bg, 'fill', color, linear, 500);
   },
 
@@ -1039,27 +1053,35 @@ function fadeElementTo (element, opacity, delta, duration) {
   });
 };
 
-/**
- * This changes an attribute color for greyscale! If you
- * need full color support, check out the LAB color model.
- * https://software.intel.com/en-us/html5/hub/blogs/exploring-color-matching-in-javascript
- **/
 function elementTo (element, attribute, fill, delta, duration) {
   var str = element.getAttribute(attribute);
-  var from = 211; // default is light grey
-  if (str.indexOf('rgb(') === 0)
-    from = parseInt(str.split("(")[1].split(")")[0].split(",")[0]); // red value
-  if (from !== fill)
-    animate({
-      delay: 10,
-      duration: duration || 1000, // 1 sec by default
-      delta: delta,
-      step: function(delta) {
-        // ~~ is for Math.floor: http://rocha.la/JavaScript-bitwise-operators-in-practice
-        var value = ~~ (from + (fill - from) * delta);
-        element.setAttribute(attribute, 'rgb(' + value + ',' + value + ',' + value + ')');
+  var from = [211, 211, 211]; // default is light grey
+  var rgb;
+  if (rgb = /^rgb\((\d+), ?(\d+), ?(\d+)\)$/i.exec(str)) {
+    from = [parseInt(rgb[1]), parseInt(rgb[2]), parseInt(rgb[3])];
+  } else if (rgb = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(str)) {
+    from = [parseInt(rgb[1], 16), parseInt(rgb[2], 16), parseInt(rgb[3], 16)];
+  }
+  if (!isNaN(fill)) {
+    fill = [fill, fill, fill];
+  } else if (rgb = /^rgb\((\d+), ?(\d+), ?(\d+)\)$/i.exec(fill)) {
+    fill = [parseInt(rgb[1]), parseInt(rgb[2]), parseInt(rgb[3])];
+  } else if (rgb = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(fill)) {
+    fill = [parseInt(rgb[1], 16), parseInt(rgb[2], 16), parseInt(rgb[3], 16)];
+  }
+  animate({
+    delay: 10,
+    duration: duration || 1000, // 1 sec by default
+    delta: delta,
+    step: function(delta) {
+      // ~~ is for Math.floor: http://rocha.la/JavaScript-bitwise-operators-in-practice
+      var value = [];
+      for (var i = 0; i < 3; i++) {
+        value[i] = ~~ (from[i] + (fill[i] - from[i]) * delta);
       }
-    });
+      element.setAttribute(attribute, 'rgb(' + value[0] + ',' + value[1] + ',' + value[2] + ')');
+    }
+  });
 };
 
 /**
@@ -2747,9 +2769,18 @@ function keyHandling (evt, recording) {
       Map.setBackground(255);
       Map.backgroundMode = 'white';
       message("White background");
+    } else if (Map.backgroundMode === 'white') {
+      document.firstElementChild.setAttribute('class', 'blue');
+      Map.setBackground('#add8e6'); // see <style> element
+      Map.setHelp('#add8e6'); // see <style> element
+      Map.backgroundMode = 'blue';
+      message("Blue everything");
     } else {
+      // show other levels
       Map.showLevelAnimation();
+      document.firstElementChild.removeAttribute('class');
       Map.setBackground(211); // #d3d3d3 is light grey
+      Map.setHelp('#fffff0'); // #fffff0 is ivory
       Map.backgroundMode = 'lightgrey';
       message("Default background");
     }
@@ -3214,7 +3245,7 @@ onload = initialize;
       <rect x="2" y="2" width="6" height="6" fill="none" stroke="black" stroke-width="1"/>
       <line x1="2" y1="2" x2="8" y2="8" stroke="black" stroke-width="0.5"/>
       <line x1="2" y1="8" x2="8" y2="2" stroke="black" stroke-width="0.5"/>
-      <rect x="3.2" y="3.2" width="3.6" height="3.6" fill="black"/>
+      <rect x="3.5" y="3.5" width="3" height="3" fill="black"/>
     </g>
     <g id="trap-door-ceiling" width="10" class="labels">
       <rect width="10" height="10" class="background" stroke="black" stroke-width="1"/>
@@ -3346,7 +3377,7 @@ onload = initialize;
   <rect id="ui" opacity="0"/>
 
   <g id="help">
-    <rect x="10" y="80" width="470" height="600" fill="ivory" stroke="black" stroke-width="1"/>
+    <rect x="10" y="80" width="470" height="600" fill="#fffff0" stroke="black" stroke-width="1"/>
     <text>
       <tspan x="30" y="102">Use the mouse to draw and erase floor tiles.</tspan>
       <tspan x="30" dy="17">Use the following keys to place or rotate</tspan>
@@ -3671,7 +3702,7 @@ onload = initialize;
       <tspan x="30" dy="25">
 	<a xlink:href="javascript:keyPressed('y')"><tspan class="key">y</tspan> : up</a>  
 	<a xlink:href="javascript:keyPressed('z')"><tspan class="key">z</tspan> : down</a>  
-	<a xlink:href="javascript:keyPressed('Z')" title="hide other levels or black background">
+	<a xlink:href="javascript:keyPressed('Z')" title="hide other levels or switch background">
   	  <tspan class="key">Z</tspan> : switch background
 	</a>
       </tspan>
