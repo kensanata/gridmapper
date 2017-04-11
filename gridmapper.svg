@@ -28,10 +28,10 @@ use { fill: white; }
 .center:hover .dot { opacity: 1; }
 #ui { -webkit-tap-highlight-color: rgba(0,0,0,0); }
 
-/* http://www.color-hex.com/color/add8e6
+/* http://www.color-hex.com/color/01b0f1
    https://de.wikipedia.org/wiki/Non-Photo_Blue */
-svg.blue defs * { stroke: #566c73; }
-svg.blue defs *[fill=black], a, text, tspan { stroke: none; fill: #566c73; }
+svg.blue defs * { stroke: #005878; }
+svg.blue defs *[fill=black], a, text, tspan { stroke: none; fill: #005878; }
 svg.blue .key { fill: white; }
 svg.blue .blue { text-decoration: underline; fill: inherit; }
 
@@ -2771,8 +2771,8 @@ function keyHandling (evt, recording) {
       message("White background");
     } else if (Map.backgroundMode === 'white') {
       document.firstElementChild.setAttribute('class', 'blue');
-      Map.setBackground('#add8e6'); // see <style> element
-      Map.setHelp('#add8e6'); // see <style> element
+      Map.setBackground('#01b0f1'); // see <style> element
+      Map.setHelp('#01b0f1'); // see <style> element
       Map.backgroundMode = 'blue';
       message("Blue everything");
     } else {
