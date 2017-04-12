@@ -30,8 +30,11 @@ use { fill: white; }
 
 /* http://www.color-hex.com/color/01b0f1
    https://de.wikipedia.org/wiki/Non-Photo_Blue */
-svg.blue defs * { stroke: #005878; }
-svg.blue defs *[fill=black], a, text, tspan { stroke: none; fill: #005878; }
+svg.blue * { stroke: #005878; }
+svg.blue *[fill=black],
+svg.blue a,
+svg.blue text,
+svg.blue tspan { stroke: none; fill: #005878; }
 svg.blue .key { fill: white; }
 svg.blue .blue { text-decoration: underline; fill: inherit; }
 
