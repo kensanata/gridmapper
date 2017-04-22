@@ -89,6 +89,7 @@ var Map = {
   tileWidth: 20, // tile size in pixels
   ui: null, // the SVG element with the event handlers
   pointer: null, // the SVG element for the current position
+  region: null, // the SVG element to mark the region currently selected
   levelsElement: null, // the SVG element for levels
   levels: [], // data array of level data (Tiles)
   level: 0, // the current level
@@ -121,6 +122,7 @@ var Map = {
    */
   initialize: function() {
     Map.pointer = document.getElementById('pointer');
+    Map.region = document.getElementById('region').firstElementChild;
     Map.levelsElement = document.getElementById('levels');
     // http://javascript.info/tutorial/mouse-events#drag-n-drop
     Map.ui = document.getElementById('ui'); // will be moved, too
@@ -397,81 +399,15 @@ var Map = {
   },
 
   /**
-   * Produces the code necessary to reproduce the map. The characters
-   * must be handled by interpretMap.
+   * Produces the code necessary to reproduce the entire map. The
+   * characters must be handled by interpretMap.
    */
   code: function() {
     var source = '';
 
     for (var y = 0; y < Map.height; y++) {
       for (var x = 0; x < Map.width; x++) {
-        if (Map.data.has(x, y)) {
-
-          var walls = Map.data.get(x, y).walls;
-          if (walls) {
-            walls = walls.sort(function(a,b){
-              return parseInt(a.getAttribute('rotate')) - parseInt(b.getAttribute('rotate'));
-            });
-            for (var i = 0; i < walls.length; i++) {
-              var tile = walls[i];
-              var type = Map.symbols[tile.type];
-              if (type) {
-                source += type[0].repeat(1 + tile.getAttribute('rotate') / 90 - i) + type.substr(1);
-              }
-              if (tile.hasAttribute('class')
-                  && tile.getAttribute('class') !== 'white') {
-                source += Map.symbols[tile.getAttribute('class')] + '.';
-              } else if (i < walls.length - 1) {
-                source += '.';
-              }
-            }
-          }
-
-          // label must precede floor tiles which advance the position
-          var label = Map.data.get(x, y).label;
-	  if (label !== null) {
-	    if (label.textContent.search(/^[0-9]*$/) === 0) {
-              source += label.textContent;
-            } else if (label.getAttribute('class') === 'left') {
-              source += "'" + label.textContent + "'";
-            } else {
-              source += '"' + label.textContent + '"';
-            }
-          }
-          var tile = Map.data.get(x, y).arcs;
-          if (tile !== null) {
-            if (tile.hasAttribute('rotate')) {
-              var rotate = tile.getAttribute('rotate') / 90;
-              var type = Map.symbols[tile.type];
-              source += type[0].repeat(1 + rotate) + type.substr(1);
-            } else {
-              source += Map.symbols[tile.type];
-            }
-          }
-          tile = Map.data.get(x, y).floor;
-          if (tile !== null) {
-            if (tile.hasAttribute('rotate') && !tile.type.startsWith('rock')) {
-              var rotate = tile.getAttribute('rotate') / 90;
-              var type = Map.symbols[tile.type];
-              source += type[0].repeat(1 + rotate) + type.substr(1);
-            } else {
-              source += Map.symbols[tile.type];
-            }
-            if (tile.hasAttribute('class') && tile.getAttribute('class') !== 'white') {
-              // append RGB and advance
-              source += Map.symbols[tile.getAttribute('class')];
-              if (tile.type == 'empty' || tile.type.startsWith('rock'))
-                source += ' ';
-            }
-            // the only floor tile that auto-advances is the empty floor
-            if (tile.type !== 'empty' && !tile.type.startsWith('rock'))
-              source += ' ';
-          } else {
-            source += ' ';
-          }
-        } else {
-          source += ' ';
-        }
+        source += Map.codeFor(x,y);
       }
       source += '\n';
     }
@@ -486,6 +422,81 @@ var Map = {
     });
     return source;
   },
+
+  /**
+   * Produces the code necessary to reproduce the map. The characters
+   * must be handled by interpretMap.
+   */
+  codeFor: function(x, y) {
+    var source = '';
+    if (Map.data.has(x, y)) {
+      var walls = Map.data.get(x, y).walls;
+      if (walls) {
+        walls = walls.sort(function(a,b){
+          return parseInt(a.getAttribute('rotate')) - parseInt(b.getAttribute('rotate'));
+        });
+        for (var i = 0; i < walls.length; i++) {
+          var tile = walls[i];
+          var type = Map.symbols[tile.type];
+          if (type) {
+            source += type[0].repeat(1 + tile.getAttribute('rotate') / 90 - i) + type.substr(1);
+          }
+          if (tile.hasAttribute('class')
+              && tile.getAttribute('class') !== 'white') {
+            source += Map.symbols[tile.getAttribute('class')] + '.';
+          } else if (i < walls.length - 1) {
+            source += '.';
+          }
+        }
+      }
+      // label must precede floor tiles which advance the position
+      var label = Map.data.get(x, y).label;
+      if (label !== null) {
+	if (label.textContent.search(/^[0-9]*$/) === 0) {
+          source += label.textContent;
+        } else if (label.getAttribute('class') === 'left') {
+          source += "'" + label.textContent + "'";
+        } else {
+          source += '"' + label.textContent + '"';
+        }
+      }
+      var tile = Map.data.get(x, y).arcs;
+      if (tile !== null) {
+        if (tile.hasAttribute('rotate')) {
+          var rotate = tile.getAttribute('rotate') / 90;
+          var type = Map.symbols[tile.type];
+          source += type[0].repeat(1 + rotate) + type.substr(1);
+        } else {
+          source += Map.symbols[tile.type];
+        }
+      }
+      tile = Map.data.get(x, y).floor;
+      if (tile !== null) {
+        if (tile.hasAttribute('rotate') && !tile.type.startsWith('rock')) {
+          var rotate = tile.getAttribute('rotate') / 90;
+          var type = Map.symbols[tile.type];
+          source += type[0].repeat(1 + rotate) + type.substr(1);
+        } else {
+          source += Map.symbols[tile.type];
+        }
+        if (tile.hasAttribute('class') && tile.getAttribute('class') !== 'white') {
+          // append RGB and advance
+          source += Map.symbols[tile.getAttribute('class')];
+          if (tile.type == 'empty' || tile.type.startsWith('rock'))
+            source += ' ';
+        }
+        // the only floor tile that auto-advances is the empty floor
+        if (tile.type !== 'empty' && !tile.type.startsWith('rock'))
+          source += ' ';
+      } else {
+        source += ' ';
+      }
+    } else {
+      source += ' ';
+    }
+    return source;
+  },
+  
 };
 
 /**
@@ -573,13 +584,13 @@ var Pen = {
    * non-null mouse event, determine the new position, first. We call
    * this onmousemove even if we're not drawing because of possible
    * keypress events (which don't come with a position). Exception:
-   * When pressing the shift key while moving the mouse, don't update
+   * When pressing the Alt key while moving the mouse, don't update
    * our position.
    */
   update: function(evt) {
     if (evt) {
       evt.preventDefault(); /* for touch events: no scrolling */
-      if (evt.shiftKey)
+      if (evt.altKey)
         return;
       var pos = Pen.position(evt);
       if (Pen.x !== pos.x || Pen.y !== pos.y) {
@@ -592,6 +603,14 @@ var Pen = {
     }
     Map.pointer.setAttribute('x', (Pen.x + 1) * Map.tileWidth);
     Map.pointer.setAttribute('y', (Pen.y + 1) * Map.tileWidth);
+    if (Map.region.getAttribute('opacity') > 0) {
+      var startX = Map.region.getAttribute('startX');
+      var startY = Map.region.getAttribute('startY');
+      Map.region.setAttribute('x', (Math.min(Pen.x, startX) + 1) * Map.tileWidth);
+      Map.region.setAttribute('y', (Math.min(Pen.y, startY) + 1) * Map.tileWidth);
+      Map.region.setAttribute('width', (1 + Math.abs(Pen.x - startX)) * Map.tileWidth);
+      Map.region.setAttribute('height', (1 + Math.abs(Pen.y - startY)) * Map.tileWidth);
+    }
   },
 
   /**
@@ -1993,6 +2012,7 @@ function wallMode (x, y) {
   if (Pen.type === 'wallMode') {
     wallModeOff();
   } else {
+    regionOff();
     Pen.type = 'wallMode';
     if (Pen.x > 0) {
       Pen.x -= 0.5;
@@ -2177,6 +2197,81 @@ function background (x, y, color) {
     });
   // make sure this is a single undo/redo command
   Commands.merge(undoBoundary);
+}
+
+function regionOff (x, y) {
+  if (Map.region.getAttribute('opacity') > 0) {
+    Map.region.setAttribute('opacity', 0);
+  }
+}
+
+/**
+ * Turn the region on if it was off. This also marks the starting
+ * position of the region. Since this is only set when the region was
+ * off, you can call it any number of times after that.
+ */
+function regionOn (x, y) {
+  if (Map.region.getAttribute('opacity') == 0) {
+    wallModeOff();
+    Map.region.setAttribute('x', (Pen.x + 1) * Map.tileWidth);
+    Map.region.setAttribute('y', (Pen.y + 1) * Map.tileWidth);
+    Map.region.setAttribute('startX', Pen.x);
+    Map.region.setAttribute('startY', Pen.y);
+    Map.region.setAttribute('height', Map.tileWidth);
+    Map.region.setAttribute('width', Map.tileWidth);
+    Map.region.setAttribute('opacity', 0.2);
+  }
+}
+
+/**
+ * Delete everything at every position for the rectangle specified.
+ */
+function rectangleDelete (x1, y1, x2, y2) {
+  for (var y = y1; y <= y2; y++) {
+    for (var x = x1; x <= x2; x++) {
+      deleteFromLabel(x, y);
+      while (removeWall(x, y));
+      removeFloor(x, y);
+      removeArc(x, y);
+    }
+  }
+}
+
+/**
+ * Loop over the entire region, if it is active, and delete everything
+ * at every position. FIXME: merge undo boundaries?
+ */
+function regionDelete () {
+  if (Map.region.getAttribute('opacity') > 0) {
+    var startX = Map.region.getAttribute('startX');
+    var startY = Map.region.getAttribute('startY');
+    rectangleDelete(Math.min(Pen.x, startX), Math.min(Pen.y, startY),
+                    Math.max(Pen.x, startX), Math.max(Pen.y, startY));
+  }
+}
+
+/**
+ * Loop over the entire region, if it is active, and create a string
+ * containing all the commands necessary to recreate it, and put it
+ * into the text area.
+ */
+function copyRegion () {
+  if (Map.region.getAttribute('opacity') > 0) {
+    // start with a deletion of the target region
+    var startX = Map.region.getAttribute('startX');
+    var startY = Map.region.getAttribute('startY');
+    var source = 'X[' + (1 + Math.abs(Pen.x - startX))
+        + ',' + (1 + Math.abs(Pen.y - startY)) + ']';
+    for (var y = Math.min(Pen.y, startY); y <= Math.max(Pen.y, startY); y++) {
+      for (var x = Math.min(Pen.x, startX); x <= Math.max(Pen.x, startX); x++) {
+        source += Map.codeFor(x, y);
+      }
+      if (y < Math.max(Pen.y, startY)) {
+        source += '[-' + (1 + Math.abs(Pen.x - startX)) + ',1]';
+      }
+    }
+    Map.exportarea.value = source;
+  }
 }
 
 /**
@@ -2532,6 +2627,10 @@ function keyHandling (evt, recording) {
     return;
   }
 
+  if (evt.ctrlKey && evt.keyCode) { // Chrome
+    key = String.fromCharCode(96 + evt.keyCode); // 3 is 99 is 'c'
+  }
+
   if (target !== undefined && target.parentNode === Map.labelfield) {
     if (key === 'Enter') {
       var type = Map.labelfield.getAttribute('class');
@@ -2578,9 +2677,12 @@ function keyHandling (evt, recording) {
   case 'Down':
   case 'j':
   case 'J':
-    if (evt.shiftKey) {
+    if (evt.altKey) {
       wallModeOff();
       floor(Pen.x, Pen.y);
+    }
+    if (evt.shiftKey) {
+      regionOn();
     }
     move('down');
     key = '(' + Pen.x + ',' + Pen.y + ')';
@@ -2590,9 +2692,12 @@ function keyHandling (evt, recording) {
   case 'Up':
   case 'k':
   case 'K':
-    if (evt.shiftKey) {
+    if (evt.altKey) {
       wallModeOff();
       floor(Pen.x, Pen.y);
+    }
+    if (evt.shiftKey) {
+      regionOn();
     }
     move('up');
     key = '(' + Pen.x + ',' + Pen.y + ')';
@@ -2602,9 +2707,12 @@ function keyHandling (evt, recording) {
   case 'Left':
   case 'h':
   case 'H':
-    if (evt.shiftKey) {
+    if (evt.altKey) {
       wallModeOff();
       floor(Pen.x, Pen.y);
+    }
+    if (evt.shiftKey) {
+      regionOn();
     }
     move('left');
     key = '(' + Pen.x + ',' + Pen.y + ')';
@@ -2615,9 +2723,12 @@ function keyHandling (evt, recording) {
   case 'l':
   case 'L':
   case ' ':
-    if (evt.shiftKey) {
+    if (evt.altKey) {
       wallModeOff();
       floor(Pen.x, Pen.y);
+    }
+    if (evt.shiftKey) {
+      regionOn();
     }
     move('right');
     key = '(' + Pen.x + ',' + Pen.y + ')';
@@ -2637,6 +2748,14 @@ function keyHandling (evt, recording) {
     break;
 
   case 'x':
+    if (evt.ctrlKey) {
+      copyRegion();
+      regionDelete();
+      regionOff();
+      break;
+    }
+    // else fall through to delete!
+    
   case 'Backspace':
   case 'Del':
     if (Pen.type === 'wallMode') {
@@ -2706,8 +2825,14 @@ function keyHandling (evt, recording) {
     break;
 
   case 'c':
-    wallModeOff();
-    rotate('floor', Pen.x, Pen.y, 'chest');
+    if (evt.ctrlKey) {
+      copyRegion();
+      regionOff();
+      recording = false; // don't record this one
+    } else {
+      wallModeOff();
+      rotate('floor', Pen.x, Pen.y, 'chest');
+    }
     break;
 
   case 's':
@@ -2716,7 +2841,12 @@ function keyHandling (evt, recording) {
     break;
 
   case 'v':
-    variant(Pen.x, Pen.y);
+    if (evt.ctrlKey) {
+      textImport();
+      recording = false; // don't record this one
+    } else {
+      variant(Pen.x, Pen.y);
+    }
     break;
 
   case 'n':
@@ -2757,6 +2887,11 @@ function keyHandling (evt, recording) {
     background(Pen.x, Pen.y, 'blue');
     break;
 
+  case 'Escape':
+    if (Map.region.getAttribute('opacity') > 0) {
+      Map.region.setAttribute('opacity', 0);
+    }
+    break;
 
   case 'Z':
     if (Map.backgroundMode === 'lightgrey' && Map.levels.length > 1) {
@@ -2917,6 +3052,13 @@ function interpretCont (code, i, advance, record) {
       if (match) {
         Pen.x += Number(match[1]);
         Pen.y += Number(match[2]);
+        i += match[0].length - 1; // will get incremented above
+      }
+      break;
+    case 'X':
+      var match = code.substr(i).match(/^X\[(\d+),(\d+)\]/);
+      if (match) {
+        rectangleDelete(Pen.x, Pen.y, Pen.x + Number(match[1]) - 1, Pen.y + Number(match[2]) - 1);
         i += match[0].length - 1; // will get incremented above
       }
       break;
@@ -3376,6 +3518,9 @@ onload = initialize;
     <rect x="20" y="20" width="0" height="0" fill="rgb(211,211,211)" stroke="black" stroke-width="1"/>
   </g>
   <g id="levels" inkscape:groupmode="layer" inkscape:label="Levels"/>
+  <g id="region" inkscape:groupmode="layer" inkscape:label="Region">
+    <rect x="20" y="20" width="20" height="20" fill="green" opacity="0"/>
+  </g>
   <use id="pointer" xlink:href="#cursor"/>
   <rect id="ui" opacity="0"/>
 
@@ -3717,7 +3862,7 @@ onload = initialize;
 
       <tspan x="30" dy="25">
 	<tspan class="key">Arrows</tspan> : move  
-	<tspan class="key">Shift Arrows</tspan> : toggle floor
+	<tspan class="key">Alt Arrows</tspan> : toggle floor
       </tspan>
 
       <tspan x="30" dy="25" id="import-export">
@@ -3788,7 +3933,7 @@ onload = initialize;
 
     <tspan class="step3" x="0" y="0">You can draw the floor using your mouse.</tspan>
     <tspan class="step3" x="0" dy="20">Or you can use
-    <tspan class="key">Shift</tspan> and the
+    <tspan class="key">Alt</tspan> and the
     <tspan class="key">Arrow keys</tspan>.</tspan>
     <code class="step3">(13,11)ffff(13,12)ffff(13,13)ffff(13,14)ffff(13,15)ffff</code>
 
