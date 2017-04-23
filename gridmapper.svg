@@ -2254,12 +2254,25 @@ function regionDelete () {
   }
 }
 
+function regionCut () {
+  let undoBoundary = Commands.i;
+  regionCopy();
+  regionDelete();
+  Commands.merge(undoBoundary);
+}
+
+function regionPaste () {
+  let undoBoundary = Commands.i;
+  textImport();
+  Commands.merge(undoBoundary);
+}
+
 /**
  * Loop over the entire region, if it is active, and create a string
  * containing all the commands necessary to recreate it, and put it
  * into the text area.
  */
-function copyRegion () {
+function regionCopy () {
   if (Map.region.getAttribute('opacity') > 0) {
     // start with a deletion of the target region
     var startX = Map.region.getAttribute('startX');
@@ -2759,8 +2772,7 @@ function keyHandling (evt, recording) {
 
   case 'x':
     if (evt.ctrlKey) {
-      copyRegion();
-      regionDelete();
+      regionCut();
       break;
     }
     // else fall through to delete!
@@ -2835,7 +2847,7 @@ function keyHandling (evt, recording) {
 
   case 'c':
     if (evt.ctrlKey) {
-      copyRegion();
+      regionCopy();
       recording = false; // don't record this one
     } else {
       wallModeOff();
@@ -2850,7 +2862,7 @@ function keyHandling (evt, recording) {
 
   case 'v':
     if (evt.ctrlKey) {
-      textImport();
+      regionPaste();
       recording = false; // don't record this one
     } else {
       variant(Pen.x, Pen.y);
