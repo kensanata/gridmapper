@@ -496,7 +496,7 @@ var Map = {
     }
     return source;
   },
-  
+
 };
 
 /**
@@ -2279,6 +2279,7 @@ function regionCopy () {
     var startY = Map.region.getAttribute('startY');
     var source = 'X[' + (1 + Math.abs(Pen.x - startX))
         + ',' + (1 + Math.abs(Pen.y - startY)) + ']';
+    // now generate the code for the region
     for (var y = Math.min(Pen.y, startY); y <= Math.max(Pen.y, startY); y++) {
       for (var x = Math.min(Pen.x, startX); x <= Math.max(Pen.x, startX); x++) {
         source += Map.codeFor(x, y);
@@ -2644,8 +2645,13 @@ function keyHandling (evt, recording) {
     return;
   }
 
-  if (evt.ctrlKey && evt.keyCode) { // Chrome
-    key = String.fromCharCode(96 + evt.keyCode); // 3 is 99 is 'c'
+  // upcase control keys and use them instead
+  if (evt.ctrlKey) {
+    if (evt.keyCode) { // Chrome
+      key = String.fromCharCode(64 + evt.keyCode); // 3 is 67 is 'C'
+    } else if (key !== 'Control') {
+      key = String.toUpperCase(key);
+    }
   }
 
   if (target !== undefined && target.parentNode === Map.labelfield) {
@@ -2668,7 +2674,7 @@ function keyHandling (evt, recording) {
   }
 
   var keepRegion = false;
-  
+
   switch (key) {
 
   case '?':
@@ -2700,7 +2706,7 @@ function keyHandling (evt, recording) {
       wallModeOff();
       floor(Pen.x, Pen.y);
     }
-    if (evt.shiftKey) {
+    if (evt.shiftKey || key === 'J') {
       regionOn();
       keepRegion = true;
     }
@@ -2716,7 +2722,7 @@ function keyHandling (evt, recording) {
       wallModeOff();
       floor(Pen.x, Pen.y);
     }
-    if (evt.shiftKey) {
+    if (evt.shiftKey || key === 'K') {
       regionOn();
       keepRegion = true;
     }
@@ -2732,7 +2738,7 @@ function keyHandling (evt, recording) {
       wallModeOff();
       floor(Pen.x, Pen.y);
     }
-    if (evt.shiftKey) {
+    if (evt.shiftKey || key === 'H') {
       regionOn();
       keepRegion = true;
     }
@@ -2749,7 +2755,7 @@ function keyHandling (evt, recording) {
       wallModeOff();
       floor(Pen.x, Pen.y);
     }
-    if (evt.shiftKey) {
+    if (evt.shiftKey || key === 'L') {
       regionOn();
       keepRegion = true;
     }
@@ -2771,12 +2777,6 @@ function keyHandling (evt, recording) {
     break;
 
   case 'x':
-    if (evt.ctrlKey) {
-      regionCut();
-      break;
-    }
-    // else fall through to delete!
-    
   case 'Backspace':
   case 'Del':
     if (Pen.type === 'wallMode') {
@@ -2846,13 +2846,8 @@ function keyHandling (evt, recording) {
     break;
 
   case 'c':
-    if (evt.ctrlKey) {
-      regionCopy();
-      recording = false; // don't record this one
-    } else {
-      wallModeOff();
-      rotate('floor', Pen.x, Pen.y, 'chest');
-    }
+    wallModeOff();
+    rotate('floor', Pen.x, Pen.y, 'chest');
     break;
 
   case 's':
@@ -2861,12 +2856,7 @@ function keyHandling (evt, recording) {
     break;
 
   case 'v':
-    if (evt.ctrlKey) {
-      regionPaste();
-      recording = false; // don't record this one
-    } else {
-      variant(Pen.x, Pen.y);
-    }
+    variant(Pen.x, Pen.y);
     break;
 
   case 'n':
@@ -2942,6 +2932,21 @@ function keyHandling (evt, recording) {
       Map.backgroundMode = 'lightgrey';
       message("Default background");
     }
+    break;
+
+  case 'X':
+    regionCut();
+    recording = false; // don't record this one
+    break;
+
+  case 'C':
+    regionCopy();
+    recording = false; // don't record this one
+    break;
+
+  case 'V':
+    regionPaste();
+    recording = false; // don't record this one
     break;
 
   case '"':
@@ -3963,102 +3968,111 @@ onload = initialize;
     <tspan class="step3" x="0" dy="20">Or you can use
     <tspan class="key">Alt</tspan> and the
     <tspan class="key">Arrow keys</tspan>.</tspan>
-    <code class="step3">(13,11)ffff(13,12)ffff(13,13)ffff(13,14)ffff(13,15)ffff</code>
+    <code class="step3">(13,11)ffff(13,12)ffff(13,13)ffff</code>
 
-    <tspan class="step4" x="0" y="0">In general I recomend using the
+    <tspan class="step4" x="0" y="0">Use
+    <tspan class="key">Shift</tspan> and the
+    <tspan class="key">Arrow keys</tspan> to select a region.</tspan>
+    <tspan class="step4" x="0" dy="20">Use
+    <tspan class="key">Ctrl+x</tspan> to cut,
+    <tspan class="key">Ctrl+c</tspan> to copy and
+    <tspan class="key">Ctrl+v</tspan> to paste.</tspan>
+    <code class="step4">h;H;H;H;K;C;jjV;</code>
+
+    <tspan class="step5" x="0" y="0">In general I recomend using the
     <tspan class="key">Arrow keys</tspan> to move.</tspan>
-    <tspan class="step4" x="0" dy="20">Use <tspan class="key">f</tspan>
+    <tspan class="step5" x="0" dy="20">Use <tspan class="key">f</tspan>
     to draw or erase the floor.</tspan>
-    <code class="step4">(14,16)ff(14,17)ff(11,18)ffffff(11,19)ffffff(11,20)ffffff;ffff-;f--;f--;f--;f-</code>
+    <code class="step5">(14,16)ff(14,17)ff(11,18)ffffff(11,19)ffffff(11,20)ffffff;ffff-;f--;f--;f--;f-</code>
 
-    <tspan class="step5" x="0" y="0">Things like traps, statues and pillars are easy.</tspan>
-    <tspan class="step5" x="0" dy="20">Just use the appropriate key:
+    <tspan class="step6" x="0" y="0">Things like traps, statues and pillars are easy.</tspan>
+    <tspan class="step6" x="0" dy="20">Just use the appropriate key:
     <tspan class="key">t</tspan>,
     <tspan class="key">b</tspan>,
     <tspan class="key">p</tspan>.</tspan>
-    <code class="step5">(12,19)t;(11,19)b;(11,18)p p p;(11,20)p p p</code>
+    <code class="step6">(12,19)t;(11,19)b;(11,18)p p p;(11,20)p p p</code>
 
-    <tspan class="step6" x="0" y="0">Doors are trickier. Use
+    <tspan class="step7" x="0" y="0">Doors are trickier. Use
     <tspan class="key">d</tspan> to rotate the door.</tspan>
-    <tspan class="step6" x="0" dy="20">Watch: left, top, right, bottom, and back to left.</tspan>
-    <code class="step6">(17,12);d;d;d;d;d</code>
+    <tspan class="step7" x="0" dy="20">Watch: left, top, right, bottom, and back to left.</tspan>
+    <code class="step7">(17,12);d;d;d;d;d</code>
 
-    <tspan class="step7" x="0" y="0">Secret and concealed doors are variants of doors.</tspan>
-    <tspan class="step7" x="0" dy="20">Use
+    <tspan class="step8" x="0" y="0">Secret and concealed doors are variants of doors.</tspan>
+    <tspan class="step8" x="0" dy="20">Use
     <tspan class="key">v</tspan> to switch between variants.</tspan>
-    <code class="step7">(17,14)dff(18,15)fff(19,16)ff;d;v;v;fff(21,17)fff(23,17);d;d;d;v;(21,18)fff</code>
+    <code class="step8">(17,14)dff(18,15)fff(19,16)ff;d;v;v;fff(21,17)fff(23,17);d;d;d;v;(21,18)fff</code>
 
-    <tspan class="step8" x="0" y="0">Use <tspan class="key">s</tspan>
+    <tspan class="step9" x="0" y="0">Use <tspan class="key">s</tspan>
     to set stairs and rotate them into place.</tspan>
-    <tspan class="step8" x="0" dy="20">Use <tspan class="key">v</tspan>
+    <tspan class="step9" x="0" dy="20">Use <tspan class="key">v</tspan>
     to use a variant.</tspan>
-    <code class="step8">(11,12)s;s;s;s;(17,12)ffs;s;s;s;v </code>
+    <code class="step9">(11,12)s;s;s;s;(17,12)ffs;s;s;s;v </code>
 
-    <tspan class="step9" x="0" y="0">You can draw on multiple layers.</tspan>
-    <tspan class="step9" x="0" dy="20">Use
+    <tspan class="step10" x="0" y="0">You can draw on multiple layers.</tspan>
+    <tspan class="step10" x="0" dy="20">Use
     <tspan class="key">z</tspan> and <tspan class="key">y</tspan>
     to move up and down.</tspan>
-    <code class="step9">z(21,11)fff(20,12)ffff(21,13)fff;y</code>
+    <code class="step10">z(21,11)fff(20,12)ffff(21,13)fff;y</code>
 
-    <tspan class="step10" x="0" y="0">Place a door and rotate it into place.</tspan>
-    <tspan class="step10" x="0" dy="20">Use <tspan class="key">v</tspan> to select the gate variant.</tspan>
-    <code class="step10">(15,16);d;d;v;v;v</code>
+    <tspan class="step11" x="0" y="0">Place a door and rotate it into place.</tspan>
+    <tspan class="step11" x="0" dy="20">Use <tspan class="key">v</tspan> to select the gate variant.</tspan>
+    <code class="step11">(15,16);d;d;v;v;v</code>
 
-    <tspan class="step11" x="0" y="0">Use <tspan class="key">n</tspan>
+    <tspan class="step12" x="0" y="0">Use <tspan class="key">n</tspan>
     to place and rotate diagonals.</tspan>
-    <code class="step11">(17,15);n;n;n;n(18,14);n;n</code>
+    <code class="step12">(17,15);n;n;n;n(18,14);n;n</code>
 
-    <tspan class="step12" x="0" y="0">Use <tspan class="key">a</tspan>
+    <tspan class="step13" x="0" y="0">Use <tspan class="key">a</tspan>
     to place and rotate arcs.</tspan>
-    <tspan class="step12" x="0" dy="0">Use <tspan class="key">v</tspan>
+    <tspan class="step13" x="0" dy="0">Use <tspan class="key">v</tspan>
     use larger variants.</tspan>
-    <code class="step12">(13,9);a;v(16,9);a;a;v</code>
+    <code class="step13">(13,9);a;v(16,9);a;a;v</code>
 
-    <tspan class="step13" x="0" y="0">You can draw walls using
+    <tspan class="step14" x="0" y="0">You can draw walls using
     <tspan class="key">w</tspan>.</tspan>
-    <tspan class="step13" x="0" dy="20">Thus, walls work just like doors.</tspan>
-    <code class="step13">(16,18);dv(16,19);w(16,20);w</code>
+    <tspan class="step14" x="0" dy="20">Thus, walls work just like doors.</tspan>
+    <code class="step14">(16,18);dv(16,19);w(16,20);w</code>
 
-    <tspan class="step14" x="0" y="0">This gets tedious very fast.</tspan>
-    <tspan class="step14" x="0" dy="20">Use
+    <tspan class="step15" x="0" y="0">This gets tedious very fast.</tspan>
+    <tspan class="step15" x="0" dy="20">Use
     <tspan class="key">m</tspan> to enter
     <tspan style="font-weight: bold">Wall Mode</tspan>.</tspan>
-    <tspan class="step14" x="0" dy="20">Note the shift by half a square!</tspan>
-    <code class="step14">z(21,11);m</code>
+    <tspan class="step15" x="0" dy="20">Note the shift by half a square!</tspan>
+    <code class="step15">z(21,11);m</code>
 
-    <tspan class="step15" x="0" y="0" style="font-weight: bold">Wall Mode</tspan>
-    <tspan class="step15">keeps the cursor on the walls.</tspan>
-    <tspan class="step15" x="0" dy="20">Doors and walls no longer rotate.</tspan>
-    <code class="step15"> w; w;(21.5,13)w; w</code>
+    <tspan class="step16" x="0" y="0" style="font-weight: bold">Wall Mode</tspan>
+    <tspan class="step16">keeps the cursor on the walls.</tspan>
+    <tspan class="step16" x="0" dy="20">Doors and walls no longer rotate.</tspan>
+    <code class="step16"> w; w;(21.5,13)w; w</code>
 
-    <tspan class="step16" x="0" y="0">Move from wall to wall and use
+    <tspan class="step17" x="0" y="0">Move from wall to wall and use
     <tspan class="key">d</tspan>,
     <tspan class="key">v</tspan> or
     <tspan class="key">w</tspan>.</tspan>
-    <tspan class="step16" x="0" dy="20">Use
+    <tspan class="step17" x="0" dy="20">Use
     <tspan class="key">m</tspan> to leave Wall Mode.</tspan>
-    <code class="step16">(21,11.5)d; d; d;(21,12.5)d; d; d;(23.5,12)dvm</code>
+    <code class="step17">(21,11.5)d; d; d;(21,12.5)d; d; d;(23.5,12)dvm</code>
 
-    <tspan class="step17" x="0" y="0">You can draw grottos (caves) using
+    <tspan class="step18" x="0" y="0">You can draw grottos (caves) using
     <tspan class="key">g</tspan>.</tspan>
-    <code class="step17">(26,9)g;g(26,10)g;g(26,11)g(24,12)g;g;g</code>
+    <code class="step18">(26,9)g;g(26,10)g;g(26,11)g(24,12)g;g;g</code>
 
-    <tspan class="step18" x="0" y="0">Add colors using
+    <tspan class="step19" x="0" y="0">Add colors using
     <tspan class="key">R</tspan> (red),
     <tspan class="key">G</tspan> (green) and
     <tspan class="key">B</tspan> (blue).</tspan>
-    <tspan class="step14" x="0" dy="20">Use
+    <tspan class="step15" x="0" dy="20">Use
     <tspan class="key">W</tspan> (white) to undo the color.</tspan>
-    <code class="step18">(26,9)B B(26,10)B B;</code>
-    
-    <tspan class="step19" x="0" y="0">Use the number keys
-    <tspan class="key">0-9</tspan> to add labels.</tspan>
-    <tspan class="step19" x="0" dy="20">Use
-    <tspan class="key">Delete</tspan> to delete labels.</tspan>
-    <code class="step19">(20,12)6y(15,12)1(14,19)2(19,16)4(22,17)5</code>
+    <code class="step19">(26,9)B B(26,10)B B;</code>
 
-    <tspan class="step20" x="0" y="0">Well, that's it. The rest is up to you.</tspan>
-    <tspan class="step20" x="0" dy="20">What lies beyond the secret door to the east?</tspan>
+    <tspan class="step20" x="0" y="0">Use the number keys
+    <tspan class="key">0-9</tspan> to add labels.</tspan>
+    <tspan class="step20" x="0" dy="20">Use
+    <tspan class="key">Delete</tspan> to delete labels.</tspan>
+    <code class="step20">(20,12)6y(15,12)1(14,19)2(19,16)4(22,17)5</code>
+
+    <tspan class="step21" x="0" y="0">Well, that's it. The rest is up to you.</tspan>
+    <tspan class="step21" x="0" dy="20">What lies beyond the secret door to the east?</tspan>
 
   </text>
 </svg>
