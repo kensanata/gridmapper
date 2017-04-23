@@ -591,7 +591,11 @@ var Pen = {
     if (evt) {
       evt.preventDefault(); /* for touch events: no scrolling */
       if (evt.altKey)
-        return;
+        return; // Alt key: don't move the pointer
+      if (evt.shiftKey)
+        regionOn(); // Shift key: select region
+      else
+        regionOff();
       var pos = Pen.position(evt);
       if (Pen.x !== pos.x || Pen.y !== pos.y) {
         Pen.lastMove = Date.now();
@@ -2650,6 +2654,8 @@ function keyHandling (evt, recording) {
     evt.preventDefault();
   }
 
+  var keepRegion = false;
+  
   switch (key) {
 
   case '?':
@@ -2683,6 +2689,7 @@ function keyHandling (evt, recording) {
     }
     if (evt.shiftKey) {
       regionOn();
+      keepRegion = true;
     }
     move('down');
     key = '(' + Pen.x + ',' + Pen.y + ')';
@@ -2698,6 +2705,7 @@ function keyHandling (evt, recording) {
     }
     if (evt.shiftKey) {
       regionOn();
+      keepRegion = true;
     }
     move('up');
     key = '(' + Pen.x + ',' + Pen.y + ')';
@@ -2713,6 +2721,7 @@ function keyHandling (evt, recording) {
     }
     if (evt.shiftKey) {
       regionOn();
+      keepRegion = true;
     }
     move('left');
     key = '(' + Pen.x + ',' + Pen.y + ')';
@@ -2729,6 +2738,7 @@ function keyHandling (evt, recording) {
     }
     if (evt.shiftKey) {
       regionOn();
+      keepRegion = true;
     }
     move('right');
     key = '(' + Pen.x + ',' + Pen.y + ')';
@@ -2751,7 +2761,6 @@ function keyHandling (evt, recording) {
     if (evt.ctrlKey) {
       copyRegion();
       regionDelete();
-      regionOff();
       break;
     }
     // else fall through to delete!
@@ -2827,7 +2836,6 @@ function keyHandling (evt, recording) {
   case 'c':
     if (evt.ctrlKey) {
       copyRegion();
-      regionOff();
       recording = false; // don't record this one
     } else {
       wallModeOff();
@@ -2939,6 +2947,11 @@ function keyHandling (evt, recording) {
                 + '" (keyIdentifier: '+evt.keyIdentifier+', keyCode: '+ evt.keyCode+')');
     recording = false;
     break;
+  }
+
+  // just pressing shift or ctrl doesn't deactivate the region
+  if (!keepRegion && !evt.ctrlKey && !evt.shiftKey) {
+    regionOff();
   }
 
   if (recording) {
@@ -3808,6 +3821,9 @@ onload = initialize;
       <a xlink:href="javascript:interpret('m')" title="Wall Mode">
 	<use x="50" xlink:href="#empty"/>
 	<use x="40" xlink:href="#cursor"/>
+      </a>
+      <a xlink:href="javascript:regionOn()">
+	<text x="80" y="14"><tspan class="key">Shift</tspan><tspan> : region</tspan></text>
       </a>
     </svg>
 
