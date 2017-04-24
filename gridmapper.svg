@@ -363,7 +363,8 @@ var Map = {
     'curtain': 'portcullis',
     'portcullis': 'window',
     'window': 'gap',
-    'gap': 'wall',
+    'gap': 'corner-pillar',
+    'corner-pillar': 'wall',
     'chest': 'bed',
     'bed': 'table',
     'table': 'chair',
@@ -3339,6 +3340,9 @@ onload = initialize;
       <circle cx="-2" cy="6.5" r="0.5" fill="black"/>
       <circle cx="3" cy="8" r="0.5" fill="black"/>
     </g>
+    <g id="corner-pillar" width="10">
+      <circle cx="0" cy="0" r="2" fill="black"/>
+    </g>
     <g id="door" width="10">
       <rect x="-1.5" y="2" width="3" height="6" class="background" stroke="black" stroke-width="1"/>
     </g>
@@ -3555,7 +3559,7 @@ onload = initialize;
   <rect id="ui" opacity="0"/>
 
   <g id="help">
-    <rect x="10" y="80" width="470" height="600" fill="#fffff0" stroke="black" stroke-width="1"/>
+    <rect x="10" y="80" width="480" height="600" fill="#fffff0" stroke="black" stroke-width="1"/>
     <text>
       <tspan x="30" y="102">Use the mouse to draw and erase floor tiles.</tspan>
       <tspan x="30" dy="17">Use the following keys to place or rotate</tspan>
@@ -3728,6 +3732,10 @@ onload = initialize;
       <a xlink:href="javascript:interpret('wvvvv')" title="gap">
 	<use x="170" xlink:href="#empty"/>
 	<use x="170" xlink:href="#gap"/>
+      </a>
+      <a xlink:href="javascript:interpret('wvvvvv')" title="corner pillar">
+	<use x="200" xlink:href="#empty"/>
+	<use x="200" xlink:href="#corner-pillar"/>
       </a>
     </svg>
 
@@ -3939,8 +3947,8 @@ onload = initialize;
       </tspan>
     </text>
 
-    <text id="level" x="490" y="110" style="font:30px 'Arial Narrow', 'Futura Condensed', 'HelveticaNeue Condensed', sans-serif; font-weight: bold;">1</text>
-    <text x="460" y="110" transform="rotate(90,460,140)">
+    <text id="level" x="500" y="110" style="font:30px 'Arial Narrow', 'Futura Condensed', 'HelveticaNeue Condensed', sans-serif; font-weight: bold;">1</text>
+    <text x="470" y="110" transform="rotate(90,470,140)">
       <a target="_blank" xlink:href="https://alexschroeder.ch/wiki/Gridmapper">
 	<tspan style="font-weight: bold;">Gridmapper</tspan>
       </a>
