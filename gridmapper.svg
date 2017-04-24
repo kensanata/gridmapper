@@ -2271,26 +2271,27 @@ function regionPaste () {
 /**
  * Loop over the entire region, if it is active, and create a string
  * containing all the commands necessary to recreate it, and put it
- * into the text area.
+ * into the text area. If the region is inactive, enable it.
  */
 function regionCopy () {
-  if (Map.region.getAttribute('opacity') > 0) {
-    // start with a deletion of the target region
-    var startX = Map.region.getAttribute('startX');
-    var startY = Map.region.getAttribute('startY');
-    var source = 'X[' + (1 + Math.abs(Pen.x - startX))
-        + ',' + (1 + Math.abs(Pen.y - startY)) + ']';
-    // now generate the code for the region
-    for (var y = Math.min(Pen.y, startY); y <= Math.max(Pen.y, startY); y++) {
-      for (var x = Math.min(Pen.x, startX); x <= Math.max(Pen.x, startX); x++) {
-        source += Map.codeFor(x, y);
-      }
-      if (y < Math.max(Pen.y, startY)) {
-        source += '[-' + (1 + Math.abs(Pen.x - startX)) + ',1]';
-      }
+  regionOn();
+  // start with a deletion of the target region
+  let startX = Map.region.getAttribute('startX');
+  let startY = Map.region.getAttribute('startY');
+  let source = 'X[' + (1 + Math.abs(Pen.x - startX))
+      + ',' + (1 + Math.abs(Pen.y - startY)) + ']';
+  // now generate the code for the region
+  for (let y = Math.min(Pen.y, startY); y <= Math.max(Pen.y, startY); y++) {
+    for (let x = Math.min(Pen.x, startX); x <= Math.max(Pen.x, startX); x++) {
+      source += Map.codeFor(x, y);
     }
-    Map.exportarea.value = source;
+    if (y < Math.max(Pen.y, startY)) {
+      source += '[-' + (1 + Math.abs(Pen.x - startX)) + ',1]';
+    } else {
+      source += '-';
+    }
   }
+  Map.exportarea.value = source;
 }
 
 /**
