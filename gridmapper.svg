@@ -1611,7 +1611,7 @@ function record (key) {
  */
 function scaleTiles () {
   if (navigator.userAgent.match(/iPad/i)) {
-    Map.tileWidth = 15; // instead of 20
+    Map.tileWidth = 14; // instead of 20
   }
   var tiles = document.getElementsByTagName('defs')[0].childNodes;
   for (var i = 0; i < tiles.length; ++i) {
