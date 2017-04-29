@@ -1240,7 +1240,8 @@ function download () {
   // Other browsers use data URI with base64 encoding
   var source = btoa(unescape(encodeURIComponent(str)));
   var link  = document.getElementById('download_svg');
-  link.setAttributeNS(xlinkNs, 'href', 'data:image/svg+xml;base64,' + source);
+  // using image/svg+xml makes Chrome open the file instead of saving it
+  link.setAttributeNS(xlinkNs, 'href', 'data:application/octet-stream;base64,' + source);
 
   // PNG download hides user interface. We must actually *remove* all
   // the foreignObject elements because it causes a security exception
