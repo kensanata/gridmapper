@@ -1200,9 +1200,8 @@ function moveElements () {
  * such download attribute for SVG or XHTML.
  */
 function download () {
-
   if (document.documentMode > 0) {
-    // Internet Explorer
+    // Internet Explorer just downloads the SVG immediately, no UI changes
   } else {
     // hide Prepare Download link and show formats
     document.getElementById('download').setAttribute('display', 'none');
@@ -1237,11 +1236,16 @@ function download () {
     return;
   }
 
-  // Other browsers use data URI with base64 encoding
+  // Other browsers use data URI
+  var link  = document.getElementById('download_txt');
+  link.setAttributeNS(xlinkNs, 'href', 'javascript:downloadImmediately("gridmapper-map.txt", "text/plain;base64", "' + btoa(unescape(encodeURIComponent(getSource()))) + '")');
+
+  // base64 encoding
   var source = btoa(unescape(encodeURIComponent(str)));
-  var link  = document.getElementById('download_svg');
+  
   // using image/svg+xml makes Chrome open the file instead of saving it
-  link.setAttributeNS(xlinkNs, 'href', 'data:application/octet-stream;base64,' + source);
+  link = document.getElementById('download_svg');
+  link.setAttributeNS(xlinkNs, 'href', 'javascript:downloadImmediately("gridmapper-map.svg", "application/octet-stream;base64", "' + source + '")');
 
   // PNG download hides user interface. We must actually *remove* all
   // the foreignObject elements because it causes a security exception
@@ -1262,8 +1266,61 @@ function download () {
   // when the image arrived in the canvas, set the link
   img.onload = function() {
     ctx.drawImage(img, 0, 0);
-    link.setAttributeNS(xlinkNs, 'href', canvas.toDataURL('image/png'));
+    link.setAttributeNS(xlinkNs, 'href', 'javascript:downloadDataUri("gridmapper-map.png", "' + canvas.toDataURL('') + '")');
   };
+}
+
+/**
+ * Download stuff
+ */
+function downloadImmediately (fileName, type, data) {
+  // Internet Explorer: download immediately
+  if (window.navigator.msSaveBlob != null) {
+      window.navigator.msSaveBlob(new Blob([data]), fileName);
+  } else {
+    downloadDataUri(fileName, 'data:' + type + ',' + encodeURIComponent(data));
+  }
+}
+
+/**
+ * Download stuff but probably not for Internet Explorer. This is
+ * useful if you already have a data URI, e.g. canvas.toDataURL.
+ */
+function downloadDataUri (fileName, dataUri) {
+  var e = document.createElementNS(xhtmlNs, 'a');
+  e.setAttribute('href', dataUri);
+  e.setAttribute('download', fileName);
+  e.click();
+}
+
+function textSave () {
+  downloadImmediately('gridmapper-map.txt',
+                      'text/plain;charset=utf-8',
+                      Map.exportarea.value);
+}
+
+/**
+ * Support for dropping a file into the textarea.
+ */
+function handleFileSelect(evt) {
+  evt.stopPropagation();
+  evt.preventDefault();
+  let files = evt.dataTransfer.files; // FileList object.
+  let file = files[0]; // we can only handle one file
+  let reader = new FileReader();
+  reader.onload = function(e) {
+    Map.exportarea.value = e.target.result;
+  }
+  reader.readAsText(file); // UTF-8 is the default
+}
+
+/**
+ * Indicate a dropzone for the textarea.
+ */
+function handleDragOver(evt) {
+  evt.stopPropagation();
+  evt.preventDefault();
+  evt.dataTransfer.dropEffect = 'copy'; // Explicitly show this is a copy.
 }
 
 /**
@@ -3148,8 +3205,6 @@ function interpretCont (code, i, advance, record) {
     case '\03': // a simple Ctrl-C ends the use of a separate pen
       Pen.switchTo(0);
       break;
-    case 'o':
-      direction = 'right';
     case 'f':
     case 'g':
       direction = 'right';
@@ -3283,6 +3338,10 @@ function initialize () {
     wsUrl = 'ws://localhost:3000';
   }
 
+  // setup the dnd listeners.
+  Map.exportarea.addEventListener('dragover', handleDragOver, false);
+  Map.exportarea.addEventListener('drop', handleFileSelect, false);
+  
   // Internet Explorer doesn't know how to handle XHTML.
   if (document.documentMode > 0) {
     remove(document.getElementById('label'));
@@ -3291,7 +3350,7 @@ function initialize () {
     remove(document.getElementById('import-export'));
     remove(document.getElementById('load'));
     remove(document.getElementById('save'));
-    remove(document.getElementById('how-to-host'));
+    remove(document.getElementById('how-to-collaborate'));
     // No XML means no demo
     remove(document.getElementById('demo'));
   }
@@ -3920,15 +3979,15 @@ onload = initialize;
       </tspan>
 
       <tspan x="30" dy="25" id="import-export">
-	<a id="export" class="blue" xlink:href="javascript:textExport()">Text Export</a>  
-	<a id="import" xlink:href="javascript:textImport()"><tspan class="blue">Text Import</tspan> or
+	<a id="export" class="blue" xlink:href="javascript:textExport()">Export</a>  
+	<a id="import" xlink:href="javascript:textImport()"><tspan class="blue">Import</tspan> or
 	<tspan class="key">Ctrl Enter</tspan></a>
       </tspan>
     </text>
 
     <foreignObject id="textarea" x="30" y="555" width="430" height="50">
       <textarea id="exportarea" xmlns="http://www.w3.org/1999/xhtml"
-		style="position: fixed; width: 100%; height: 100%; margin: 0; padding: 0"/>
+		style="position: fixed; width: 100%; height: 100%; margin: 0; padding: 0">Drag &amp; Drop file to open</textarea>
     </foreignObject>
 
     <text>
@@ -3939,15 +3998,16 @@ onload = initialize;
 	  <a class="blue" xlink:href="javascript:download()">Download</a>  
 	</tspan>
 	<tspan id="format" display="none">
-	  <a id="download_svg" class="blue" title="Use a right-click on the link to 'Save as...'" download="gridmapper.svg">SVG</a> 
-	  <a id="download_png" class="blue" target="_blank" download="gridmapper.png">PNG</a>  
+	  <a id="download_svg" class="blue">SVG</a>
+	  <a id="download_png" class="blue">PNG</a>
+	  <a id="download_txt" class="blue">TXT</a>  
 	</tspan>
 	<a id="save" class="blue" title="Save the map to the wiki" xlink:href="javascript:save()">Save</a>  
 	<a id="load" class="blue" title="Load a map from the wiki" xlink:href="javascript:load()">Load</a>  
       </tspan>
 
       <tspan x="30" dy="20">
-	<a id="how-to-host" class="blue" target="_blank" xlink:href="https://github.com/kensanata/gridmapper#how-to-collaborate">How to Collaborate</a>  
+	<a id="how-to-collaborate" class="blue" target="_blank" xlink:href="https://github.com/kensanata/gridmapper#how-to-collaborate">How to Collaborate</a>  
 	<a id="join" class="blue" title="Host or join a map" xlink:href="javascript:join()">Join</a>  
 	<a id="join" class="blue" target="_blank" title="List of hosted maps" xlink:href="https://campaignwiki.org/gridmapper-server">Server</a>
       </tspan>
@@ -3956,7 +4016,7 @@ onload = initialize;
 	<a id="source" class="blue" target="_blank" title="Source code is available" xlink:href="https://github.com/kensanata/gridmapper#gridmapper">Source</a>  
 	<a id="license" class="blue" target="_blank" title="Dedicated to the Public Domain" xlink:href="https://github.com/kensanata/gridmapper/blob/master/LICENSE.md#the-license">License</a>  
 	<a id="bugs" class="blue" target="_blank" title="Submit a bug report" xlink:href="https://github.com/kensanata/gridmapper/issues">Issues</a>  
-	<a id="bugs" class="blue" target="_blank" title="Submit a bug report" xlink:href="https://campaignwiki.org/wiki/Gridmapper/HomePage">Wiki</a>
+	<a id="bugs" class="blue" target="_blank" title="Public dungeons" xlink:href="https://campaignwiki.org/wiki/Gridmapper/HomePage">Wiki</a>
       </tspan>
     </text>
 

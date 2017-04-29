@@ -30,9 +30,7 @@ if you want something more recent.
     - [Examples](#examples)
 - [How to Collaborate](#how-to-collaborate)
 - [How to Save](#how-to-save)
-    - [Upgrading your local copy of Gridmapper](#upgrading-your-local-copy-of-gridmapper)
 - [Scripting](#scripting)
-- [Editing Maps using a Text Editor](#editing-maps-using-a-text-editor)
 - [How to extend Gridmapper](#how-to-extend-gridmapper)
 - [Installation on your own Web Server](#installation-on-your-own-web-server)
 - [See Also](#see-also)
@@ -122,44 +120,21 @@ you'll save a copy *without* any of the changes you made!
 
 These are your options:
 
-1. If you're using *Safari*, you can just save the page. This will
-   create a [webarchive](https://en.wikipedia.org/wiki/Webarchive).
 
-1. Click on **Text Export** and copy the content of the text area into
-   a text file. When you come back later, paste the text file into the
-   text area and click **Text Import**. This text file is basically a
-   little script recreating your dungeon. This does not work for
-   *Internet Explorer*.
+If you choose to save your dungeon to the wiki, it will appear on the
+.
 
-1. Click on **Link** and bookmark the new page. The link now basically
-   contains a little script recreating your dungeon. You might have to
-   use a URL shortener such as [goo.gl](https://goo.gl/) when pasting
-   the URL into a chat window or when sharing it on social media. As
-   browsers and web sites have size limitations on the length of a
-   link, this will not work for *big* dungeons. This seems to be the
-   only thing that works for *Internet Explorer*.
 
-2. Click on **Download**, right-click on the resulting **SVG** link
-   and pick **Save As...**. This is also what you would use if you
-   wanted to continue working on your dungeon using an SVG editor such
-   as [Inkscape](https://inkscape.org/). This will also allow you to
-   save the map as a PDF file. This does not work for *Internet
-   Explorer*.
-
-2. Click on **Download** and click on the resulting **PNG** link. This
-   downloads or opens a bitmap image. This is what you would use if
-   you wanted to continue working on your dungeon using
-   [Gimp](https://gimp.org/) or Photoshop. Remember, if you want to
-   *print* the dungeon, you need 300 dpi or 300 pixels per inch.
-   You're probably better off using the SVG file and converting it to
-   PDF. This does not work for *Internet Explorer*.
-
-3. Click on **Save to Wiki**. This will make your wiki public, which
-   is nice. It may also not be what you want if your players are
-   watching the wiki. This does not work for *Internet Explorer*. In
-   order for this to work, you need to provide some information in the
-   text area: put the dungeon name on the first line, your name on the
-   second line, and a description on the third line. Example:
+- Click on **Save to Wiki**. This will make your map public. Anybody
+  can find it on
+  the
+  [Gridmapper Campaign Wiki](https://campaignwiki.org/wiki/Gridmapper/HomePage).
+  Thanks for sharing! It may also not be what you want if your players
+  are watching the wiki. This does not work for *Internet Explorer*
+  and it does not work if you are using a local copy of Gridmapper.
+  Please provide some information in the text area: put the dungeon
+  name on the first line, your name on the second line, and a
+  description on the third line. Example:
 
 ```
 Demo Dungeon
@@ -167,33 +142,43 @@ Alex Schroeder
 This is the Demo Dungeon
 ```
 
-If you choose to save your dungeon to the wiki, it will appear on the
-[Gridmapper Campaign Wiki](https://campaignwiki.org/wiki/Gridmapper/HomePage).
+- Click on **Download** and click on the resulting **TXT** link. This
+  saves the current map as a text file. Use this if you don't want to
+  save your map to the wiki. When you want to continue working on your
+  map, use drag and drop to get the map into the text area and click
+  **Import**. This does not work for *Internet Explorer*.
 
-Upgrading your local copy of Gridmapper
----------------------------------------
+- Click on **Download** and click on the resulting **PNG** link. This
+  downloads an image of the current level. This is what you would use
+  if you wanted to continue working on your dungeon
+  using [Gimp](https://gimp.org/) or Photoshop. Remember, if you want
+  to *print* the dungeon, you need 300 dpi or 300 pixels per inch.
+  You're probably better off using the SVG file and converting it to
+  PDF. This does not work for *Internet Explorer*.
 
-Let's assume you downloaded a copy of Gridmapper and started creating
-your dungeon. Then you discovered that there's a new release out
-there. How can you upgrade your local file? Easy: use **Text Export**
-and **Text Import**.
+- Click on **Download** and click on the resulting **SVG** link. This
+  is also what you would use if you wanted to continue working on your
+  dungeon using an SVG editor such
+  as [Inkscape](https://inkscape.org/). This will also allow you to
+  save the map as a PDF file. This does not work for *Internet
+  Explorer*.
 
-1. Open your local copy
+- If you're using *Safari*, you can just save the page. This will
+  create a [webarchive](https://en.wikipedia.org/wiki/Webarchive).
 
-2. Click on **Text Export**
+- Click on **Export** and copy the content of the text area into a
+  text file. When you come back later, paste the text file into the
+  text area and click **Import**. This text file is basically a little
+  script recreating your dungeon. This does not work for *Internet
+  Explorer*.
 
-3. Copy the text and save it somewhere
-
-4. Download a new copy of Gridmapper and open it
-
-5. Paste the text
-
-6. Click on **Text Import**
-
-7. Click on **Prepare Download**, click on the resulting **Download**
-   link and save the file
-
-Check that everything works before deleting your old copy. :)
+- Click on **Link** and bookmark the new page. The link now basically
+  contains a little script recreating your dungeon. You might have to
+  use a URL shortener such as [goo.gl](https://goo.gl/) when pasting
+  the URL into a chat window or when sharing it on social media. As
+  browsers and web sites have size limitations on the length of a
+  link, this will not work for *big* dungeons. This is what you would
+  use for quickly sharing a link.
 
 Scripting
 =========
@@ -213,78 +198,25 @@ the following additions:
 1. `f` will place a floor *and automatically advance* (like a
    right arrow)
 
-1. `-` will move left by one (like a left arrow)
+2. `-` will move left by one (like a left arrow)
 
-1. `.` is used to stop rotations; thus `ddd` will place a door
+3. `.` is used to stop rotations; thus `ddd` will place a door
    and rotate it three times where as `d.dd` will place one door
    and a second door, and rotate it once
 
-1. `;` is used to pause for half a second; it might be useful if
+4. `;` is used to pause for half a second; it might be useful if
    you're writing a demo for somebody else
 
-2. `(x,y)` will automatically move to the new position (be sure to
-   add 0.5 to either x or y in Wall Mode); note that `(0,0)` is
-   the top left corner and positive y is *down*
+5. `(x,y)` or `(x,y,z)` will automatically move to the new position
+   (be sure to add 0.5 to either x or y in Wall Mode); note that
+   `(0,0)` is the top left corner and positive y is *down*
 
-3. `[dx,dy]` will move the current position relative to the
+6. `[dx,dy]` will move the current position relative to the
    current position; given that positive y is *down*, `[0,1]` is
    the equivalent of moving one down
 
-Editing Maps using a Text Editor
-================================
-
-Assume you have these two maps:
-[One](https://campaignwiki.org/gridmapper.svg?%0A%20w.dfwwfwwfw%0A%20wft%20fw.wfwwfww.dddfw%0A%20wfffwnnnn%20nn%20wfwwfwwfw%0A%20ww%20ww%20w.dfffwfn%20nnn%20w%0A%20%20%20ww%20ww%20ww%20wfnnnn%20fd%0A%20%20%20%20%20%20ww%20ww%20ww)
-and
-[Two](https://campaignwiki.org/gridmapper.svg?%0A%20ffnn%20n%20nn%20ffnn%0A%20dfb%20fdfwfwfb%20f%0A%20ffnnn%20fwfdffnnn).
-Use **Text Export** to get at their code.
-
-One:
-
-```
- w.dfwwfwwfw
- wft fw.wfwwfww.dddfw
- wfffwnnnn nn wfwwfwwfw
- ww ww w.dfffwfn nnn w
-   ww ww ww wfnnnn fd
-      ww ww ww
-```
-
-Two:
-
-```
- ffnn n nn ffnn
- dfb fdfwfwfb f
- ffnnn fwfdffnnn
-```
-
-First, we need to shift it over by 10 spaces:
-
-```
-		   ffnn n nn ffnn
-		   dfb fdfwfwfb f
-		   ffnnn fwfdffnnn
-```
-
-Then we combine them, and we add a little extra: we can tell
-Gridmapper to return to the top left corner by providing `(0,0)`.
-Here's the combined map.
-
-```
- w.dfwwfwwfw
- wft fw.wfwwfww.dddfw
- wfffwnnnn nn wfwwfwwfw
- ww ww w.dfffwfn nnn w
-   ww ww ww wfnnnn fd
-      ww ww ww
-(0,0)
-           ffnn n nn ffnn
-           dfb fdfwfwfb f
-           ffnnn fwfdffnnn
-```
-
-Paste it into the text area and click **Import Text**. That's it.
-Result: [Combined Map](https://campaignwiki.org/gridmapper.svg?%0A%20w.dfwwfwwfw%20%20%20%20%20%20%20ffnn%20n%20nn%20ffnn%0A%20wft%20fw.wfwwfww.dddfw%20%20%20%20dfb%20fdfwfwfb%20f%0A%20wfffwnnnn%20nn%20wfwwfwwfw%20%20ffnnn%20fwfdffnnn%0A%20ww%20ww%20w.dfffwfn%20nnn%20w%0A%20%20%20ww%20ww%20ww%20wfnnnn%20fd%0A%20%20%20%20%20%20ww%20ww%20ww)
+7. `X[dx,dy]` wipe the rectangle to the right and down (no negative
+   coordinates).
 
 How to extend Gridmapper
 ========================
