@@ -28,6 +28,7 @@ use { fill: white; }
 .center:hover .dot { opacity: 1; }
 #ui { -webkit-tap-highlight-color: rgba(0,0,0,0); }
 #background { transition: fill 500ms linear; }
+#help { transition: fill 500ms linear; }
 text { fill: black; }
 
 #help { fill: #fffff0; } /* ivory and light grey */
