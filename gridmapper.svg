@@ -27,6 +27,17 @@ use { fill: white; }
 .invisible { display: none; }
 .center:hover .dot { opacity: 1; }
 #ui { -webkit-tap-highlight-color: rgba(0,0,0,0); }
+#background { transition: fill 500ms linear; }
+text { fill: black; }
+
+#help { fill: #fffff0; } /* ivory and light grey */
+#background { fill: #d3d3d3; }
+
+svg.black #background { fill: black; }
+
+svg.white #background { fill: white; }
+
+svg.grid  #background { fill: url(#grid); }
 
 /* http://www.color-hex.com/color/01b0f1
    https://de.wikipedia.org/wiki/Non-Photo_Blue */
@@ -37,6 +48,8 @@ svg.blue text,
 svg.blue tspan { stroke: none; fill: #005878; }
 svg.blue .key { fill: white; }
 svg.blue .blue { text-decoration: underline; fill: inherit; }
+svg.blue #background,
+svg.blue #help { fill: #01b0f1; }
 
 .menu div {
     background: white;
@@ -86,7 +99,7 @@ var wsUrl      = 'wss://campaignwiki.org/gridmapper-server';
 var Map = {
   width: 30, // how many columns
   height: 30, // how many rows
-  tileWidth: 20, // tile size in pixels
+  tileWidth: 20, // tile size in pixels (change pattern #grid, too!)
   ui: null, // the SVG element with the event handlers
   pointer: null, // the SVG element for the current position
   region: null, // the SVG element to mark the region currently selected
@@ -314,9 +327,8 @@ var Map = {
   },
 
   setBackground: function(color) {
-    // default is light grey #d3d3d3
-    var bg = document.getElementById('background').firstElementChild;
-    elementTo(bg, 'fill', color, linear, 500);
+    Map.backgroundMode = color;	  
+    document.firstElementChild.setAttribute('class', color);
   },
 
   setHelp: function(color) {
@@ -2908,30 +2920,25 @@ function keyHandling (evt, recording) {
   case 'Z':
     if (Map.backgroundMode === 'lightgrey' && Map.levels.length > 1) {
       Map.hideOtherLevels();
-      Map.backgroundMode = 'hidden';
+      Map.setBackground('hidden');
       message("Hiding other levels");
     } else if (Map.backgroundMode === 'lightgrey' // but just one level
                || Map.backgroundMode === 'hidden') {
-      Map.setBackground(0);
-      Map.backgroundMode = 'black';
+      Map.setBackground('black');
       message("Black background");
     } else if (Map.backgroundMode === 'black') {
-      Map.setBackground(255);
-      Map.backgroundMode = 'white';
+      Map.setBackground('white');
       message("White background");
     } else if (Map.backgroundMode === 'white') {
-      document.firstElementChild.setAttribute('class', 'blue');
-      Map.setBackground('#01b0f1'); // see <style> element
-      Map.setHelp('#01b0f1'); // see <style> element
-      Map.backgroundMode = 'blue';
+      Map.setBackground('grid');
+      message("White background and a visible grid");
+    } else if (Map.backgroundMode === 'grid') {
+      Map.setBackground('blue');
       message("Blue everything");
     } else {
       // show other levels
       Map.showLevelAnimation();
-      document.firstElementChild.removeAttribute('class');
-      Map.setBackground(211); // #d3d3d3 is light grey
-      Map.setHelp('#fffff0'); // #fffff0 is ivory
-      Map.backgroundMode = 'lightgrey';
+      Map.setBackground('lightgrey');
       message("Default background");
     }
     break;
@@ -3302,6 +3309,9 @@ function remove (element) {
 onload = initialize;
 ]]></script>
   <defs>
+    <pattern id="grid" width="20" height="20" patternUnits="userSpaceOnUse">
+      <rect width="20" height="20" fill="none" stroke="lightgrey" stroke-width="1"/>
+    </pattern>
     <rect id="cursor" width="10" height="10" fill="forestgreen" opacity="0.2"/>
     <rect id="others" width="10" height="10" fill="blue" opacity="0.2"/>
     <rect id="empty" width="10" height="10" class="background" stroke="black" stroke-width="1"/>
@@ -3550,7 +3560,7 @@ onload = initialize;
     <path id="rockd" width="10" class="background" d="M0,10 v-1 L1,8 L0,6 v-1 L1,4 v-2 L0,1 L0,0 H10 v1 L9,2 v1 L8,6 L9,7 v1 L10,10 Z" stroke-miterlimit="1" stroke="black" stroke-width="1"/>
   </defs>
   <g id="background" inkscape:groupmode="layer" inkscape:label="Background">
-    <rect x="20" y="20" width="0" height="0" fill="rgb(211,211,211)" stroke="black" stroke-width="1"/>
+    <rect x="20" y="20" width="0" height="0" stroke="black" stroke-width="1"/>
   </g>
   <g id="levels" inkscape:groupmode="layer" inkscape:label="Levels"/>
   <g id="region" inkscape:groupmode="layer" inkscape:label="Region">
@@ -3560,7 +3570,7 @@ onload = initialize;
   <rect id="ui" opacity="0"/>
 
   <g id="help">
-    <rect x="10" y="80" width="480" height="600" fill="#fffff0" stroke="black" stroke-width="1"/>
+    <rect x="10" y="80" width="480" height="600" stroke="black" stroke-width="1"/>
     <text>
       <tspan x="30" y="102">Use the mouse to draw and erase floor tiles.</tspan>
       <tspan x="30" dy="17">Use the following keys to place or rotate</tspan>
