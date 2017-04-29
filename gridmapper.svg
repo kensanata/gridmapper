@@ -1290,7 +1290,9 @@ function downloadDataUri (fileName, dataUri) {
   var e = document.createElementNS(xhtmlNs, 'a');
   e.setAttribute('href', dataUri);
   e.setAttribute('download', fileName);
+  document.firstElementChild.appendChild(e); // Firefox requires this
   e.click();
+  document.firstElementChild.removeChild(e);
 }
 
 function textSave () {
