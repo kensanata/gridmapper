@@ -88,24 +88,7 @@ sub process {
     my ($x1, $y1, $z1) = step($map, $x, $y, $z, $dir);
     push(@{$map->{queue}}, ['small room', $x1, $y1, $z1, $dir, $x, $y, $z]);
   } elsif ($step->[0] eq 'small room') {
-    my $x = $step->[1];
-    my $y = $step->[2];
-    my $z = $step->[3];
-    # from which direction did you come in?
-    my $dir = $step->[4];
-    # where did you come in?
-    my $x0 = $step->[5];
-    my $y0 = $step->[6];
-    my $z0 = $step->[7];
-    $log->debug("processing small room at ($x, $y, $z) in dir $dir");
-    my ($x1, $y1, $z1, $f1) = step($map, $x, $y, $z, $dir);
-    ($x1, $y1, $z1, $f1) = step($map, $x1, $y1, $z1, $dir) if rand() < 0.5;
-    my ($x2, $y2, $z2, $f2) = step($map, $x, $y, $z, orthogonal($dir));
-    if (add_room($map, $x0, $y0, $z0, $x1, $y1, $z1, $x2, $y2, $z2)) {
-      push(@{$map->{queue}}, ['room exit', one_in($x1, $y1, $z1, $x2, $y2, $z2)]) if rand() < 0.7;
-      push(@{$map->{queue}}, ['room exit', one_in($x1, $y1, $z1, $x2, $y2, $z2)]) if rand() < 0.2;
-      push(@{$map->{queue}}, ['spiral stairs', one_in($x1, $y1, $z1, $x2, $y2, $z2)]) if rand() < 0.2;
-    }
+    process_small_room($map, @$step[1 .. 7]);
   } elsif ($step->[0] eq 'spiral stairs') {
     my $x = $step->[1];
     my $y = $step->[2];
@@ -204,6 +187,21 @@ sub add_corridor {
   return ($x, $y, $z);
 }
 
+sub process_small_room {
+  my ($map, $x, $y, $z, $dir, $x0, $y0, $z0) = @_;
+  $log->debug("processing small room at ($x, $y, $z) in dir $dir");
+  my ($x1, $y1, $z1, $f1) = step($map, $x, $y, $z, $dir);
+  ($x1, $y1, $z1, $f1) = step($map, $x1, $y1, $z1, $dir) if rand() < 0.5;
+  my ($x2, $y2, $z2, $f2) = step($map, $x, $y, $z, orthogonal($dir));
+  if (add_room($map, $x0, $y0, $z0,
+	       min($x1, $x2), min($y1, $y2), min($z1, $z2),
+	       max($x1, $x2), max($y1, $y2), max($z1, $z2))) {
+    push(@{$map->{queue}}, ['room exit', one_in($x1, $y1, $z1, $x2, $y2, $z2)]) if rand() < 0.7;
+    push(@{$map->{queue}}, ['room exit', one_in($x1, $y1, $z1, $x2, $y2, $z2)]) if rand() < 0.2;
+    push(@{$map->{queue}}, ['spiral stairs', one_in($x1, $y1, $z1, $x2, $y2, $z2)]) if rand() < 0.2;
+  }
+}
+
 sub add_room {
   my ($map, $x0, $y0, $z0, $x1, $y1, $z1, $x2, $y2, $z2) = @_;
   if (not legal($x1, $y1, $z1) or not legal($x2, $y2, $z2)) {
@@ -211,9 +209,9 @@ sub add_room {
     return 0;
   }
   my $f;
-  for my $z (min($z1, $z2) .. max($z1, $z2)) {
-    for my $y (min($y1, $y2) .. max($y1, $y2)) {
-      for my $x (min($x1, $x2) .. max($x1, $x2)) {
+  for my $z ($z1 .. $z2) {
+    for my $y ($y1 .. $y2) {
+      for my $x ($x1 .. $x2) {
 	# if we reached this room via stairs from above or below, then the
 	# origin is inside the room and must not be checked
 	if ($map->{data}->[$z][$y][$x] and not ($x == $x0 and $y == $y0)) {
@@ -222,10 +220,10 @@ sub add_room {
 	}
 	# if we reached this room from the same level, then the origin is
 	# outside the room and touching it is not a problem
-	if ($y == min($y1, $y2) and $f = $map->{data}->[$z][$y-1][$x] and not ($x == $x0 and $y-1 == $y0)
-	    or $y == max($y1, $y2) and $f = $map->{data}->[$z][$y+1][$x] and not ($x == $x0 and $y+1 == $y0)
-	    or $x == min($x1, $x2) and $f = $map->{data}->[$z][$y][$x-1] and not ($x-1 == $x0 and $y == $y0)
-	    or $x == max($x1, $x2) and $f = $map->{data}->[$z][$y][$x+1] and not ($x+1 == $x0 and $y == $y0)) {
+	if ($y == $y1 and $f = $map->{data}->[$z][$y-1][$x] and not ($x == $x0 and $y-1 == $y0)
+	    or $y == $y2 and $f = $map->{data}->[$z][$y+1][$x] and not ($x == $x0 and $y+1 == $y0)
+	    or $x == $x1 and $f = $map->{data}->[$z][$y][$x-1] and not ($x-1 == $x0 and $y == $y0)
+	    or $x == $x2 and $f = $map->{data}->[$z][$y][$x+1] and not ($x+1 == $x0 and $y == $y0)) {
 	  $log->error("→ the room touches something at ($x, $y, $z): " . $f);
 	  return 0;
 	}
@@ -233,9 +231,9 @@ sub add_room {
     }
   }
   $log->debug("Adding room from ($x1, $y1, $z1) to ($x2, $y2, $z2)");
-  for my $z (min($z1, $z2) .. max($z1, $z2)) {
-    for my $y (min($y1, $y2) .. max($y1, $y2)) {
-      for my $x (min($x1, $x2) .. max($x1, $x2)) {
+  for my $z ($z1 .. $z2) {
+    for my $y ($y1 .. $y2) {
+      for my $x ($x1 .. $x2) {
 	$map->{data}->[$z][$y][$x] = 'f' unless $map->{data}->[$z][$y][$x]; # could be stairs
       }
     }
