@@ -158,13 +158,14 @@ sub suggest_door {
 
 sub add_door {
   my ($map, $x, $y, $z, $dir) = @_;
-  $log->debug("adding door ($x,$y,$z) in dir $dir");
+  $log->debug("checking for space at ($x,$y,$z) in dir $dir");
   my ($x1, $y1, $z1, $f) = step($map, $x, $y, $z, $dir);
   if (not legal($x1, $y1, $z1)) {
     $log->debug("→ but ($x1,$y1,$z1) is off the grid");
   } elsif ($map->{data}->[$z1][$y1][$x1]) {
     $log->debug("connecting to existing room at ($x,$y,$z)");
   } else {
+    $log->debug("add door at ($x,$y,$z) in dir $dir");
     # doors are prefixed
     $map->{data}->[$z][$y][$x] = 'd' x (1 + $dir) . $map->{data}->[$z][$y][$x];
   }
@@ -277,7 +278,7 @@ sub max {
 # 0 is to the left
 sub step () {
   my ($map, $x, $y, $z, $dir) = @_;
-  $log->debug("stepping from ($x, $y, $z) in dir $dir");
+  $log->debug("→ stepping from ($x, $y, $z) in dir $dir");
   if ($dir == 0) {
     return ($x - 1, $y, $z, $map->{data}->[$z][$y][$x-1]);
   } elsif ($dir == 1) {
