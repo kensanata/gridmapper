@@ -71,6 +71,14 @@ sub process {
       ($x, $y, $z) = add_corridor($map, $x, $y, $z, $dir, $d);
       push(@{$map->{queue}}, ['corridor end', $x, $y, $z, $dir]);
     }
+  } elsif ($step->[0] eq 'corridor end') {
+    my $x = $step->[1];
+    my $y = $step->[2];
+    my $z = $step->[3];
+    my $dir = $step->[4];
+    $log->debug("processing corridor end at ($x, $y, $z) in dir $dir");
+    add_door($map, $x, $y, $z, $dir);
+    push(@{$map->{queue}}, ['small room', $x, $y, $z, $dir]);
   } else {
     $log->error("Cannot process @$step");
   }
