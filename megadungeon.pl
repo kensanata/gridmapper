@@ -58,14 +58,14 @@ sub process {
       push(@{$map->{queue}}, ['corridor end', $x, $y, $z, $dir]);
       last;
     }
-  } elsif ($step->[0] eq 'small corridor') {
+  } elsif ($step->[0] eq 'corridor') {
     # add corridor
     my $x = $step->[1];
     my $y = $step->[2];
     my $z = $step->[3];
     my $dir = $step->[4];
-    $log->debug("processing small corridor at ($x, $y, $z) in dir $dir");
-    my $d = 3;
+    my $d = $step->[5];
+    $log->debug("processing corridor at ($x, $y, $z) in dir $dir, distance $d");
     $d = suggest_corridor($map, $x, $y, $z, $dir, $d);
     if ($d) {
       ($x, $y, $z) = add_corridor($map, $x, $y, $z, $dir, $d);
@@ -133,7 +133,8 @@ sub add_corridor {
     $log->error("drawing tiles on existing floor at ($x,$y,$z)") if $f;
     $map->{data}->[$z][$y][$x] = 'f';
     if ($_ == 3 and rand() < 0.3) {
-      push(@{$map->{queue}}, ['small corridor', $x, $y, $z, orthogonal($dir)]);
+      # add small corridor
+      push(@{$map->{queue}}, ['corridor', $x, $y, $z, orthogonal($dir), 3]);
     }
   }
   return ($x, $y, $z);
