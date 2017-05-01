@@ -120,11 +120,6 @@ you'll save a copy *without* any of the changes you made!
 
 These are your options:
 
-
-If you choose to save your dungeon to the wiki, it will appear on the
-.
-
-
 - Click on **Save to Wiki**. This will make your map public. Anybody
   can find it on
   the
