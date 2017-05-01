@@ -16,17 +16,19 @@ get '/' => sub {
   # srand($seed);
   $log->debug("************************************************************");
   my $map = generate_map();
-  my $url = 'https://campaignwiki.org/gridmapper.svg?' . url_encode($map);
   $c->render(template => 'main',
-	     map => $map,
-	     url => $url);
+	     map => to_string($map),
+             history => [map {
+	       'https://campaignwiki.org/gridmapper.svg?' . url_encode($_);
+			 } @{$map->{history}}, to_string($map)]);
 };
 
 sub generate_map {
   my $map = {}; # $map->{data}->[$z][$y][$x], $map->{queue}
   push(@{$map->{queue}}, starting_room($map, 0, 5));
-  do {} while (process($map));
-  return to_string($map);
+  my $n = 1;
+  do {} while (process($map, $n++));
+  return $map;
 }
 
 sub starting_room {
@@ -43,7 +45,9 @@ sub starting_room {
 }
 
 sub process {
-  my $map = shift;
+  my ($map, $n) = @_;
+  push(@{$map->{history}}, to_string($map));
+  $log->debug('-' x 57 . sprintf(" %02d", $n));
   my $step = shift(@{$map->{queue}});
   if ($step->[0] eq 'room exit') {
     # add corridor
@@ -56,7 +60,7 @@ sub process {
       # don't change ($x, $y, $z) because we need retries!
       my ($x1, $y1, $z1) = suggest_door($map, $x, $y, $z, $dir);
       next unless $x1 >= 0;
-      my $d = 6;
+      my $d = about_six();
       $d = suggest_corridor($map, $x1, $y1, $z1, $dir, $d);
       next unless $d;
       add_door($map, $x1, $y1, $z1, $dir);
@@ -113,12 +117,32 @@ sub back {
   return (shift() + 2) % 4;
 }
 
+sub left {
+  return (shift() + -1) % 4;
+}
+
+sub right {
+  return (shift() + +1) % 4;
+}
+
 sub one_in {
   my ($x1, $y1, $z1, $x2, $y2, $z2) = @_;
   my $x = $x1 + int(rand($x2 - $x1));
   my $y = $y1 + int(rand($y2 - $y1));
   my $z = $z1 + int(rand($z2 - $z1));
   return ($x, $y, $z);
+}
+
+sub d2 {
+  return int(rand(2)) + 1;
+}
+
+sub about_three {
+  return d2() + d2();
+}
+
+sub about_six {
+  return 1 + d2() + d2() + d2();
 }
 
 sub suggest_door {
@@ -162,8 +186,24 @@ sub suggest_corridor {
   ($x, $y, $z, $f) = step($map, $x, $y, $z, $dir);
   for (1 .. $d) {
     ($x, $y, $z, $f) = step($map, $x, $y, $z, $dir);
-    return $_ if $f and $f eq 'f';
-    return 0 if $f or not legal($x, $y, $z);
+    if ($f and $f eq 'f') {
+      $log->debug("→ found floor $f at ($x, $y, $z) in dir $dir, distance $_");
+      return $_;
+    } elsif (not legal($x, $y, $z)) {
+      $log->debug("→ found illegal position at ($x, $y, $z) in dir $dir, distance $_");
+      return $_ - 1;
+    } else {
+      my ($x1, $y1, $z1, $f) = step($map, $x, $y, $z, left($dir));
+      if ($f and $f eq 'f') {
+	$log->debug("→ found floor $f to the left at ($x, $y, $z) in dir $dir, distance $_");
+	return $_;
+      }
+      ($x1, $y1, $z1, $f) = step($map, $x, $y, $z, right($dir));
+      if ($f and $f eq 'f') {
+	$log->debug("→ found floor $f to the right at ($x, $y, $z) in dir $dir, distance $_");
+	return $_;
+      }
+    }
   }
   return $d;
 }
@@ -181,8 +221,13 @@ sub add_corridor {
     $map->{data}->[$z][$y][$x] = 'f';
     if ($_ == 3 and rand() < 0.3) {
       # add small corridor
-      push(@{$map->{queue}}, ['corridor', $x, $y, $z, orthogonal($dir), 3]);
+      push(@{$map->{queue}}, ['corridor', $x, $y, $z, orthogonal($dir), about_three()]);
     }
+  }
+  $f = (step($map, $x, $y, $z, $dir))[3];
+  if ($f and $f == 'f') {
+    $log->debug("adding a door at at ($x, $y, $z) in dir $dir, distance $d");
+    $map->{data}->[$z][$y][$x] = 'd' x (1 + $dir) . $map->{data}->[$z][$y][$x];
   }
   return ($x, $y, $z);
 }
@@ -199,6 +244,10 @@ sub process_small_room {
     push(@{$map->{queue}}, ['room exit', one_in($x1, $y1, $z1, $x2, $y2, $z2)]) if rand() < 0.7;
     push(@{$map->{queue}}, ['room exit', one_in($x1, $y1, $z1, $x2, $y2, $z2)]) if rand() < 0.2;
     push(@{$map->{queue}}, ['spiral stairs', one_in($x1, $y1, $z1, $x2, $y2, $z2)]) if rand() < 0.2;
+  } else {
+    # t-crossing: add small corridors in both directions
+    # push(@{$map->{queue}}, ['corridor', $x, $y, $z, left($dir), about_three()]);
+    # push(@{$map->{queue}}, ['corridor', $x, $y, $z, right($dir), about_three()]);
   }
 }
 
@@ -276,7 +325,7 @@ sub max {
 # 0 is to the left
 sub step () {
   my ($map, $x, $y, $z, $dir) = @_;
-  $log->debug("→ stepping from ($x, $y, $z) in dir $dir");
+  # $log->debug("→ stepping from ($x, $y, $z) in dir $dir");
   if ($dir == 0) {
     return ($x - 1, $y, $z, $map->{data}->[$z][$y][$x-1]);
   } elsif ($dir == 1) {
@@ -338,8 +387,11 @@ This is a generator for maps that can be fed to
 <textarea style="width: 25em; height: 30em;">
 <%= $map %>
 </textarea>
-<p>
-<a href="<%= $url %>">Take a look</a>
+<ol>
+<% for my $url (@$history) { %>\
+<li><%= link_to "$url" => begin %>step<% end %>
+<% } %>\
+</ol>
 
 @@ layouts/default.html.ep
 <!DOCTYPE html>
