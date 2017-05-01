@@ -120,8 +120,8 @@ you'll save a copy *without* any of the changes you made!
 
 These are your options:
 
-- Click on **Save to Wiki**. This will make your map public. Anybody
-  can find it on
+- Click on **Save**. This will save your map on the wiki. This also
+  makes it public because anybody can look at
   the
   [Gridmapper Campaign Wiki](https://campaignwiki.org/wiki/Gridmapper/HomePage).
   Thanks for sharing! It may also not be what you want if your players
@@ -134,7 +134,7 @@ These are your options:
 ```
 Demo Dungeon
 Alex Schroeder
-This is the Demo Dungeon
+First draft
 ```
 
 - Click on **Download** and click on the resulting **TXT** link. This
