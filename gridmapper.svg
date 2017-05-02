@@ -2777,7 +2777,8 @@ function keyHandling (evt, recording) {
   case 'Down':
   case 'j':
   case 'J':
-    if (evt.altKey) {
+  if (evt.altKey) {
+      evt.preventDefault();
       wallModeOff();
       floor(Pen.x, Pen.y);
     }
@@ -2794,6 +2795,7 @@ function keyHandling (evt, recording) {
   case 'k':
   case 'K':
     if (evt.altKey) {
+      evt.preventDefault();
       wallModeOff();
       floor(Pen.x, Pen.y);
     }
@@ -2810,6 +2812,7 @@ function keyHandling (evt, recording) {
   case 'h':
   case 'H':
     if (evt.altKey) {
+      evt.preventDefault();
       wallModeOff();
       floor(Pen.x, Pen.y);
     }
@@ -2827,6 +2830,7 @@ function keyHandling (evt, recording) {
   case 'L':
   case ' ':
     if (evt.altKey) {
+      evt.preventDefault();
       wallModeOff();
       floor(Pen.x, Pen.y);
     }
