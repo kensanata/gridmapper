@@ -3,6 +3,8 @@ use Mojolicious::Lite;
 use Mojo::Log;
 use Data::Dumper;
 use Encode qw(encode_utf8);
+use GD;
+use MIME::Base64;
 
 my $log = Mojo::Log->new;
 
@@ -18,9 +20,8 @@ get '/' => sub {
   my $map = generate_map();
   $c->render(template => 'main',
 	     map => to_string($map),
-             history => [map {
-	       'https://campaignwiki.org/gridmapper.svg?' . url_encode($_);
-			 } @{$map->{history}}, to_string($map)]);
+             links => [@{$map->{links}}],
+	     images => [@{$map->{images}}]);
 };
 
 sub generate_map {
@@ -46,7 +47,8 @@ sub starting_room {
 
 sub process {
   my ($map, $n) = @_;
-  push(@{$map->{history}}, to_string($map));
+  push(@{$map->{links}}, to_link($map));
+  push(@{$map->{images}}, to_image($map));
   $log->debug('-' x 57 . sprintf(" %02d", $n));
   my $step = shift(@{$map->{queue}});
   if ($step->[0] eq 'room exit') {
@@ -148,7 +150,11 @@ sub about_six {
 sub suggest_door {
   my ($map, $x, $y, $z, $dir) = @_;
   $log->debug("looking for door starting at ($x, $y, $z) in dir $dir");
-  my ($x1, $y1, $z1);
+  if ($map->{data}->[$z][$y][$x] eq 'd' x (1 + $dir) . 'f') {
+    $log->debug("→ this door already exists ($x, $y, $z)");
+    return -1;
+  }
+  my ($x1, $y1, $z1); # last legal position
   my $f;
   do {
     ($x1, $y1, $z1) = ($x, $y, $z);
@@ -156,10 +162,10 @@ sub suggest_door {
   } while ($f and $f eq 'f');
   # return the last coordinates still on the floor
   if (not $f and legal($x1, $y1, $z1)) {
-    $log->debug("→ staying at ($x1, $y1, $z1)");
+    $log->debug("→ found a position for a door at ($x1, $y1, $z1) in dir $dir");
     return ($x1, $y1, $z1);
   }
-  $log->debug("→ cannot add door ($x1, $y1, $z1)");
+  $log->debug("→ cannot add door at ($x1, $y1, $z1)");
   return -1;
 }
 
@@ -173,7 +179,10 @@ sub add_door {
     $log->debug("connecting to existing room at ($x,$y,$z)");
   } else {
     $log->debug("add door at ($x,$y,$z) in dir $dir");
-    # doors are prefixed
+    # doors are prefixed; multiple doors are separated by a dot
+    if (substr($map->{data}->[$z][$y][$x], 0, 1) eq 'd') {
+      $map->{data}->[$z][$y][$x] = '.' . $map->{data}->[$z][$y][$x];
+    }
     $map->{data}->[$z][$y][$x] = 'd' x (1 + $dir) . $map->{data}->[$z][$y][$x];
   }
 }
@@ -339,6 +348,14 @@ sub step () {
   }
 }
 
+sub to_link {
+  my $map = shift;
+  return 'https://campaignwiki.org/gridmapper.svg?'
+      . url_encode(to_string($map))
+      # append coordinates
+      . '(0,0)0%201%202%203%204%205%206%207%208%209%2010%2011%2012%2013%2014%2015%2016%2017%2018%2019%2020%2021%2022%2023%2024%2025%2026%2027%2028%2029%20%0a1%0a2%0a3%0a4%0a5%0a6%0a7%0a8%0a9%0a10%0a11%0a12%0a13%0a14%0a15%0a16%0a17%0a18%0a19%0a20%0a21%0a22%0a23%0a24%0a25%0a26%0a27%0a28%0a29'
+}
+
 sub to_string () {
   my $map = shift;
   my $str = "";
@@ -373,6 +390,31 @@ sub url_encode {
   return join('', @letters);
 }
 
+sub to_image {
+  my $map = shift;
+  my $img = new GD::Image($maxx, $maxy);
+  my $white = $img->colorAllocate(255,255,255);
+  my $black = $img->colorAllocate(0,0,0);       
+  my $red   = $img->colorAllocate(255,0,0);       
+  $img->transparent($white);
+  for my $z (0) { # FIXME
+    for my $y (0 .. $maxy-1) {
+      for my $x (0 .. $maxx-1) {
+	if ($map->{data}->[$z][$y][$x]) {
+	  if (substr($map->{data}->[$z][$y][$x], 0, 1) eq 'd') {
+	    $img->setPixel($x, $y, $red);
+	  } else {
+	    $img->setPixel($x, $y, $black);
+	  }
+	}
+      }
+    }
+  }  
+  my $url = "data:image/png;base64,"
+      . encode_base64($img->png);
+  return $url;
+}
+
 app->start;
 __DATA__
 
@@ -387,11 +429,12 @@ This is a generator for maps that can be fed to
 <textarea style="width: 25em; height: 30em;">
 <%= $map %>
 </textarea>
-<ol>
-<% for my $url (@$history) { %>\
-<li><%= link_to "$url" => begin %>step<% end %>
-<% } %>\
-</ol>
+<p>
+<% for my $link (@$links) { my $img = shift(@$images); %>\
+<a style="text-decoration:none;" href="<%= $link %>">
+    <img style="width:90px; border: 1px solid gray;" src="<%= $img %>">
+</a>
+<% } %>
 
 @@ layouts/default.html.ep
 <!DOCTYPE html>
@@ -412,5 +455,6 @@ p { width: 80ex }
 <p>
 <a href="https://alexschroeder.ch/wiki/Contact">Alex Schroeder</a> &nbsp; <a href="https://github.com/kensanata/gridmapper">Source on GitHub</a> &nbsp;
 </div>
+<p>
 </body>
 </html>
