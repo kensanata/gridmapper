@@ -195,12 +195,12 @@ sub suggest_corridor {
   ($x, $y, $z, $f) = step($map, $x, $y, $z, $dir);
   for (1 .. $d) {
     ($x, $y, $z, $f) = step($map, $x, $y, $z, $dir);
-    if ($f and $f eq 'f') {
-      $log->debug("→ found floor $f at ($x, $y, $z) in dir $dir, distance $_");
-      return $_;
-    } elsif (not legal($x, $y, $z)) {
+    if (not legal($x, $y, $z)) {
       $log->debug("→ found illegal position at ($x, $y, $z) in dir $dir, distance $_");
       return $_ - 1;
+    } elsif ($f and $f eq 'f') {
+      $log->debug("→ found floor $f at ($x, $y, $z) in dir $dir, distance $_");
+      return $_;
     } else {
       my ($x1, $y1, $z1, $f) = step($map, $x, $y, $z, left($dir));
       if ($f and $f eq 'f') {
@@ -233,9 +233,9 @@ sub add_corridor {
       push(@{$map->{queue}}, ['corridor', $x, $y, $z, orthogonal($dir), about_three()]);
     }
   }
-  $f = (step($map, $x, $y, $z, $dir))[3];
-  if ($f and $f == 'f') {
-    $log->debug("adding a door at at ($x, $y, $z) in dir $dir, distance $d");
+  my ($x1, $y1, $z1, $f1) = step($map, $x, $y, $z, $dir);
+  if ($f1 and $f1 eq 'f') {
+    $log->debug("adding a door at ($x, $y, $z) in dir $dir to ($x1, $y1, $z1) for '$f1'");
     $map->{data}->[$z][$y][$x] = 'd' x (1 + $dir) . $map->{data}->[$z][$y][$x];
   }
   return ($x, $y, $z);
@@ -427,10 +427,13 @@ __DATA__
 This is a generator for maps that can be fed to
 <a href="https://campaignwiki.org/gridmapper.svg">Gridmapper</a>.
 <p>
-<% for my $link (@$links) { my $img = shift(@$images); %>\
+<% my $n = 0; for my $link (@$links) { my $img = shift(@$images); $n++; %>\
+<span style="display:inline-block">
+<%= $n %><br/>
 <a style="text-decoration:none;" href="<%= $link %>">
     <img style="width:90px; border: 1px solid gray;" src="<%= $img %>">
 </a>
+</span>
 <% } %>
 <p>
 <textarea style="width: 100%; height: 60em; margin-right: 1ex; float: left;">
