@@ -392,19 +392,20 @@ sub url_encode {
 
 sub to_image {
   my $map = shift;
-  my $img = new GD::Image($maxx, $maxy);
+  my $maxz = $#{$map->{data}};
+  my $img = new GD::Image($maxx, $maxy * (1 + $maxz) + $maxz);
   my $white = $img->colorAllocate(255,255,255);
   my $black = $img->colorAllocate(0,0,0);       
   my $red   = $img->colorAllocate(255,0,0);       
   $img->transparent($white);
-  for my $z (0) { # FIXME
+  for my $z (0 .. $maxz) {
     for my $y (0 .. $maxy-1) {
       for my $x (0 .. $maxx-1) {
 	if ($map->{data}->[$z][$y][$x]) {
 	  if (substr($map->{data}->[$z][$y][$x], 0, 1) eq 'd') {
-	    $img->setPixel($x, $y, $red);
+	    $img->setPixel($x, $y + ($maxy + 1) * $z, $red);
 	  } else {
-	    $img->setPixel($x, $y, $black);
+	    $img->setPixel($x, $y + ($maxy + 1) * $z, $black);
 	  }
 	}
       }
@@ -426,15 +427,15 @@ __DATA__
 This is a generator for maps that can be fed to
 <a href="https://campaignwiki.org/gridmapper.svg">Gridmapper</a>.
 <p>
-<textarea style="width: 25em; height: 30em;">
-<%= $map %>
-</textarea>
-<p>
 <% for my $link (@$links) { my $img = shift(@$images); %>\
 <a style="text-decoration:none;" href="<%= $link %>">
     <img style="width:90px; border: 1px solid gray;" src="<%= $img %>">
 </a>
 <% } %>
+<p>
+<textarea style="width: 100%; height: 60em; margin-right: 1ex; float: left;">
+<%= $map %>
+</textarea>
 
 @@ layouts/default.html.ep
 <!DOCTYPE html>
@@ -444,7 +445,6 @@ This is a generator for maps that can be fed to
 %= stylesheet '/gridmapper.css'
 %= stylesheet begin
 body { padding: 1em; font-family: "Palatino Linotype", "Book Antiqua", Palatino, serif }
-p { width: 80ex }
 % end
 <meta name="viewport" content="width=device-width">
 </head>
