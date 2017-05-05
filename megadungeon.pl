@@ -321,7 +321,6 @@ sub add_room {
     for my $y ($y1 .. $y2) {
       for my $x ($x1 .. $x2) {
 	$map->{data}->[$z][$y][$x] = 'f' unless $map->{data}->[$z][$y][$x]; # could be stairs
-	$log->info("→ ($x, $y, $z): " . $map->{data}->[$z][$y][$x]);	
       }
     }
   }
