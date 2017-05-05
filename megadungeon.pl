@@ -95,11 +95,7 @@ sub process {
   } elsif ($step->[0] eq 'small room') {
     process_small_room($map, @$step[1 .. 7]);
   } elsif ($step->[0] eq 'spiral stairs') {
-    my $x = $step->[1];
-    my $y = $step->[2];
-    my $z = $step->[3];
-    my $dir = $z == 0 ? 1 : rand() < 0.5 ? 1 : -1;
-    add_spiral_stairs($map, $x, $y, $z, $dir);
+    process_spiral_stairs($map, @$step[1 .. 3]);
   } else {
     $log->error("Cannot process @$step");
   }
@@ -298,8 +294,9 @@ sub add_room {
   return 1;
 }
 
-sub add_spiral_stairs {
-  my ($map, $x, $y, $z, $dir) = @_;
+sub process_spiral_stairs {
+  my ($map, $x, $y, $z) = @_;
+  my $dir = $z == 0 ? 1 : rand() < 0.5 ? 1 : -1;
   $log->debug("Trying to add stairs at ($x, $y, $z) going $dir");
   if ($map->{data}->[$z][$y][$x] eq 'f'
       and (not $map->{data}->[$z + $dir][$y][$x]
