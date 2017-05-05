@@ -20,35 +20,28 @@ get '/' => sub {
   $log->debug("************************************************************");
   my $map = generate_map();
   $c->render(template => 'main',
-             links => [@{$map->{links}}, to_link($map)],
-	     images => [@{$map->{images}}, to_image($map)]);
+             links => [@{$map->{links}}],
+	     images => [@{$map->{images}}]);
 };
 
 sub generate_map {
   my $map = {}; # $map->{data}->[$z][$y][$x], $map->{queue}
-  push(@{$map->{queue}}, starting_room($map, 0, 5));
+  init($map);
   my $n = 1;
   do {} while (process($map, $n++));
   return $map;
 }
 
-sub starting_room {
-  my ($map, $z, $space) = @_;
-  my $x1 = int(rand($maxx + 1 - 2 * $space) + $space); # 5 - 25
-  my $y1 = int(rand($maxy + 1 - 2 * $space) + $space); # 5 - 25
-  $log->debug("generating starting room at ($x1, $y1, $z)");
-  for my $x ($x1 - 1 .. $x1 + 1) {
-    for my $y ($y1 - 1 .. $y1 + 1) {
-      $map->{data}->[$z][$y][$x] = 'f';
-    }
-  }
-  return ['room exit', $x1, $y1, $z];
+sub init {
+  my ($map) = @_;
+  my $space = 5;
+  my $x = int(rand($maxx + 1 - 2 * $space) + $space); # 5 - 25
+  my $y = int(rand($maxy + 1 - 2 * $space) + $space); # 5 - 25
+  push(@{$map->{queue}}, ['big room', $x, $y, 0]);
 }
 
 sub process {
   my ($map, $n) = @_;
-  push(@{$map->{links}}, to_link($map));
-  push(@{$map->{images}}, to_image($map));
   $log->debug('-' x 57 . sprintf(" %02d", $n));
   my $step = shift(@{$map->{queue}});
   if ($step->[0] eq 'room exit') {
@@ -59,11 +52,15 @@ sub process {
     process_corridor_end($map, @$step[1 .. 4]);
   } elsif ($step->[0] eq 'small room') {
     process_small_room($map, @$step[1 .. 7]);
+  } elsif ($step->[0] eq 'big room') {
+    process_big_room($map, @$step[1 ..3]);
   } elsif ($step->[0] eq 'spiral stairs') {
     process_spiral_stairs($map, @$step[1 .. 3]);
   } else {
     $log->error("Cannot process @$step");
   }
+  push(@{$map->{links}}, to_link($map));
+  push(@{$map->{images}}, to_image($map));
   return scalar(@{$map->{queue}});
 }
 
@@ -238,6 +235,29 @@ sub process_small_room {
     # push(@{$map->{queue}}, ['corridor', $x, $y, $z, left($dir), about_three()]);
     # push(@{$map->{queue}}, ['corridor', $x, $y, $z, right($dir), about_three()]);
   }
+}
+
+sub process_big_room {
+  # the first big room has no direction and entry position
+  my ($map, $x1, $y1, $z) = @_;
+  $log->debug("generating big room at ($x1, $y1, $z)");
+  my $free = 1;
+  for my $x ($x1 - 1 .. $x1 + 1) {
+    for my $y ($y1 - 1 .. $y1 + 1) {
+      # no room if the space is already occupied by anything else but stairs
+      if ($map->{data}->[$z][$y][$x] and $map->{data}->[$z][$y][$x] !~ /s/) {
+	return 0;
+      }
+    }
+  }
+  for my $x ($x1 - 1 .. $x1 + 1) {
+    for my $y ($y1 - 1 .. $y1 + 1) {
+      $map->{data}->[$z][$y][$x] //= 'f';
+    }
+  }
+  push(@{$map->{queue}}, ['room exit', one_in($x1-1, $y1-1, $z, $x1+1, $y1+1, $z)]);
+  push(@{$map->{queue}}, ['room exit', one_in($x1-1, $y1-1, $z, $x1+1, $y1+1, $z)]) if rand() < 0.2;
+  push(@{$map->{queue}}, ['spiral stairs', one_in($x1-1, $y1-1, $z, $x1+1, $y1+1, $z)]) if rand() < 0.2;
 }
 
 sub add_room {
@@ -434,7 +454,7 @@ Click on the thumbnails and switch to Gridmapper.
 <span style="display:inline-block; vertical-align:top;">
 <%= $n %><br/>
 <a style="text-decoration:none;" href="<%= $link %>">
-    <img style="width:90px; border: 1px solid gray;" src="<%= $img %>">
+    <img style="border: 1px solid gray;" src="<%= $img %>">
 </a>
 </span>
 <% $n++ } %>
