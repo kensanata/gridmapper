@@ -19,9 +19,8 @@ get '/' => sub {
   $log->debug("************************************************************");
   my $map = generate_map();
   $c->render(template => 'main',
-	     map => to_string($map),
-             links => [@{$map->{links}}],
-	     images => [@{$map->{images}}]);
+             links => [@{$map->{links}}, to_link($map)],
+	     images => [@{$map->{images}}, to_image($map)]);
 };
 
 sub generate_map {
@@ -426,19 +425,17 @@ __DATA__
 <p>
 This is a generator for maps that can be fed to
 <a href="https://campaignwiki.org/gridmapper.svg">Gridmapper</a>.
+Below, you can see how it grew.
+Click on the thumbnails and switch to Gridmapper.
 <p>
-<% my $n = 0; for my $link (@$links) { my $img = shift(@$images); $n++; %>\
+<% my $n = 0; for my $link (@$links) { my $img = shift(@$images); %>\
 <span style="display:inline-block">
 <%= $n %><br/>
 <a style="text-decoration:none;" href="<%= $link %>">
     <img style="width:90px; border: 1px solid gray;" src="<%= $img %>">
 </a>
 </span>
-<% } %>
-<p>
-<textarea style="width: 100%; height: 60em; margin-right: 1ex; float: left;">
-<%= $map %>
-</textarea>
+<% $n++ } %>
 
 @@ layouts/default.html.ep
 <!DOCTYPE html>
