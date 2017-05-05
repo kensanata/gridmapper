@@ -83,15 +83,7 @@ sub process {
       push(@{$map->{queue}}, ['corridor end', $x, $y, $z, $dir]);
     }
   } elsif ($step->[0] eq 'corridor end') {
-    my $x = $step->[1];
-    my $y = $step->[2];
-    my $z = $step->[3];
-    my $dir = $step->[4];
-    $log->debug("processing corridor end at ($x, $y, $z) in dir $dir");
-    add_door($map, $x, $y, $z, $dir);
-    # step into room
-    my ($x1, $y1, $z1) = step($map, $x, $y, $z, $dir);
-    push(@{$map->{queue}}, ['small room', $x1, $y1, $z1, $dir, $x, $y, $z]);
+    process_corridor_end($map, @$step[1 .. 4]);
   } elsif ($step->[0] eq 'small room') {
     process_small_room($map, @$step[1 .. 7]);
   } elsif ($step->[0] eq 'spiral stairs') {
@@ -234,6 +226,15 @@ sub add_corridor {
     $map->{data}->[$z][$y][$x] = 'd' x (1 + $dir) . $map->{data}->[$z][$y][$x];
   }
   return ($x, $y, $z);
+}
+
+sub process_corridor_end {
+  my ($map, $x, $y, $z, $dir) = @_;
+  $log->debug("processing corridor end at ($x, $y, $z) in dir $dir");
+  add_door($map, $x, $y, $z, $dir);
+  # step into room
+  my ($x1, $y1, $z1) = step($map, $x, $y, $z, $dir);
+  push(@{$map->{queue}}, ['small room', $x1, $y1, $z1, $dir, $x, $y, $z]);
 }
 
 sub process_small_room {
