@@ -53,7 +53,7 @@ sub process {
   } elsif ($step->[0] eq 'small room') {
     process_small_room($map, @$step[1 .. 7]);
   } elsif ($step->[0] eq 'big room') {
-    process_big_room($map, @$step[1 ..3]);
+    process_big_room($map, @$step[1 .. 7]);
   } elsif ($step->[0] eq 'spiral stairs') {
     process_spiral_stairs($map, @$step[1 .. 3]);
   } else {
@@ -215,15 +215,23 @@ sub process_corridor_end {
   add_door($map, $x, $y, $z, $dir);
   # step into room
   my ($x1, $y1, $z1) = step($map, $x, $y, $z, $dir);
-  push(@{$map->{queue}}, ['small room', $x1, $y1, $z1, $dir, $x, $y, $z]);
+  if (rand() < 0.2) {
+    push(@{$map->{queue}}, ['big room', $x1, $y1, $z1, $dir, $x, $y, $z]);
+  } else {
+    push(@{$map->{queue}}, ['small room', $x1, $y1, $z1, $dir, $x, $y, $z]);
+  }
 }
 
 sub process_small_room {
+  # ($x0, $y0, $z0) is the position we're coming from
+  # ($x, $y, $z) is the first position inside the room
   my ($map, $x, $y, $z, $dir, $x0, $y0, $z0) = @_;
   $log->debug("processing small room at ($x, $y, $z) in dir $dir");
-  my ($x1, $y1, $z1, $f1) = step($map, $x, $y, $z, $dir);
-  ($x1, $y1, $z1, $f1) = step($map, $x1, $y1, $z1, $dir) if rand() < 0.5;
-  my ($x2, $y2, $z2, $f2) = step($map, $x, $y, $z, orthogonal($dir));
+  # one corner: step straight ahead once or twice
+  my ($x1, $y1, $z1) = step($map, $x, $y, $z, $dir);
+  ($x1, $y1, $z1) = step($map, $x1, $y1, $z1, $dir) if rand() < 0.5;
+  # other corner: step left or right
+  my ($x2, $y2, $z2) = step($map, $x, $y, $z, orthogonal($dir));
   if (add_room($map, $x0, $y0, $z0,
 	       min($x1, $x2), min($y1, $y2), min($z1, $z2),
 	       max($x1, $x2), max($y1, $y2), max($z1, $z2))) {
@@ -239,31 +247,49 @@ sub process_small_room {
 
 sub process_big_room {
   # the first big room has no direction and entry position
-  my ($map, $x1, $y1, $z) = @_;
-  $log->debug("generating big room at ($x1, $y1, $z)");
-  my $free = 1;
-  for my $x ($x1 - 1 .. $x1 + 1) {
-    for my $y ($y1 - 1 .. $y1 + 1) {
-      # no room if the space is already occupied by anything else but stairs
-      if ($map->{data}->[$z][$y][$x] and $map->{data}->[$z][$y][$x] !~ /s/) {
-	return 0;
-      }
-    }
+  my ($map, $x, $y, $z, $dir, $x0, $y0, $z0) = @_;
+  my ($x1, $y1, $z1);
+  my ($x2, $y2, $z2);
+  if (defined $dir) {
+    $log->debug("processing big room at ($x, $y, $z) in dir $dir");
+    # one corner: step left once
+    ($x1, $y1, $z1) = step($map, $x, $y, $z, left($dir));
+    # other corner: step right once and straight two or three times
+    ($x2, $y2, $z2) = step($map, $x, $y, $z, right($dir));
+    ($x2, $y2, $z2) = step($map, $x2, $y2, $z2, $dir);
+    ($x2, $y2, $z2) = step($map, $x2, $y2, $z2, $dir);
+    ($x2, $y2, $z2) = step($map, $x2, $y2, $z2, $dir) if rand() < 0.5;
+  } else {
+    $log->debug("processing big room around ($x, $y, $z)");
+    # on level 0, just have stairs going up to the surface
+    $map->{data}->[$z][$y][$x] = 'svv '; # don't forget the space!
+    ($x0, $y0, $z0) = ($x, $y, $z);
+    ($x1, $y1, $z1) = ($x-1, $y-1, $z);
+    ($x2, $y2, $z2) = ($x+1, $y+1, $z);
   }
-  for my $x ($x1 - 1 .. $x1 + 1) {
-    for my $y ($y1 - 1 .. $y1 + 1) {
-      $map->{data}->[$z][$y][$x] //= 'f';
-    }
+
+  if (add_room($map, $x0, $y0, $z0,
+	       min($x1, $x2), min($y1, $y2), min($z1, $z2),
+	       max($x1, $x2), max($y1, $y2), max($z1, $z2))) {
+    # the first room should always have at least one exit, usually more than one
+    push(@{$map->{queue}}, ['room exit', one_in($x1, $y1, $z1, $x1, $y1, $z2)]) if not defined $dir;
+    push(@{$map->{queue}}, ['room exit', one_in($x1, $y1, $z1, $x2, $y2, $z2), $dir]) if rand() < 0.7;
+    push(@{$map->{queue}}, ['room exit', one_in($x1, $y1, $z1, $x2, $y2, $z2), $dir]) if rand() < 0.2;
+    push(@{$map->{queue}}, ['spiral stairs', one_in($x1, $y1, $z1, $x2, $y2, $z2)]) if rand() < 0.2;
+  } else {
+    # t-crossing: add small corridors in both directions
+    # push(@{$map->{queue}}, ['corridor', $x, $y, $z, left($dir), about_three()]);
+    # push(@{$map->{queue}}, ['corridor', $x, $y, $z, right($dir), about_three()]);
   }
-  push(@{$map->{queue}}, ['room exit', one_in($x1-1, $y1-1, $z, $x1+1, $y1+1, $z)]);
-  push(@{$map->{queue}}, ['room exit', one_in($x1-1, $y1-1, $z, $x1+1, $y1+1, $z)]) if rand() < 0.2;
-  push(@{$map->{queue}}, ['spiral stairs', one_in($x1-1, $y1-1, $z, $x1+1, $y1+1, $z)]) if rand() < 0.2;
 }
 
 sub add_room {
+  # ($x0, $y0, $z0) is the position we're coming from
+  # ($x1, $y1, $z1) is one corner of the room
+  # ($x2, $y2, $z2) is the other corner of the room
   my ($map, $x0, $y0, $z0, $x1, $y1, $z1, $x2, $y2, $z2) = @_;
   if (not legal($x1, $y1, $z1) or not legal($x2, $y2, $z2)) {
-    $log->debug("This room goes over the edge of the map ($x1, $y1, $z1) to ($x2, $y2, $z2)");
+    $log->debug("→ the room goes over the edge of the map ($x1, $y1, $z1) to ($x2, $y2, $z2)");
     return 0;
   }
   my $f;
@@ -282,7 +308,7 @@ sub add_room {
 	    or $y == $y2 and $f = $map->{data}->[$z][$y+1][$x] and not ($x == $x0 and $y+1 == $y0)
 	    or $x == $x1 and $f = $map->{data}->[$z][$y][$x-1] and not ($x-1 == $x0 and $y == $y0)
 	    or $x == $x2 and $f = $map->{data}->[$z][$y][$x+1] and not ($x+1 == $x0 and $y == $y0)) {
-	  $log->error("→ the room touches something at ($x, $y, $z): " . $f);
+	  $log->debug("→ the room touches something at ($x, $y, $z): " . $f);
 	  return 0;
 	}
       }
@@ -293,6 +319,7 @@ sub add_room {
     for my $y ($y1 .. $y2) {
       for my $x ($x1 .. $x2) {
 	$map->{data}->[$z][$y][$x] = 'f' unless $map->{data}->[$z][$y][$x]; # could be stairs
+	$log->info("→ ($x, $y, $z): " . $map->{data}->[$z][$y][$x]);	
       }
     }
   }
@@ -414,14 +441,14 @@ sub url_encode {
 sub to_image {
   my $map = shift;
   my $maxz = $#{$map->{data}};
-  my $img = new GD::Image($maxx, $maxy * (1 + $maxz) + $maxz);
+  my $img = new GD::Image($maxx + 1, ($maxy + 1) * (1 + $maxz) + $maxz);
   my $white = $img->colorAllocate(255,255,255);
   my $black = $img->colorAllocate(0,0,0);       
   my $red   = $img->colorAllocate(255,0,0);       
   $img->transparent($white);
   for my $z (0 .. $maxz) {
-    for my $y (0 .. $maxy-1) {
-      for my $x (0 .. $maxx-1) {
+    for my $y (0 .. $maxy) {
+      for my $x (0 .. $maxx) {
 	if ($map->{data}->[$z][$y][$x]) {
 	  if (substr($map->{data}->[$z][$y][$x], 0, 1) eq 'd') {
 	    $img->setPixel($x, $y + ($maxy + 1) * $z, $red);
@@ -450,14 +477,14 @@ This is a generator for maps that can be fed to
 Below, you can see how it grew.
 Click on the thumbnails and switch to Gridmapper.
 <p>
-<% my $n = 0; for my $link (@$links) { my $img = shift(@$images); %>\
+<% my $n = 0; for my $link (@$links) { my $img = shift(@$images); $n++; %>\
 <span style="display:inline-block; vertical-align:top;">
 <%= $n %><br/>
 <a style="text-decoration:none;" href="<%= $link %>">
     <img style="border: 1px solid gray;" src="<%= $img %>">
 </a>
 </span>
-<% $n++ } %>
+<% } %>
 
 @@ layouts/default.html.ep
 <!DOCTYPE html>
