@@ -5,6 +5,7 @@ use Data::Dumper;
 use Encode qw(encode_utf8);
 use GD;
 use MIME::Base64;
+use List::Util qw(shuffle);
 
 my $log = Mojo::Log->new;
 
@@ -51,24 +52,7 @@ sub process {
   $log->debug('-' x 57 . sprintf(" %02d", $n));
   my $step = shift(@{$map->{queue}});
   if ($step->[0] eq 'room exit') {
-    # add corridor
-    my $x = $step->[1];
-    my $y = $step->[2];
-    my $z = $step->[3];
-    $log->debug("processing room exit at ($x, $y, $z)");
-    for (0 .. 3) {
-      my $dir = pick_direction();
-      # don't change ($x, $y, $z) because we need retries!
-      my ($x1, $y1, $z1) = suggest_door($map, $x, $y, $z, $dir);
-      next unless $x1 >= 0;
-      my $d = about_six();
-      $d = suggest_corridor($map, $x1, $y1, $z1, $dir, $d);
-      next unless $d;
-      add_door($map, $x1, $y1, $z1, $dir);
-      ($x1, $y1, $z1) = add_corridor($map, $x1, $y1, $z1, $dir, $d);
-      push(@{$map->{queue}}, ['corridor end', $x1, $y1, $z1, $dir]);
-      last;
-    }
+    process_room_exit ($map, @$step[1 .. 4]);
   } elsif ($step->[0] eq 'corridor') {
     process_corridor ($map, @$step[1 .. 5]);
   } elsif ($step->[0] eq 'corridor end') {
@@ -246,8 +230,8 @@ sub process_small_room {
   if (add_room($map, $x0, $y0, $z0,
 	       min($x1, $x2), min($y1, $y2), min($z1, $z2),
 	       max($x1, $x2), max($y1, $y2), max($z1, $z2))) {
-    push(@{$map->{queue}}, ['room exit', one_in($x1, $y1, $z1, $x2, $y2, $z2)]) if rand() < 0.7;
-    push(@{$map->{queue}}, ['room exit', one_in($x1, $y1, $z1, $x2, $y2, $z2)]) if rand() < 0.2;
+    push(@{$map->{queue}}, ['room exit', one_in($x1, $y1, $z1, $x2, $y2, $z2), $dir]) if rand() < 0.7;
+    push(@{$map->{queue}}, ['room exit', one_in($x1, $y1, $z1, $x2, $y2, $z2), $dir]) if rand() < 0.2;
     push(@{$map->{queue}}, ['spiral stairs', one_in($x1, $y1, $z1, $x2, $y2, $z2)]) if rand() < 0.2;
   } else {
     # t-crossing: add small corridors in both directions
@@ -308,6 +292,26 @@ sub process_spiral_stairs {
     push(@{$map->{queue}}, ['small room', $x, $y, $z + $dir, pick_direction(), $x, $y, $z]);
   } else {
     $log->debug("No room for more stairs");
+  }
+}
+
+sub process_room_exit {
+  my ($map, $x, $y, $z, $skip_dir) = @_;
+  # add corridor
+  $log->debug("processing room exit at ($x, $y, $z)"
+	      . (defined $skip_dir ? " but not dir $skip_dir" : ""));
+  for my $dir (shuffle 0 .. 3) {
+    next if defined $skip_dir and $skip_dir == $dir;
+    # don't change ($x, $y, $z) because we need retries!
+    my ($x1, $y1, $z1) = suggest_door($map, $x, $y, $z, $dir);
+    next unless $x1 >= 0;
+    my $d = about_six();
+    $d = suggest_corridor($map, $x1, $y1, $z1, $dir, $d);
+    next unless $d;
+    add_door($map, $x1, $y1, $z1, $dir);
+    ($x1, $y1, $z1) = add_corridor($map, $x1, $y1, $z1, $dir, $d);
+    push(@{$map->{queue}}, ['corridor end', $x1, $y1, $z1, $dir]);
+    last;
   }
 }
 
@@ -427,7 +431,7 @@ Below, you can see how it grew.
 Click on the thumbnails and switch to Gridmapper.
 <p>
 <% my $n = 0; for my $link (@$links) { my $img = shift(@$images); %>\
-<span style="display:inline-block">
+<span style="display:inline-block; vertical-align:top;">
 <%= $n %><br/>
 <a style="text-decoration:none;" href="<%= $link %>">
     <img style="width:90px; border: 1px solid gray;" src="<%= $img %>">
