@@ -235,6 +235,8 @@ sub process_small_room {
   if (add_room($map, $x0, $y0, $z0,
 	       min($x1, $x2), min($y1, $y2), min($z1, $z2),
 	       max($x1, $x2), max($y1, $y2), max($z1, $z2))) {
+    # if we came here via a stair, there should be even more chances for a room
+    push(@{$map->{queue}}, ['room exit', one_in($x1, $y1, $z1, $x2, $y2, $z2), $dir]) if $x == $x0 and $y == $y0;
     push(@{$map->{queue}}, ['room exit', one_in($x1, $y1, $z1, $x2, $y2, $z2), $dir]) if rand() < 0.7;
     push(@{$map->{queue}}, ['room exit', one_in($x1, $y1, $z1, $x2, $y2, $z2), $dir]) if rand() < 0.2;
     push(@{$map->{queue}}, ['spiral stairs', one_in($x1, $y1, $z1, $x2, $y2, $z2)]) if rand() < 0.2;
