@@ -70,18 +70,7 @@ sub process {
       last;
     }
   } elsif ($step->[0] eq 'corridor') {
-    # add corridor
-    my $x = $step->[1];
-    my $y = $step->[2];
-    my $z = $step->[3];
-    my $dir = $step->[4];
-    my $d = $step->[5];
-    $log->debug("processing corridor at ($x, $y, $z) in dir $dir, distance $d");
-    $d = suggest_corridor($map, $x, $y, $z, $dir, $d);
-    if ($d) {
-      ($x, $y, $z) = add_corridor($map, $x, $y, $z, $dir, $d);
-      push(@{$map->{queue}}, ['corridor end', $x, $y, $z, $dir]);
-    }
+    process_corridor ($map, @$step[1 .. 5]);
   } elsif ($step->[0] eq 'corridor end') {
     process_corridor_end($map, @$step[1 .. 4]);
   } elsif ($step->[0] eq 'small room') {
@@ -226,6 +215,17 @@ sub add_corridor {
     $map->{data}->[$z][$y][$x] = 'd' x (1 + $dir) . $map->{data}->[$z][$y][$x];
   }
   return ($x, $y, $z);
+}
+
+sub process_corridor {
+  my ($map, $x, $y, $z, $dir, $d) = @_;
+  # add corridor
+  $log->debug("processing corridor at ($x, $y, $z) in dir $dir, distance $d");
+  $d = suggest_corridor($map, $x, $y, $z, $dir, $d);
+  if ($d) {
+    ($x, $y, $z) = add_corridor($map, $x, $y, $z, $dir, $d);
+    push(@{$map->{queue}}, ['corridor end', $x, $y, $z, $dir]);
+  }
 }
 
 sub process_corridor_end {
