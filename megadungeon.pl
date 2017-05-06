@@ -139,6 +139,8 @@ sub suggest_door {
   return ($x1, $y1, $z1);
 }
 
+# you should have called suggest_door first, in order to rule out some
+# impossible doors
 sub add_door {
   my ($map, $x, $y, $z, $dir) = @_;
   $log->debug("checking for space at ($x,$y,$z) in dir $dir");
@@ -240,6 +242,9 @@ sub process_corridor {
 sub process_corridor_end {
   my ($map, $x, $y, $z, $dir) = @_;
   $log->debug("processing corridor end at ($x, $y, $z) in dir $dir");
+  # in this case, ($x, $y, $z) should remain unchanged if a door is reasonable
+  ($x, $y, $z) = suggest_door($map, $x, $y, $z, $dir);
+  return unless $x >= 0;
   if (add_door($map, $x, $y, $z, $dir)) {
     # step into room
     my ($x1, $y1, $z1) = step($map, $x, $y, $z, $dir);
@@ -258,9 +263,21 @@ sub process_small_room {
   $log->debug("processing small room at ($x, $y, $z) in dir $dir");
   # one corner: step straight ahead once or twice
   my ($x1, $y1, $z1) = step($map, $x, $y, $z, $dir);
-  ($x1, $y1, $z1) = step($map, $x1, $y1, $z1, $dir) if rand() < 0.5;
-  # other corner: step left or right
-  my ($x2, $y2, $z2) = step($map, $x, $y, $z, orthogonal($dir));
+  $log->debug("→ moving into room ($x1, $y1, $z1) in dir $dir");
+  if (rand() < 0.5 and is_free(step($map, $x1, $y1, $z1, $dir))) {
+    ($x1, $y1, $z1) = step($map, $x1, $y1, $z1, $dir);
+    $log->debug("→ deeper room ($x1, $y1, $z1) in dir $dir");
+  }
+  # other corner: step left or right, if possible
+  my ($x2, $y2, $z2) = ($x, $y, $z);
+  for my $side (shuffle left($dir), right($dir)) {
+    $log->debug("→ looking in dir $side");
+    if (is_free(step($map, $x, $y, $z, $side))) {
+      ($x2, $y2, $z2) = step($map, $x, $y, $z, $side);
+      $log->debug("→ widening room ($x2, $y2, $z2) in dir $side");
+      last;
+    }
+  }
   if (not add_room($map, $x0, $y0, $z0,
 		   min($x1, $x2), min($y1, $y2), min($z1, $z2),
 		   max($x1, $x2), max($y1, $y2), max($z1, $z2))) {
@@ -311,15 +328,10 @@ sub process_big_room {
     push(@{$map->{queue}}, ['room exit', one_in($x1, $y1, $z1, $x2, $y2, $z2), $dir]) if rand() < 0.2;
     push(@{$map->{queue}}, ['spiral stairs', one_in($x1, $y1, $z1, $x2, $y2, $z2)]) if rand() < 0.2;
     return 1;
-  } elsif (process_small_room($map, $x, $y, $z, $dir, $x0, $y0, $z0)) {
-    # added a small room instead!
-  } else {
-    $log->debug("→ going to grow a corridor instead");
-    # step in the other direction
-    $dir = orthogonal($dir);
-    ($x1, $y1, $z1) = step($map, $x, $y, $z, back($dir));
-    push(@{$map->{queue}}, ['corridor', $x1, $y1, $z1, $dir, about_three()]);
   }
+  # a small room will turn into a corridor at a right angle if there is not
+  # enough space, so no need to implement our own alternative, here
+  return process_small_room($map, $x, $y, $z, $dir, $x0, $y0, $z0);
 }
 
 sub add_room {
@@ -423,31 +435,39 @@ sub step {
   my ($map, $x, $y, $z, $dir) = @_;
   # $log->debug("→ stepping from ($x, $y, $z) in dir $dir");
   if ($dir == 0) {
-    return ($x - 1, $y, $z, legal($z, $y, $x-1) && $map->{data}->[$z][$y][$x-1]);
+    return ($x - 1, $y, $z, legal($x-1, $y, $z) && $map->{data}->[$z][$y][$x-1]);
   } elsif ($dir == 1) {
-    return ($x, $y - 1, $z, legal($z, $y-1, $x) && $map->{data}->[$z][$y-1][$x]);
+    return ($x, $y - 1, $z, legal($x, $y-1, $z) && $map->{data}->[$z][$y-1][$x]);
   } elsif ($dir == 2) {
-    return ($x + 1, $y, $z, legal($z, $y, $x+1) && $map->{data}->[$z][$y][$x+1]);
+    return ($x + 1, $y, $z, legal($x+1, $y, $z) && $map->{data}->[$z][$y][$x+1]);
   } elsif ($dir == 3) {
-    return ($x, $y + 1, $z, legal($z, $y+1, $x) && $map->{data}->[$z][$y+1][$x]);
+    return ($x, $y + 1, $z, legal($x, $y+1, $z) && $map->{data}->[$z][$y+1][$x]);
   } else {
     $log->error("step: invalid direction");
   }
 }
 
+# feed the result of step
+sub is_free {
+  my ($x, $y, $z, $f) = @_;
+  return 1 if not $f;
+}
+
 sub to_link {
   my $map = shift;
-  return 'https://campaignwiki.org/gridmapper.svg?'
-      . url_encode(to_string($map))
-      # append coordinates
-      . '(0,0)0%201%202%203%204%205%206%207%208%209%2010%2011%2012%2013%2014%2015%2016%2017%2018%2019%2020%2021%2022%2023%2024%2025%2026%2027%2028%2029%2030%20%0a1%0a2%0a3%0a4%0a5%0a6%0a7%0a8%0a9%0a10%0a11%0a12%0a13%0a14%0a15%0a16%0a17%0a18%0a19%0a20%0a21%0a22%0a23%0a24%0a25%0a26%0a27%0a28%0a29%0a30'
+  my $link = 'https://campaignwiki.org/gridmapper.svg?'
+      . url_encode(to_string($map));
+  for my $z (0 .. $#{$map->{data}}) {
+    # append coordinates
+    $link .= "(0,0,$z)0%201%202%203%204%205%206%207%208%209%2010%2011%2012%2013%2014%2015%2016%2017%2018%2019%2020%2021%2022%2023%2024%2025%2026%2027%2028%2029%2030%20%0a1%0a2%0a3%0a4%0a5%0a6%0a7%0a8%0a9%0a10%0a11%0a12%0a13%0a14%0a15%0a16%0a17%0a18%0a19%0a20%0a21%0a22%0a23%0a24%0a25%0a26%0a27%0a28%0a29%0a30";
+  }
+  return $link;
 }
 
 sub to_string () {
   my $map = shift;
   my $str = "";
-  # $log->debug(Dumper($map));
-  for my $z (0 .. scalar(@{$map->{data}}) - 1) {
+  for my $z (0 .. $#{$map->{data}}) {
     $str .= "(0,0,$z)";
     $str .= "X[$maxx,$maxy]" unless $z;
     if ($map->{data}->[$z]) {
