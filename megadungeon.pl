@@ -188,15 +188,18 @@ sub suggest_corridor {
       $log->debug("→ found floor $f at ($x, $y, $z) in dir $dir, distance $_");
       return $_;
     } else {
+      # If we find something to the left or right on the first step, then it's
+      # not really a corridor. If we find it later, it's just a very short
+      # corridor and that's ok.
       my ($x1, $y1, $z1, $f) = step($map, $x, $y, $z, left($dir));
-      if ($f and $f eq 'f') {
+      if ($f) {
 	$log->debug("→ found floor $f to the left at ($x1, $y1, $z1) in dir $dir, distance $_");
-	return $_;
+	return $_ > 1 ? $_ : 0;
       }
       ($x1, $y1, $z1, $f) = step($map, $x, $y, $z, right($dir));
-      if ($f and $f eq 'f') {
+      if ($f) {
 	$log->debug("→ found floor $f to the right at ($x1, $y1, $z1) in dir $dir, distance $_");
-	return $_;
+	return $_ > 1 ? $_ : 0;
       }
     }
   }
@@ -450,7 +453,7 @@ sub step {
 # feed the result of step
 sub is_free {
   my ($x, $y, $z, $f) = @_;
-  return 1 if not $f;
+  return 1 if legal($x, $y, $z) and not $f;
 }
 
 sub to_link {
