@@ -1936,16 +1936,16 @@ function checkRockyNeighbors(x, y) {
   var undoBoundary = Commands.i - 1;
   old = Map.data.get(x-1, y).floor;
   if (old !== null && old.type.startsWith('rock'))
-    replaceColoredFloor(x-1, y, old, getRocks(x-1, y));
+    replaceColoredFloor(x-1, y, old, getRocks(x-1, y), true);
   old = Map.data.get(x, y-1).floor;
   if (old !== null && old.type.startsWith('rock'))
-    replaceColoredFloor(x, y-1, old, getRocks(x, y-1));
+    replaceColoredFloor(x, y-1, old, getRocks(x, y-1), true);
   old = Map.data.get(x+1, y).floor;
   if (old !== null && old.type.startsWith('rock'))
-    replaceColoredFloor(x+1, y, old, getRocks(x+1, y));
+    replaceColoredFloor(x+1, y, old, getRocks(x+1, y), true);
   old = Map.data.get(x, y+1).floor;
   if (old !== null && old.type.startsWith('rock'))
-    replaceColoredFloor(x, y+1, old, getRocks(x, y+1));
+    replaceColoredFloor(x, y+1, old, getRocks(x, y+1), true);
   // make sure this is a single undo/redo command
   Commands.merge(undoBoundary);
 }
@@ -2194,9 +2194,9 @@ function draw (x, y, type) {
  * handles both the old tile and the new tile being null. If both are
  * null, nothing needs to be done. If something was done, return true.
  * This is used when hitting DEL to remove a wall, or a floor tile, or
- * an arc.
+ * an arc. This is the main function at the end of all floor drawing.
  */
-function replace (data, element, x, y, old, tile) {
+function replace (data, element, x, y, old, tile, recursive) {
   if (old !== null || tile !== null) {
     Commands.do(
       function(){
@@ -2214,22 +2214,30 @@ function replace (data, element, x, y, old, tile) {
         Map.data.get(x,y)[data] = tile;
       });
     Pen.lastWall = null;
+    if (!recursive)
+      checkRockyNeighbors(x, y);
     return true;
   }
 }
 
 function replaceFloor (x, y, old, tile) {
-  return replace('floor', Map.floorElement, x, y, old, tile);
+  return replace('floor', Map.floorElement, x, y, old, tile, false);
 }
 
-function replaceColoredFloor (x, y, old, tile) {
+/**
+ * When automatically adjusting a tile such as grottos, we do not want
+ * to change their background color. In this case, we're also calling
+ * replace recursively and thus we need to prevent it from processing
+ * further grottos.
+ */
+function replaceColoredFloor (x, y, old, tile, recursive) {
   if (old.hasAttribute('class'))
     tile.setAttribute('class', old.getAttribute('class'));
-  return replace('floor', Map.floorElement, x, y, old, tile);
+  return replace('floor', Map.floorElement, x, y, old, tile, recursive);
 }
 
 function replaceArc (x, y, old, tile) {
-  return replace('arcs', Map.arcsElement, x, y, old, tile);
+  return replace('arcs', Map.arcsElement, x, y, old, tile, false);
 }
 
 function background (x, y, color) {
@@ -2471,7 +2479,6 @@ function floor (x, y) {
   } else {
     replaceFloor(x, y, old, null);
   }
-  checkRockyNeighbors(x, y);
 }
 
 /**
