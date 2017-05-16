@@ -9,6 +9,9 @@ use List::Util qw(shuffle);
 
 my $log = Mojo::Log->new;
 
+my $gridmapper = 'https://campaignwiki.org/gridmapper.svg?';
+# my $gridmapper = 'http://localhost/gridmapper.svg?';
+
 my $maxx = 30;
 my $maxy = 30;
 my $maxz = 10;
@@ -37,24 +40,24 @@ sub init {
   my $space = 5;
   my $x = int(rand($maxx + 1 - 2 * $space) + $space); # 5 - 25
   my $y = int(rand($maxy + 1 - 2 * $space) + $space); # 5 - 25
-  push(@{$map->{queue}}, ['big room', $x, $y, 0]);
+  push(@{$map->{queue}}, ['big_room', $x, $y, 0]);
 }
 
 sub process {
   my ($map, $n) = @_;
   $log->debug('-' x 57 . sprintf(" %02d", $n));
   my $step = shift(@{$map->{queue}});
-  if ($step->[0] eq 'room exit') {
+  if ($step->[0] eq 'room_exit') {
     process_room_exit ($map, @$step[1 .. 4]);
   } elsif ($step->[0] eq 'corridor') {
     process_corridor ($map, @$step[1 .. 5]);
-  } elsif ($step->[0] eq 'corridor end') {
+  } elsif ($step->[0] eq 'corridor_end') {
     process_corridor_end($map, @$step[1 .. 4]);
-  } elsif ($step->[0] eq 'small room') {
+  } elsif ($step->[0] eq 'small_room') {
     process_small_room($map, @$step[1 .. 7]);
-  } elsif ($step->[0] eq 'big room') {
+  } elsif ($step->[0] eq 'big_room') {
     process_big_room($map, @$step[1 .. 7]);
-  } elsif ($step->[0] eq 'spiral stairs') {
+  } elsif ($step->[0] eq 'spiral_stairs') {
     process_spiral_stairs($map, @$step[1 .. 3]);
   } else {
     $log->error("Cannot process @$step");
@@ -143,32 +146,47 @@ sub suggest_door {
 # impossible doors
 sub add_door {
   my ($map, $x, $y, $z, $dir) = @_;
-  $log->debug("checking for space at ($x,$y,$z) in dir $dir");
-  my ($x1, $y1, $z1, $f) = step($map, $x, $y, $z, $dir);
-  if (not legal($x1, $y1, $z1)) {
-    $log->debug("→ but ($x1,$y1,$z1) is off the grid");
-    return 0;
-  } elsif ($map->{data}->[$z1][$y1][$x1]) {
-    $log->debug("connecting to existing room at ($x,$y,$z)");
-    return 0;
-  }
   $log->debug("add door at ($x,$y,$z) in dir $dir");
-  # doors are prefixed; multiple doors are separated by a dot
-  if (substr($map->{data}->[$z][$y][$x], 0, 1) eq 'd') {
-    $map->{data}->[$z][$y][$x] = '.' . $map->{data}->[$z][$y][$x];
+  # Doors are prefixed; multiple doors are separated by a dot; if the current
+  # door is dd (north) and we want to add a door to the west (d), the result
+  # will be d.d because of how the user interface works. Sorry!
+  my @walls;
+  while ($map->{data}->[$z][$y][$x] =~ m/(([dw])[dw]*)(v*)/g) {
+    my $i = 0;
+    $i++ while $walls[$i];
+    my $n = length($1) - 1;
+    $walls[$n] = $2 . $3;
   }
+  if ($walls[$dir]) {
+    $log->error("Wall in dir $dir is already occupied: " . $map->{data}->[$z][$y][$x]);
+    return 0;
+  }
+  # determine new door
   my $rand = rand();
-  my $door;
   if ($rand < 0.1) {
-    $door = 'd' x (1 + $dir) . 'vvvv'; # 10% arch
+    $walls[$dir] = 'dvvvv'; # 10% arch
   } elsif ($rand < 0.15) {
-    $door = 'd' x (1 + $dir) . 'v'; # 5% secret
+    $walls[$dir] = 'dv'; # 5% secret
   } elsif ($rand < 0.20) {
-    $door = 'w' x (1 + $dir) . 'vv'; # 5% portcullis
+    $walls[$dir] = 'wvv'; # 5% portcullis
   } else {
-    $door = 'd' x (1 + $dir); # 80% normal door
+    $walls[$dir] = 'd'; # 80% normal door
   }
-  $map->{data}->[$z][$y][$x] = $door . $map->{data}->[$z][$y][$x];
+  # rebuild door string
+  my $doors = '';
+  for (my $i = 0; $i <= $#walls; $i++) {
+    my $n = $i;
+    $n++ while not $walls[$n] and $n <= $#walls;
+    if (not $walls[$n]) {
+      $log->error("Wall $n not set: @walls");
+      return 0;
+    }
+    $doors .= '.' if $doors;
+    $doors .= substr($walls[$n], 0, 1) x (1 + $n - $i);
+    $doors .= substr($walls[$n], 1);
+    $i = $n;
+  }
+  $map->{data}->[$z][$y][$x] =~ s/^[dwv.]*/$doors/;
   return 1;
 }
 
@@ -177,16 +195,14 @@ sub suggest_corridor {
   my ($map, $x, $y, $z, $dir, $d) = @_;
   my $f;
   $log->debug("looking for a corridor starting at ($x, $y, $z) in dir $dir, distance $d");
-  # known position is the floor tile with the door, so first step is free
-  ($x, $y, $z, $f) = step($map, $x, $y, $z, $dir);
   for (1 .. $d) {
     ($x, $y, $z, $f) = step($map, $x, $y, $z, $dir);
     if (not legal($x, $y, $z)) {
       $log->debug("→ found illegal position at ($x, $y, $z) in dir $dir, distance $_");
-      return $_ - 1;
-    } elsif ($f and $f eq 'f') {
+      return $_ > 2 ? $_ - 1 : 0;
+    } elsif ($f) {
       $log->debug("→ found floor $f at ($x, $y, $z) in dir $dir, distance $_");
-      return $_;
+      return $_ > 2 ? $_ - 1 : 0;
     } else {
       # If we find something to the left or right on the first step, then it's
       # not really a corridor. If we find it later, it's just a very short
@@ -236,26 +252,22 @@ sub process_corridor {
   # add corridor
   $log->debug("processing corridor at ($x, $y, $z) in dir $dir, distance $d");
   $d = suggest_corridor($map, $x, $y, $z, $dir, $d);
-  if ($d) {
+  # require minimum length
+  if ($d > 1) {
     ($x, $y, $z) = add_corridor($map, $x, $y, $z, $dir, $d);
-    push(@{$map->{queue}}, ['corridor end', $x, $y, $z, $dir]);
+    push(@{$map->{queue}}, ['corridor_end', $x, $y, $z, $dir]);
   }
 }
 
 sub process_corridor_end {
-  my ($map, $x, $y, $z, $dir) = @_;
-  $log->debug("processing corridor end at ($x, $y, $z) in dir $dir");
-  # in this case, ($x, $y, $z) should remain unchanged if a door is reasonable
-  ($x, $y, $z) = suggest_door($map, $x, $y, $z, $dir);
-  return unless $x >= 0;
-  if (add_door($map, $x, $y, $z, $dir)) {
-    # step into room
-    my ($x1, $y1, $z1) = step($map, $x, $y, $z, $dir);
-    if (rand() < 0.2) {
-      push(@{$map->{queue}}, ['big room', $x1, $y1, $z1, $dir, $x, $y, $z]);
-    } else {
-      push(@{$map->{queue}}, ['small room', $x1, $y1, $z1, $dir, $x, $y, $z]);
-    }
+  my ($map, $x0, $y0, $z0, $dir) = @_;
+  $log->debug("processing corridor end at ($x0, $y0, $z0) in dir $dir");
+  # step forward (into a new room, for example)
+  my ($x, $y, $z) = step($map, $x0, $y0, $z0, $dir);
+  if (rand() < 0.2) {
+    process_big_room($map, $x, $y, $z, $dir, $x0, $y0, $z0);
+  } else {
+    process_small_room($map, $x, $y, $z, $dir, $x0, $y0, $z0);
   }
 }
 
@@ -287,16 +299,19 @@ sub process_small_room {
     $log->debug("→ going to grow a corridor instead");
     # step in the other direction
     $dir = orthogonal($dir);
-    ($x1, $y1, $z1) = step($map, $x, $y, $z, back($dir));
-    push(@{$map->{queue}}, ['corridor', $x1, $y1, $z1, $dir, about_three()]);
+    push(@{$map->{queue}}, ['corridor', $x0, $y0, $z0, $dir, about_three()]);
     return 0;
+  }
+  # finally, add a door if we didn't come here from another level
+  if ($z == $z0) {
+    add_door($map, $x0, $y0, $z0, $dir);
   }
   # if we came here via a stair, there should be even more chances for a room
   my $from_stair = ($x == $x0 and $y == $y0);
-  push(@{$map->{queue}}, ['room exit', one_in($x1, $y1, $z1, $x2, $y2, $z2), $dir]) if $from_stair;
-  push(@{$map->{queue}}, ['room exit', one_in($x1, $y1, $z1, $x2, $y2, $z2), $dir]) if rand() < 0.7;
-  push(@{$map->{queue}}, ['room exit', one_in($x1, $y1, $z1, $x2, $y2, $z2), $dir]) if rand() < 0.2;
-  push(@{$map->{queue}}, ['spiral stairs', one_in($x1, $y1, $z1, $x2, $y2, $z2)]) if not $from_stair and rand() < 0.2;
+  push(@{$map->{queue}}, ['room_exit', one_in($x1, $y1, $z1, $x2, $y2, $z2), $dir]) if $from_stair;
+  push(@{$map->{queue}}, ['room_exit', one_in($x1, $y1, $z1, $x2, $y2, $z2), $dir]) if rand() < 0.7;
+  push(@{$map->{queue}}, ['room_exit', one_in($x1, $y1, $z1, $x2, $y2, $z2), $dir]) if rand() < 0.2;
+  push(@{$map->{queue}}, ['spiral_stairs', one_in($x1, $y1, $z1, $x2, $y2, $z2)]) if not $from_stair and rand() < 0.2;
   return 1;
 }
 
@@ -326,10 +341,12 @@ sub process_big_room {
 	       min($x1, $x2), min($y1, $y2), min($z1, $z2),
 	       max($x1, $x2), max($y1, $y2), max($z1, $z2))) {
     # the first room should always have at least one exit, usually more than one
-    push(@{$map->{queue}}, ['room exit', one_in($x1, $y1, $z1, $x1, $y1, $z2)]) if not defined $dir;
-    push(@{$map->{queue}}, ['room exit', one_in($x1, $y1, $z1, $x2, $y2, $z2), $dir]) if rand() < 0.7;
-    push(@{$map->{queue}}, ['room exit', one_in($x1, $y1, $z1, $x2, $y2, $z2), $dir]) if rand() < 0.2;
-    push(@{$map->{queue}}, ['spiral stairs', one_in($x1, $y1, $z1, $x2, $y2, $z2)]) if rand() < 0.2;
+    my $first = not defined $dir;
+    $dir //= pick_direction();
+    push(@{$map->{queue}}, ['room_exit', one_in($x1, $y1, $z1, $x1, $y1, $z2), $dir]) if $first;
+    push(@{$map->{queue}}, ['room_exit', one_in($x1, $y1, $z1, $x2, $y2, $z2), $dir]) if rand() < 0.7;
+    push(@{$map->{queue}}, ['room_exit', one_in($x1, $y1, $z1, $x2, $y2, $z2), $dir]) if rand() < 0.2;
+    push(@{$map->{queue}}, ['spiral_stairs', one_in($x1, $y1, $z1, $x2, $y2, $z2)]) if rand() < 0.2;
     return 1;
   }
   # a small room will turn into a corridor at a right angle if there is not
@@ -358,10 +375,10 @@ sub add_room {
 	}
 	# if we reached this room from the same level, then the origin is
 	# outside the room and touching it is not a problem
-	if ($y == $y1 and $f = $map->{data}->[$z][$y-1][$x] and not ($x == $x0 and $y-1 == $y0)
-	    or $y == $y2 and $f = $map->{data}->[$z][$y+1][$x] and not ($x == $x0 and $y+1 == $y0)
-	    or $x == $x1 and $f = $map->{data}->[$z][$y][$x-1] and not ($x-1 == $x0 and $y == $y0)
-	    or $x == $x2 and $f = $map->{data}->[$z][$y][$x+1] and not ($x+1 == $x0 and $y == $y0)) {
+	if (   $y == $y1 and $y > 0     and $f = $map->{data}->[$z][$y-1][$x] and not ($x == $x0 and $y-1 == $y0)
+	    or $y == $y2 and $y < $maxy and $f = $map->{data}->[$z][$y+1][$x] and not ($x == $x0 and $y+1 == $y0)
+	    or $x == $x1 and $x > 0     and $f = $map->{data}->[$z][$y][$x-1] and not ($x-1 == $x0 and $y == $y0)
+	    or $x == $x2 and $x < $maxx and $f = $map->{data}->[$z][$y][$x+1] and not ($x+1 == $x0 and $y == $y0)) {
 	  $log->debug("→ the room touches something at ($x, $y, $z): " . $f);
 	  return 0;
 	}
@@ -389,14 +406,15 @@ sub process_spiral_stairs {
     $log->debug("Add stairs at ($x, $y, $z) going $dir");
     $map->{data}->[$z][$y][$x] = 'svv ';
     $map->{data}->[$z + $dir][$y][$x] = 'svv ';
-    push(@{$map->{queue}}, ['small room', $x, $y, $z + $dir, pick_direction(), $x, $y, $z]);
+    push(@{$map->{queue}}, ['small_room', $x, $y, $z + $dir, pick_direction(), $x, $y, $z]);
   } else {
     $log->debug("No room for more stairs");
   }
 }
 
 sub process_room_exit {
-  my ($map, $x, $y, $z, $skip_dir) = @_;
+  my ($map, $x, $y, $z, $dir) = @_;
+  my $skip_dir = back($dir);
   # add corridor
   $log->debug("processing room exit at ($x, $y, $z)"
 	      . (defined $skip_dir ? " but not dir $skip_dir" : ""));
@@ -406,11 +424,12 @@ sub process_room_exit {
     my ($x1, $y1, $z1) = suggest_door($map, $x, $y, $z, $dir);
     next unless $x1 >= 0;
     my $d = about_six();
+    # first position of corridor is not part of the corridor!
     $d = suggest_corridor($map, $x1, $y1, $z1, $dir, $d);
-    next unless $d;
+    next unless $d > 1;
     if (add_door($map, $x1, $y1, $z1, $dir)) {
       ($x1, $y1, $z1) = add_corridor($map, $x1, $y1, $z1, $dir, $d);
-      push(@{$map->{queue}}, ['corridor end', $x1, $y1, $z1, $dir]);
+      push(@{$map->{queue}}, ['corridor_end', $x1, $y1, $z1, $dir]);
     }
     last;
   }
@@ -458,8 +477,7 @@ sub is_free {
 
 sub to_link {
   my $map = shift;
-  my $link = 'https://campaignwiki.org/gridmapper.svg?'
-      . url_encode(to_string($map));
+  my $link = $gridmapper . url_encode(to_string($map));
   for my $z (0 .. $#{$map->{data}}) {
     # append coordinates
     $link .= "(0,0,$z)0%201%202%203%204%205%206%207%208%209%2010%2011%2012%2013%2014%2015%2016%2017%2018%2019%2020%2021%2022%2023%2024%2025%2026%2027%2028%2029%2030%20%0a1%0a2%0a3%0a4%0a5%0a6%0a7%0a8%0a9%0a10%0a11%0a12%0a13%0a14%0a15%0a16%0a17%0a18%0a19%0a20%0a21%0a22%0a23%0a24%0a25%0a26%0a27%0a28%0a29%0a30";
