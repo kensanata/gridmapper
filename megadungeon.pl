@@ -107,6 +107,9 @@ sub about_six {
   return 1 + d2() + d2() + d2();
 }
 
+# Given a position inside a room and a direction, return the first position that
+# is could hold a door, still inside the room. If no position is found, return
+# -1.
 sub suggest_door {
   my ($map, $x, $y, $z, $dir) = @_;
   $log->debug("looking for door starting at ($x, $y, $z) in dir $dir");
@@ -264,18 +267,20 @@ sub process_corridor_end {
   $log->debug("processing corridor end at ($x0, $y0, $z0) in dir $dir");
   # step forward (into a new room, for example)
   my ($x, $y, $z) = step($map, $x0, $y0, $z0, $dir);
-  if (rand() < 0.2) {
+  my $rand = rand();
+  if ($rand < 0.2) {
     process_big_room($map, $x, $y, $z, $dir, $x0, $y0, $z0);
+  } elsif ($rand < 0.5) {
+    process_settlement($map, $x, $y, $z, $dir, $x0, $y0, $z0);
   } else {
     process_small_room($map, $x, $y, $z, $dir, $x0, $y0, $z0);
   }
 }
 
-sub process_small_room {
-  # ($x0, $y0, $z0) is the position we're coming from
+sub room_dimensions {
   # ($x, $y, $z) is the first position inside the room
-  my ($map, $x, $y, $z, $dir, $x0, $y0, $z0) = @_;
-  $log->debug("processing small room at ($x, $y, $z) in dir $dir");
+  my ($map, $x, $y, $z, $dir) = @_;
+  $log->debug("→ room starts with ($x, $y, $z) in dir $dir");
   # one corner: step straight ahead once or twice
   my ($x1, $y1, $z1) = step($map, $x, $y, $z, $dir);
   $log->debug("→ moving into room ($x1, $y1, $z1) in dir $dir");
@@ -293,9 +298,17 @@ sub process_small_room {
       last;
     }
   }
-  if (not add_room($map, $x0, $y0, $z0,
-		   min($x1, $x2), min($y1, $y2), min($z1, $z2),
-		   max($x1, $x2), max($y1, $y2), max($z1, $z2))) {
+  return (min($x1, $x2), min($y1, $y2), min($z1, $z2),
+	  max($x1, $x2), max($y1, $y2), max($z1, $z2));
+}
+
+sub process_small_room {
+  # ($x0, $y0, $z0) is the position we're coming from
+  # ($x, $y, $z) is the first position inside the room
+  my ($map, $x, $y, $z, $dir, $x0, $y0, $z0) = @_;
+  $log->debug("processing small room at ($x, $y, $z) in dir $dir");
+  my @dimensions = room_dimensions($map, $x, $y, $z, $dir);
+  if (not add_room($map, $x0, $y0, $z0, @dimensions)) {
     $log->debug("→ going to grow a corridor instead");
     # step in the other direction
     $dir = orthogonal($dir);
@@ -308,10 +321,45 @@ sub process_small_room {
   }
   # if we came here via a stair, there should be even more chances for a room
   my $from_stair = ($x == $x0 and $y == $y0);
-  push(@{$map->{queue}}, ['room_exit', one_in($x1, $y1, $z1, $x2, $y2, $z2), $dir]) if $from_stair;
-  push(@{$map->{queue}}, ['room_exit', one_in($x1, $y1, $z1, $x2, $y2, $z2), $dir]) if rand() < 0.7;
-  push(@{$map->{queue}}, ['room_exit', one_in($x1, $y1, $z1, $x2, $y2, $z2), $dir]) if rand() < 0.2;
-  push(@{$map->{queue}}, ['spiral_stairs', one_in($x1, $y1, $z1, $x2, $y2, $z2)]) if not $from_stair and rand() < 0.2;
+  push(@{$map->{queue}}, ['room_exit', one_in(@dimensions), $dir]) if $from_stair;
+  push(@{$map->{queue}}, ['room_exit', one_in(@dimensions), $dir]) if rand() < 0.7;
+  push(@{$map->{queue}}, ['room_exit', one_in(@dimensions), $dir]) if rand() < 0.2;
+  push(@{$map->{queue}}, ['spiral_stairs', one_in(@dimensions)]) if not $from_stair and rand() < 0.2;
+  return 1;
+}
+
+sub process_settlement {
+  # ($x0, $y0, $z0) is the position we're coming from
+  # ($x, $y, $z) is the first position inside the first room
+  my ($map, $x, $y, $z, $dir, $x0, $y0, $z0) = @_;
+  $log->debug("processing settlement from ($x0, $y0, $z0)");
+  my @dirs = ($dir, shuffle($dir, left($dir), right($dir),
+			    $dir, left($dir), right($dir)));
+  my @first_room;
+  my @dimensions;
+  while (not @first_room and @dirs) {
+    @dimensions = room_dimensions($map, $x, $y, $z, $dir);
+    if (not add_room($map, $x0, $y0, $z0, @dimensions)) {
+      $dir = shift(@dirs);
+      next;
+    }
+    @first_room = @dimensions;
+    add_door($map, $x0, $y0, $z0, $dir);
+    last;
+  }
+  for $dir (@dirs) {
+    $log->debug("trying to add a room in dir $dir (@dirs)");
+    # create another another room adjacent to first room
+    # don't change ($x, $y, $z) because we need retries!
+    my ($x1, $y1, $z1) = suggest_door($map, one_in(@first_room), $dir);
+    next unless $x1 >= 0;
+    ($x0, $y0, $z0) = ($x1, $y1, $z1); # outside the new room
+    ($x, $y, $z) = step($map, $x0, $y0, $z0, $dir); # inside the new room
+    @dimensions = room_dimensions($map, $x, $y, $z, $dir);
+    if (add_room($map, $x0, $y0, $z0, @dimensions)) {
+      add_door($map, $x0, $y0, $z0, $dir);
+    }
+  }
   return 1;
 }
 
@@ -363,6 +411,7 @@ sub add_room {
     $log->debug("→ the room goes over the edge of the map ($x1, $y1, $z1) to ($x2, $y2, $z2)");
     return 0;
   }
+  $log->debug("→ the entrance to the room is at ($x0, $y0, $z0)");
   my $f;
   for my $z ($z1 .. $z2) {
     for my $y ($y1 .. $y2) {
@@ -385,7 +434,7 @@ sub add_room {
       }
     }
   }
-  $log->debug("Adding room from ($x1, $y1, $z1) to ($x2, $y2, $z2)");
+  $log->debug("adding room from ($x1, $y1, $z1) to ($x2, $y2, $z2)");
   for my $z ($z1 .. $z2) {
     for my $y ($y1 .. $y2) {
       for my $x ($x1 .. $x2) {
