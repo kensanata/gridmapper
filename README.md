@@ -66,9 +66,9 @@ Internet Explorer Issues
 ------------------------
 
 Written using [Vanilla JS](http://vanilla-js.com/). Unfortunately,
-Internet Explorer isn't well supported. That's because it mixes SVG
-and XHTML in the same document and that appears not to work for IE.
-I'm trying to simply remove the stuff that doesn't work.
+Internet Explorer isn't well supported. That's because Gridmapper
+mixes SVG and XHTML in the same document and that appears not to work
+for IE. I'm trying to simply remove the stuff that doesn't work.
 
 Chrome Issues
 -------------
