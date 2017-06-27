@@ -57,7 +57,7 @@ The help screen is supposed to help mouse users. You can click most
 tiles and they'll get inserted at the current position. If you use the
 mouse to position the pointer on the map, the pointer will follow the
 mouse as you move to the right in order to pick a tile. Press the
-Shift key to prevent the pointer from following the mouse.
+Alt key to prevent the pointer from following the mouse.
 
 Remember that sometimes you need to click the *letter* in order to
 rotate an element.
