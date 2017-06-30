@@ -57,7 +57,7 @@ The help screen is supposed to help mouse users. You can click most
 tiles and they'll get inserted at the current position. If you use the
 mouse to position the pointer on the map, the pointer will follow the
 mouse as you move to the right in order to pick a tile. Press the
-Shift key to prevent the pointer from following the mouse.
+Alt key to prevent the pointer from following the mouse.
 
 Remember that sometimes you need to click the *letter* in order to
 rotate an element.
@@ -66,9 +66,9 @@ Internet Explorer Issues
 ------------------------
 
 Written using [Vanilla JS](http://vanilla-js.com/). Unfortunately,
-Internet Explorer isn't well supported. That's because it mixes SVG
-and XHTML in the same document and that appears not to work for IE.
-I'm trying to simply remove the stuff that doesn't work.
+Internet Explorer isn't well supported. That's because Gridmapper
+mixes SVG and XHTML in the same document and that appears not to work
+for IE. I'm trying to simply remove the stuff that doesn't work.
 
 Chrome Issues
 -------------
