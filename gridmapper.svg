@@ -329,7 +329,7 @@ var Map = {
 
   setBackground: function(color) {
     Map.backgroundMode = color;	  
-    document.firstElementChild.setAttribute('class', color);
+    document.firstChild.setAttribute('class', color);
   },
 
   setHelp: function(color) {
@@ -1216,7 +1216,7 @@ function download () {
   }
 
   // create a clone but don't append it anywhere
-  var clone = document.firstElementChild.cloneNode(false); // shallow
+  var clone = document.firstChild.cloneNode(false); // shallow
   var background = document.getElementById('background');
   clone.setAttribute('width', background.getBBox().width + 2 * Map.tileWidth);
   clone.setAttribute('height', background.getBBox().height + 2 * Map.tileWidth);
