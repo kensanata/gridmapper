@@ -40,11 +40,11 @@ if you want something more recent.
 It's Free
 ---------
 
-Also note that Gridmapper is
-totally [free and gratis](LICENSE.md#the-license). It costs nothing to
-use, and you can do with it what you want. You can copy, modify,
-distribute and perform the work, even for commercial purposes, all
-without asking permission.
+Also note that Gridmapper is totally
+[free and gratis](https://alexschroeder.ch/cgit/gridmapper/tree/LICENSE.md#top).
+It costs nothing to use, and you can do with it what you want. You can
+copy, modify, distribute and perform the work, even for commercial
+purposes, all without asking permission.
 
 Keyboard Focus
 --------------
