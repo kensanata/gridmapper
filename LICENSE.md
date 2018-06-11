@@ -1,7 +1,8 @@
 The License
 ===========
 
-*You can copy, modify, distribute and perform the work, even for commercial purposes, all without asking permission.*
+*You can copy, modify, distribute and perform the work, even for
+commercial purposes, all without asking permission.*
 
 The author has dedicated Gridmapper to the **public domain** by
 waiving all of his rights to the work worldwide under copyright law,
@@ -15,4 +16,4 @@ the Public Domain Dedication (CC0 1.0).
 Some context:
 [Public Domain Software](https://en.wikipedia.org/wiki/Public_domain_software).
 
-![Public Domain Logo](https://raw.githubusercontent.com/kensanata/gridmapper/master/images/public-domain.png)
+![Public Domain Logo](https://alexschroeder.ch/cgit/gridmapper/plain/images/public-domain.png)
