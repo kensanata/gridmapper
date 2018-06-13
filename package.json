@@ -5,7 +5,7 @@
   "license": "CC0-1.0",
   "repository": {
     "type": "git",
-    "url": "https://github.com/kensanata/gridmapper.git"
+    "url": "https://alexschroeder.ch/cgit/gridmapper"
   },
   "homepage": "https://alexschroeder.ch/wiki/Gridmapper",
   "author": {
@@ -14,7 +14,7 @@
     "url": "https://alexschroeder.ch/"
   },
   "bugs": {
-    "url": "https://github.com/kensanata/gridmapper/issues",
+    "url": "https://alexschroeder.ch/software/Gridmapper",
     "email": "kensanata@gmail.com"
   },
   "devDependencies": {
