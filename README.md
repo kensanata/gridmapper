@@ -17,7 +17,7 @@ Here's
 [a Master Dungeon Mapping Key PDF](http://savevsdragon.blogspot.ch/2012/03/free-download-master-dungeon-mapping.html),
 if you want something more recent.
 
-![Screenshot](https://raw.githubusercontent.com/kensanata/gridmapper/master/images/gridmapper.png)
+![Screenshot](https://alexschroeder.ch/cgit/gridmapper/plain/images/gridmapper.png)
 
 <!-- markdown-toc start - Don't edit this section. Run M-x markdown-toc-generate-toc again -->
 **Table of Contents**
@@ -101,7 +101,7 @@ do this, you must all type the same map name into the text area and
 click the **Join** link. You probably still need a way to talk or chat
 online.
 
-![Screenshot](https://raw.githubusercontent.com/kensanata/gridmapper/master/images/map-name.png)
+![Screenshot](https://alexschroeder.ch/cgit/gridmapper/plain/images/map-name.png)
 
 Alternatively, one of you
 opens [Gridmapper](https://campaignwiki.org/gridmapper.svg), provides
@@ -319,17 +319,6 @@ See Also
 
 The project was the result of admiring Daniel R. Collins' [original
 GridMapper 1.0](http://www.superdan.net/software/gridmapper/).
-
-This originally started as a Clojure project. You can find the Clojure
-code on the
-[clojure](https://github.com/kensanata/gridmapper/tree/clojure)
-branch.
-
-There is also a branch called
-[c2](https://github.com/kensanata/gridmapper/tree/c2) which uses
-[C2](https://keminglabs.com/c2/) to create a web application.
-Unfortunately, it doesn't scale well: when you use a 30×30 grid, it's
-too slow. I decided to move to [VanillaJS](http://vanilla-js.com/).
 
 There's also a very good looking, Flash based website with a similar
 interface called [ANAmap](http://deepnight.net/anamap/).
