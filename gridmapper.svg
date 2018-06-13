@@ -4005,7 +4005,7 @@ onload = initialize;
 
     <text>
       <tspan x="30" y="630">
-	<a class="blue" target="_blank" xlink:href="https://github.com/kensanata/gridmapper#how-to-save">How to Save</a>  
+	<a class="blue" target="_blank" xlink:href="https://alexschroeder.ch/cgit/gridmapper/about/#how-to-save">How to Save</a>  
 	<a id="export" class="blue" xlink:href="javascript:link()">Link</a>  
 	<tspan id="download">
 	  <a class="blue" xlink:href="javascript:download()">Download</a>  
@@ -4020,15 +4020,15 @@ onload = initialize;
       </tspan>
 
       <tspan x="30" dy="20">
-	<a id="how-to-collaborate" class="blue" target="_blank" xlink:href="https://github.com/kensanata/gridmapper#how-to-collaborate">How to Collaborate</a>  
+	<a id="how-to-collaborate" class="blue" target="_blank" xlink:href="https://alexschroeder.ch/cgit/gridmapper/about/#how-to-collaborate">How to Collaborate</a>  
 	<a id="join" class="blue" title="Host or join a map" xlink:href="javascript:join()">Join</a>  
 	<a id="join" class="blue" target="_blank" title="List of hosted maps" xlink:href="https://campaignwiki.org/gridmapper-server">Server</a>
       </tspan>
       <tspan x="30" dy="20">
 	<a id="demo" class="blue" xlink:href="javascript:Demo.start()">Demo</a>  
-	<a id="source" class="blue" target="_blank" title="Source code is available" xlink:href="https://github.com/kensanata/gridmapper#gridmapper">Source</a>  
-	<a id="license" class="blue" target="_blank" title="Dedicated to the Public Domain" xlink:href="https://github.com/kensanata/gridmapper/blob/master/LICENSE.md#the-license">License</a>  
-	<a id="bugs" class="blue" target="_blank" title="Submit a bug report" xlink:href="https://github.com/kensanata/gridmapper/issues">Issues</a>  
+	<a id="source" class="blue" target="_blank" title="Source code is available" xlink:href="https://alexschroeder.ch/cgit/gridmapper/about/#gridmapper">Source</a>  
+	<a id="license" class="blue" target="_blank" title="Dedicated to the Public Domain" xlink:href="https://alexschroeder.ch/cgit/gridmapper/tree/LICENSE.md#the-license">License</a>  
+	<a id="bugs" class="blue" target="_blank" title="Submit a bug report" xlink:href="https://alexschroeder.ch/software/Gridmapper">Issues</a>  
 	<a id="bugs" class="blue" target="_blank" title="Public dungeons" xlink:href="https://campaignwiki.org/wiki/Gridmapper/HomePage">Wiki</a>
       </tspan>
     </text>
