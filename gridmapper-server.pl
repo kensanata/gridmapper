@@ -167,7 +167,7 @@ p { width: 80ex }
 <div class="footer">
 <hr>
 <p>
-<a href="https://alexschroeder.ch/wiki/Contact">Alex Schroeder</a> &nbsp; <a href="https://github.com/kensanata/gridmapper">Source on GitHub</a> &nbsp;
+<a href="https://alexschroeder.ch/wiki/Contact">Alex Schroeder</a> &nbsp; <a href="https://alexschroeder.ch/cgit/gridmapper/about/">Git</a> &nbsp;
 </div>
 </body>
 </html>

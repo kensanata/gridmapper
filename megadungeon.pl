@@ -631,7 +631,7 @@ body { padding: 1em; font-family: "Palatino Linotype", "Book Antiqua", Palatino,
 <div class="footer">
 <hr>
 <p>
-<a href="https://alexschroeder.ch/wiki/Contact">Alex Schroeder</a> &nbsp; <a href="https://github.com/kensanata/gridmapper">Source on GitHub</a> &nbsp;
+<a href="https://alexschroeder.ch/wiki/Contact">Alex Schroeder</a> &nbsp; <a href="https://alexschroeder.ch/cgit/gridmapper/about/">Git</a> &nbsp;
 </div>
 <p>
 </body>
