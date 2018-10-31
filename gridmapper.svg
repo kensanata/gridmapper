@@ -3123,6 +3123,7 @@ function interpret (code) {
  * server when interpreting the code.
  */
 function interpretCont (code, i, advance, record) {
+  var showLevels = false;
   for (; i < code.length; i++) {
     var direction = null;
     switch(code[i]) { // needs charAt?
@@ -3214,6 +3215,7 @@ function interpretCont (code, i, advance, record) {
     case '\02': // a simple Ctrl-B means reset the map
       Map.reset();
       advance = true; // change mode for the rest of the code
+      showLevels = true; // animate the levels at the end of this message
       break;
     case '\03': // a simple Ctrl-C ends the use of a separate pen
       Pen.switchTo(0);
@@ -3231,6 +3233,9 @@ function interpretCont (code, i, advance, record) {
         && code[i+1] !== 'R' && code[i+1] !== 'G' && code[i+1] !== 'B'
         && code[i+1] !== '\n' && code[i] !== '(' && code[i] !== '[')
       move(direction);
+  }
+  if (showLevels) {
+    Map.showLevelAnimation();
   }
 }
 
