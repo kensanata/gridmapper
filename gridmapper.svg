@@ -2751,7 +2751,7 @@ function keyHandling (evt, recording) {
       } else if (type === 'left') {
         record("'" + Map.data.get(Pen.x, Pen.y).label.textContent + "'");
       }
-    } else if (key === 'Esc') {
+    } else if (key === 'Esc' || key ==='Escape') {
       hideLabelField();
     }
     return;
