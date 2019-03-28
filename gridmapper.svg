@@ -483,6 +483,12 @@ var Map = {
         } else {
           source += Map.symbols[tile.type];
         }
+        if (tile.hasAttribute('class') && tile.getAttribute('class') !== 'white') {
+          // append RGB and advance
+          source += Map.symbols[tile.getAttribute('class')];
+          if (tile.type == 'empty')
+            source += ' ';
+        }
       }
       tile = Map.data.get(x, y).floor;
       if (tile !== null) {
