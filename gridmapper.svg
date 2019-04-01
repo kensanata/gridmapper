@@ -22,6 +22,13 @@ a { color: black; text-decoration: none; }
 use.red { fill: #F6A17F; }
 use.green { fill: #A1DB71; }
 use.blue { fill: #88A9C2; }
+use.colorQ { fill: #A9A9A9; }
+use.colorE { fill: #FF5733; }
+use.colorA { fill: #FFD700; }
+use.colorS { fill: #FF8C00; }
+use.colorS { fill: #A0522D; }
+use.colorD { fill: #1E90FF; }
+use.colorF { fill: #008000; }
 use { fill: white; }
 .key { color: forestgreen; fill: forestgreen; font-weight: bold; }
 .invisible { display: none; }
@@ -396,7 +403,8 @@ var Map = {
       trap: 't', empty: 'f', pillar: 'p', statue: 'b',
       diagonal: 'n', arc: 'a', rock1: 'g', rockd: 'g',
       rock2a: 'g', rock2b: 'g', rock3: 'g', rock4: 'g', red: 'R',
-      green: 'G', blue: 'B',
+      green: 'G', blue: 'B', colorQ: 'Q', colorE: 'E', colorA: 'A', 
+      colorS: 'S', colorD: 'D', colorF: 'F'
     };
     var keys = Object.keys(map);
     for (var i = 0; i < keys.length; i++) {
@@ -2988,6 +2996,15 @@ function keyHandling (evt, recording) {
   case 'B':
     background(Pen.x, Pen.y, 'blue');
     break;
+  
+  case 'Q':
+  case 'E':
+  case 'A':
+  case 'S':
+  case 'D':
+  case 'F':
+    background(Pen.x, Pen.y, 'color' + key);
+    break;
 
   case 'Escape':
     if (Map.region.getAttribute('opacity') > 0) {
@@ -3233,12 +3250,21 @@ function interpretCont (code, i, advance, record) {
     default:
       keyHandling(code[i], record);
     }
+
     // advance unless we're going to move elsewhere or switch a
     // variant (peek ahead)
-    if (direction !== null && advance && code[i+1] !== 'v'
-        && code[i+1] !== 'R' && code[i+1] !== 'G' && code[i+1] !== 'B'
-        && code[i+1] !== '\n' && code[i] !== '(' && code[i] !== '[')
-      move(direction);
+    if (advance && direction !== null) {
+      var noadvance_next = [
+        'v', '\n', 'W', 'R', 'G', 'B', 'Q', 'E', 'A', 'S', 'D', 'F'
+      ];
+      var noadvance_now = ['(', '['];
+      if (
+        noadvance_now.indexOf(code[i]) < 0 &&
+        noadvance_next.indexOf(code[i + 1]) < 0
+      ) {
+        move(direction);
+      }
+    }
   }
   if (showLevels) {
     Map.showLevelAnimation();
@@ -3792,16 +3818,66 @@ onload = initialize;
       </a>
     </svg>
 
-    <svg x="30" y="410">
-      <text y="14"><tspan class="key">RGB</tspan> :</text>
+  <svg x="30" y="410">
+    <a xlink:href="javascript:interpret('Q')" title="white">
+      <use x="0" xlink:href="#empty" class="colorQ"/>
+            <text y="14" x="6">
+                  <tspan class="">Q</tspan>
+            </text>
+      </a>
+      <a xlink:href="javascript:interpret('W')" title="white">
+            <use x="25" xlink:href="#empty" class="white"/>
+            <text y="14" x="31">
+                  <tspan class="">W</tspan>
+            </text>
+      </a>
+      <a xlink:href="javascript:interpret('E')" title="red">
+            <use x="50" xlink:href="#empty" class="colorE"/>
+            <text y="14" x="56">
+                  <tspan class="">E</tspan>
+            </text>
+      </a>
       <a xlink:href="javascript:interpret('R')" title="red">
-	<use x="50" xlink:href="#empty" class="red"/>
+            <use x="75" xlink:href="#empty" class="red"/>
+            <text y="14" x="81">
+                  <tspan class="">R</tspan>
+            </text>
       </a>
-      <a xlink:href="javascript:interpret('G')" title="green">
-	<use x="80" xlink:href="#empty" class="green"/>
+      <a xlink:href="javascript:interpret('A')" title="red">
+            <use x="100" xlink:href="#empty" class="colorA"/>
+            <text y="14" x="106">
+                  <tspan class="">A</tspan>
+            </text>
       </a>
-      <a xlink:href="javascript:interpret('B')" title="blue">
-	<use x="110" xlink:href="#empty" class="blue"/>
+      <a xlink:href="javascript:interpret('S')" title="red">
+            <use x="125" xlink:href="#empty" class="colorS"/>
+            <text y="14" x="131">
+                  <tspan class="">S</tspan>
+            </text>
+      </a>
+      <a xlink:href="javascript:interpret('D')" title="red">
+            <use x="150" xlink:href="#empty" class="colorD"/>
+            <text y="14" x="156">
+                  <tspan class="">D</tspan>
+            </text>
+      </a>
+      <a xlink:href="javascript:interpret('F')" title="red">
+            <use x="175" xlink:href="#empty" class="colorF"/>
+            <text y="14" x="181">
+                  <tspan class="">F</tspan>
+            </text>
+      </a>
+      <a xlink:href="javascript:interpret('G')" title="red">
+            <use x="200" xlink:href="#empty" class="green"/>
+            <text y="14" x="206">
+                  <tspan class="">G</tspan>
+            </text>
+      </a>
+      <a xlink:href="javascript:interpret('B')" title="red">
+            <use x="225" xlink:href="#empty" class="blue"/>
+            <text y="14" x="231">
+                  <tspan class="">B</tspan>
+            </text>
       </a>
     </svg>
 
@@ -3948,7 +4024,7 @@ onload = initialize;
       </a>
     </svg>
 
-    <svg x="260" y="360">
+    <svg x="300" y="360">
       <text>
 	<tspan x="0" y="14">Use arrow keys</tspan>
 	<tspan x="0" dy="20">or vi keys</tspan>
