@@ -229,6 +229,7 @@ var Map = {
     Map.labelsElement = document.getElementById('labels' + z);
     Map.data = Map.levels[z];
     document.getElementById('level').textContent = z < 665 ? z + 1: 'The End';
+    document.getElementById("maxlevel").textContent = Map.levels.length;
     resizeSVG ();
   },
 
@@ -4150,6 +4151,7 @@ onload = initialize;
     </text>
 
     <text id="level" x="500" y="110" style="font:30px 'Arial Narrow', 'Futura Condensed', 'HelveticaNeue Condensed', sans-serif; font-weight: bold;">1</text>
+    <text id="maxlevel" x="500" y="125" style="font:12px 'Arial Narrow', 'Futura Condensed', 'HelveticaNeue Condensed', sans-serif; font-weight: bold;">1</text>
     <text x="470" y="110" transform="rotate(90,470,140)">
       <a target="_blank" xlink:href="https://alexschroeder.ch/wiki/Gridmapper">
 	<tspan style="font-weight: bold;">Gridmapper</tspan>
