@@ -336,7 +336,7 @@ var Map = {
   },
 
   setBackground: function(color) {
-    Map.backgroundMode = color;	  
+    Map.backgroundMode = color;
     document.firstChild.setAttribute('class', color);
   },
 
@@ -408,7 +408,7 @@ var Map = {
       trap: 't', empty: 'f', pillar: 'p', statue: 'b',
       diagonal: 'n', arc: 'a', arcw: 'q', rock1: 'g', rockd: 'g',
       rock2a: 'g', rock2b: 'g', rock3: 'g', rock4: 'g', red: 'R',
-      green: 'G', blue: 'B', colorQ: 'Q', colorE: 'E', colorA: 'A', 
+      green: 'G', blue: 'B', colorQ: 'Q', colorE: 'E', colorA: 'A',
       colorS: 'S', colorD: 'D', colorF: 'F'
     };
     var keys = Object.keys(map);
@@ -1261,7 +1261,7 @@ function download () {
 
   // base64 encoding
   var source = btoa(unescape(encodeURIComponent(str)));
-  
+
   // using image/svg+xml makes Chrome open the file instead of saving it
   link = document.getElementById('download_svg');
   link.setAttributeNS(xlinkNs, 'href', 'javascript:downloadImmediately("gridmapper-map.svg", "application/octet-stream;base64", "' + source + '")');
@@ -3006,7 +3006,7 @@ function keyHandling (evt, recording) {
   case 'B':
     background(Pen.x, Pen.y, 'blue');
     break;
-  
+
   case 'Q':
   case 'E':
   case 'A':
@@ -3401,7 +3401,7 @@ function initialize () {
   // setup the dnd listeners.
   Map.exportarea.addEventListener('dragover', handleDragOver, false);
   Map.exportarea.addEventListener('drop', handleFileSelect, false);
-  
+
   // Internet Explorer doesn't know how to handle XHTML.
   if (document.documentMode > 0) {
     remove(document.getElementById('label'));
@@ -3897,10 +3897,6 @@ onload = initialize;
                   <tspan class="">B</tspan>
             </text>
       </a>
-      <text y="14" x="268">
-        <a xlink:href="javascript:keyPressed('Z')" title="hide other levels or switch background"><tspan class="key">Z</tspan> : switch background
-	      </a>
-      </text>
     </svg>
 
     <svg x="260" y="150">
@@ -4007,7 +4003,7 @@ onload = initialize;
 	<use x="50" xlink:href="#rock3"/>
       </a>
     </svg>
-    
+
     <svg x="390" y="270">
       <a href="javascript:interpret('&apos;')">
 	<text x="-34" y="14"><tspan class="key">"abc"</tspan> :</text>
@@ -4047,7 +4043,7 @@ onload = initialize;
     </a>
   </svg>
 
-  <svg x="30" y="430">
+  <svg x="290" y="400">
     <text y="14">
       <a xlink:href="javascript:interpret('&quot;🌳&quot;')" title="deciduous tree">
         <tspan>🌳</tspan>
@@ -4077,16 +4073,17 @@ onload = initialize;
         <tspan>☓</tspan>
       </a>
     </text>
-    <text y="14" x="235">
-      <a xlink:href="javascript:regionOn()">
-	      <tspan class="key">Shift</tspan><tspan> : region mode</tspan>
-      </a>
-    </text>
   </svg>
 
   <text>
-    <tspan x="30" y="465">
-      Move : <a xlink:href="javascript:interpret('k')" title="up"><tspan class="key">k</tspan></a> or <tspan class="key">Arrows</tspan> 
+    <tspan x="30" y="450">
+      <a xlink:href="javascript:keyPressed('Z')" title="hide other levels or switch background">
+        <tspan class="key">Z</tspan> : switch background</a>&#160;&#160;&#160;&#160;&#160;&#160;<a xlink:href="javascript:regionOn()">
+	      <tspan class="key">Shift</tspan><tspan> : region mode</tspan>
+      </a>
+    </tspan>
+    <tspan x="30" dy="20">
+      Move : <a xlink:href="javascript:interpret('k')" title="up"><tspan class="key">k</tspan></a> or <tspan class="key">Arrows</tspan>
        &#160;&#160;&#160;&#160;<tspan class="key">Alt+Arrows</tspan> : toggle floor
     </tspan>
     <tspan x="30" dy="20">
@@ -4095,15 +4092,16 @@ onload = initialize;
         <tspan class="key">h</tspan>
       </a>
       ╋
-      <a xlink:href="javascript:interpret('l')" title="right"><tspan class="key">l</tspan></a>&#160;&#160;<a xlink:href="javascript:keyPressed(' ')"><tspan class="key">Space</tspan> : move right</a>&#160;&#160;<a xlink:href="javascript:keyPressed('y')"><tspan class="key">y</tspan> : level up</a>
+      <a xlink:href="javascript:interpret('l')" title="right"><tspan class="key">l</tspan></a>&#160;&#160;<a xlink:href="javascript:keyPressed('y')"><tspan class="key">y</tspan> : level up</a>&#160;&#160;&#160;&#160;<a xlink:href="javascript:keyPressed(' ')"><tspan class="key">Space</tspan> : move right</a>
     </tspan>
     <tspan x="30" dy="20">
       &#160;&#160;&#160;&#160;&#160;&#160;
       <a xlink:href="javascript:interpret('j')" title="down">
         <tspan class="key">j</tspan>
-      </a>&#160;&#160;&#160;<a xlink:href="javascript:keyPressed('Enter')"><tspan class="key">Enter</tspan> : new line</a>&#160;&#160;&#160;&#160;<a xlink:href="javascript:keyPressed('z')"><tspan class="key">z</tspan> : level down</a>
+      </a>&#160;&#160;&#160;<a xlink:href="javascript:keyPressed('z')"><tspan class="key">z</tspan> : level down</a>&#160;<a xlink:href="javascript:keyPressed('Enter')">
+  <tspan class="key">Enter</tspan> : new line</a>
     </tspan>
-  
+
     <tspan x="30" dy="20">
 	    <a xlink:href="javascript:keyPressed('u')"><tspan class="key">u</tspan> : undo</a>  
 	    &#160;<a xlink:href="javascript:keyPressed('r')"><tspan class="key">r</tspan> : redo</a>
