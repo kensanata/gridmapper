@@ -367,6 +367,9 @@ var Map = {
     'arc': 'arc2',
     'arc2': 'arc3',
     'arc3': 'arc',
+    arcw: "arcw2",
+    arcw2: "arcw3",
+    arcw3: "arcw",
     'trap': 'pit',
     'pit': 'trap-door-ceiling',
     'trap-door-ceiling': 'trap-door-floor',
@@ -402,7 +405,7 @@ var Map = {
     var map = {
       door: 'd', wall: 'w', stair: 's', chest: 'c',
       trap: 't', empty: 'f', pillar: 'p', statue: 'b',
-      diagonal: 'n', arc: 'a', rock1: 'g', rockd: 'g',
+      diagonal: 'n', arc: 'a', arcw: 'q', rock1: 'g', rockd: 'g',
       rock2a: 'g', rock2b: 'g', rock3: 'g', rock4: 'g', red: 'R',
       green: 'G', blue: 'B', colorQ: 'Q', colorE: 'E', colorA: 'A', 
       colorS: 'S', colorD: 'D', colorF: 'F'
@@ -2477,7 +2480,7 @@ function rotate (data, x, y, type) {
   } else {
     var tile = createTile(x, y, type);
     tile.setAttribute('rotate', 0);
-    if (type === 'arc')
+    if (type === 'arc' || type === 'arcw')
       replace(data, Map.arcsElement, x, y, old, tile);
     else
       replace(data, Map.floorElement, x, y, old, tile);
@@ -2969,6 +2972,11 @@ function keyHandling (evt, recording) {
     wallModeOff();
     rotate('arcs', Pen.x, Pen.y, 'arc');
     break;
+
+  case "q":
+      wallModeOff();
+      rotate('arcs', Pen.x, Pen.y, 'arcw');
+      break;
 
   case 'z':
     if (Map.level < 665) {
@@ -3623,6 +3631,26 @@ onload = initialize;
       <line x1="20" y1="1.7" x2="20" y2="30" stroke="black" stroke-width="1"/>
       <circle class="dot" cx="5" cy="5" r="1" fill="red" opacity="0"/>
     </g>
+    <g id="arcw" width="10">
+      <path class="background" d="M0,10 A10,10 0 0,1 10,0 v10 z" stroke="black" stroke-width="1"/>
+      <path class="background" d="M0,10 A10,10 0 0,1 10,0" stroke="black" stroke-width="3" stroke-linecap="round"/>
+    </g>
+    <g id="arcw2" class="center" width="10">
+      <path class="background" d="M0,20 A20,20 0 0,1 20,0 v20 Z" stroke="black" stroke-width="1"/>
+      <path class="background" d="M0,20 A20,20 0 0,1 20,0" stroke="black" stroke-width="3" stroke-linecap="round"/>
+      <line x1="2.7" y1="10" x2="20" y2="10" stroke="black" stroke-width="1"/>
+      <line x1="10" y1="2.7" x2="10" y2="20" stroke="black" stroke-width="1"/>
+      <circle class="dot" cx="5" cy="5" r="1" fill="red" opacity="0"/>
+    </g>
+    <g id="arcw3" class="center" width="10">
+      <path class="background" d="M0,30 A30,30 0 0,1 30,0 v30 Z" stroke="black" stroke-width="1"/>
+      <path class="background" d="M0,30 A30,30 0 0,1 30,0" stroke="black" stroke-width="3" stroke-linecap="round"/>
+      <line x1="7.6" y1="10" x2="30" y2="10" stroke="black" stroke-width="1"/>
+      <line x1="1.7" y1="20" x2="30" y2="20" stroke="black" stroke-width="1"/>
+      <line x1="10" y1="7.6" x2="10" y2="30" stroke="black" stroke-width="1"/>
+      <line x1="20" y1="1.7" x2="20" y2="30" stroke="black" stroke-width="1"/>
+      <circle class="dot" cx="5" cy="5" r="1" fill="red" opacity="0"/>
+    </g>
     <g id="stair" width="10">
       <rect width="10" height="20" class="background" stroke="black" stroke-width="1"/>
       <line x1="0" y1="3" x2="10" y2="3" stroke="black" stroke-width="0.8"/>
@@ -3792,25 +3820,7 @@ onload = initialize;
       </a>
     </svg>
 
-    <svg x="30" y="330">
-      <a href="javascript:interpret('n')">
-	<text y="14"><tspan class="key">n</tspan> :</text>
-      </a>
-      <a xlink:href="javascript:interpret('n')" title="diagonal">
-	<use x="50" xlink:href="#diagonal"/>
-      </a>
-      <a xlink:href="javascript:interpret('nv')" title="diagonal with wall">
-	<use x="80" xlink:href="#walled-diagonal"/>
-      </a>
-      <a xlink:href="javascript:interpret('nvv')" title="diagonal wall">
-	<use x="110" xlink:href="#diagonal-wall"/>
-      </a>
-      <a xlink:href="javascript:interpret('nvvv')" title="diagonal line">
-        <use x="140" xlink:href="#diagonal-line"/>
-      </a>
-    </svg>
-
-    <svg x="30" y="370">
+    <svg x="30" y="360">
       <a href="javascript:interpret('a')">
 	<text y="14"><tspan class="key">a</tspan> :</text>
       </a>
@@ -3825,7 +3835,7 @@ onload = initialize;
       </a>
     </svg>
 
-  <svg x="30" y="410">
+  <svg x="30" y="400">
     <a xlink:href="javascript:interpret('Q')" title="white">
       <use x="0" xlink:href="#empty" class="colorQ"/>
             <text y="14" x="6">
@@ -3886,6 +3896,10 @@ onload = initialize;
                   <tspan class="">B</tspan>
             </text>
       </a>
+      <text y="14" x="268">
+        <a xlink:href="javascript:keyPressed('Z')" title="hide other levels or switch background"><tspan class="key">Z</tspan> : switch background
+	      </a>
+      </text>
     </svg>
 
     <svg x="260" y="150">
@@ -3960,7 +3974,25 @@ onload = initialize;
       </a>
     </svg>
 
-    <svg x="260" y="240">
+  <svg x="260" y="240">
+      <a href="javascript:interpret('n')">
+	<text y="14"><tspan class="key">n</tspan> :</text>
+      </a>
+      <a xlink:href="javascript:interpret('n')" title="diagonal">
+	<use x="50" xlink:href="#diagonal"/>
+      </a>
+      <a xlink:href="javascript:interpret('nv')" title="diagonal with wall">
+	<use x="80" xlink:href="#walled-diagonal"/>
+      </a>
+      <a xlink:href="javascript:interpret('nvv')" title="diagonal wall">
+	<use x="110" xlink:href="#diagonal-wall"/>
+      </a>
+      <a xlink:href="javascript:interpret('nvvv')" title="diagonal line">
+        <use x="140" xlink:href="#diagonal-line"/>
+      </a>
+    </svg>
+
+    <svg x="260" y="270">
       <text x="-17" y="14"><tspan class="key">0-9</tspan><tspan> :</tspan></text>
       <use x="50" xlink:href="#empty"/>
       <g class="labels" title="labels">
@@ -3968,43 +4000,14 @@ onload = initialize;
       </g>
     </svg>
 
-    <svg x="260" y="270">
+    <svg x="260" y="300">
       <a xlink:href="javascript:interpret('g')" title="rocks">
 	<text y="14"><tspan class="key">g</tspan> :</text>
 	<use x="50" xlink:href="#rock3"/>
       </a>
-      <text y="44">
-	<a xlink:href="javascript:interpret('&quot;🌳&quot;')" title="deciduous tree">
-	  <tspan>🌳</tspan>
-	</a>
-	<a xlink:href="javascript:interpret('&quot;🌲&quot;')" title="evergreen tree">
-	  <tspan>🌲</tspan>
-	</a>
-	<a xlink:href="javascript:interpret('&quot;🌴&quot;')" title="palm tree">
-	  <tspan>🌴</tspan>
-	</a>
-	<a xlink:href="javascript:interpret('&quot;🌵&quot;')" title="evergreen tree">
-	  <tspan>🌵</tspan>
-	</a>
-	<a xlink:href="javascript:interpret('&quot;🍄&quot;')" title="mushroom">
-	  <tspan>🍄</tspan>
-	</a>
-	<a xlink:href="javascript:interpret('&quot;⚔&quot;')" title="evergreen tree">
-	  <tspan>⚔</tspan>
-	</a>
-	<a xlink:href="javascript:interpret('&quot;☠&quot;')" title="evergreen tree">
-	  <tspan>☠</tspan>
-	</a>
-	<a xlink:href="javascript:interpret('&quot;👽&quot;')" title="evergreen tree">
-	  <tspan>👽</tspan>
-	</a>
-	<a xlink:href="javascript:interpret('&quot;☓&quot;')" title="evergreen tree">
-	  <tspan>☓</tspan>
-	</a>
-      </text>
     </svg>
-
-    <svg x="390" y="240">
+    
+    <svg x="390" y="270">
       <a href="javascript:interpret('&apos;')">
 	<text x="-34" y="14"><tspan class="key">"abc"</tspan> :</text>
 	<use x="40" xlink:href="#empty"/>
@@ -4026,73 +4029,92 @@ onload = initialize;
 	<use x="50" xlink:href="#empty"/>
 	<use x="40" xlink:href="#cursor"/>
       </a>
-      <a xlink:href="javascript:regionOn()">
-	<text x="80" y="14"><tspan class="key">Shift</tspan><tspan> : region</tspan></text>
+    </svg>
+
+  <svg x="260" y="360">
+    <a href="javascript:interpret('q')">
+	    <text y="14"><tspan class="key">q</tspan> :</text>
+    </a>
+    <a xlink:href="javascript:interpret('q')" title="arc with wall">
+	    <use x="50" y="10" xlink:href="#arcw"/>
+    </a>
+    <a xlink:href="javascript:interpret('qv')" title="big arc with wall">
+	    <use x="80" y="-10" xlink:href="#arcw2"/>
+    </a>
+    <a xlink:href="javascript:interpret('qvv')" title="huge arc with wall">
+	    <use x="130" y="-30" xlink:href="#arcw3"/>
+    </a>
+  </svg>
+
+  <svg x="30" y="430">
+    <text y="14">
+      <a xlink:href="javascript:interpret('&quot;🌳&quot;')" title="deciduous tree">
+        <tspan>🌳</tspan>
       </a>
-    </svg>
-
-    <svg x="300" y="360">
-      <text>
-	<tspan x="0" y="14">Use arrow keys</tspan>
-	<tspan x="0" dy="20">or vi keys</tspan>
-	<tspan x="0" dy="20">to move around</tspan>
-      </text>
-      <text x="140" y="14">
-	<a xlink:href="javascript:interpret('k')" title="up">
-	  <tspan class="key">k</tspan>
-	</a>
-      </text>
-      <text x="120" y="34">
-	<a xlink:href="javascript:interpret('h')" title="left">
-	  <tspan class="key">h</tspan>
-	</a>
-	╋
-	<a xlink:href="javascript:interpret('l')" title="right">
-	  <tspan class="key">l</tspan>
-	</a>
-      </text>
-      <text x="140" y="54">
-	<a xlink:href="javascript:interpret('j')" title="down">
-	  <tspan class="key">j</tspan>
-	</a>
-      </text>
-    </svg>
-
-    <text>
-      <tspan x="30" y="450">
-	<a xlink:href="javascript:keyPressed('u')"><tspan class="key">u</tspan> : undo</a>  
-	<a xlink:href="javascript:keyPressed('r')"><tspan class="key">r</tspan> : redo</a>  
-	<a xlink:href="javascript:keyPressed('x')">
-  	  <tspan class="key">x</tspan>, <tspan class="key">Delete</tspan> : delete
-	</a>
-      </tspan>
-
-      <tspan x="30" dy="25">
-	<a xlink:href="javascript:keyPressed('y')"><tspan class="key">y</tspan> : up</a>  
-	<a xlink:href="javascript:keyPressed('z')"><tspan class="key">z</tspan> : down</a>  
-	<a xlink:href="javascript:keyPressed('Z')" title="hide other levels or switch background">
-  	  <tspan class="key">Z</tspan> : switch background
-	</a>
-      </tspan>
-
-      <tspan x="30" dy="25">
-	<a xlink:href="javascript:keyPressed(' ')"><tspan class="key">Space</tspan> : move right</a>  
-	<a xlink:href="javascript:keyPressed('Enter')"><tspan class="key">Enter</tspan> : new line</a>
-      </tspan>
-
-      <tspan x="30" dy="25">
-	<tspan class="key">Arrows</tspan> : move  
-	<tspan class="key">Alt Arrows</tspan> : toggle floor
-      </tspan>
-
-      <tspan x="30" dy="25" id="import-export">
-	<a id="export" class="blue" xlink:href="javascript:textExport()">Export</a>  
-	<a id="import" xlink:href="javascript:textImport()"><tspan class="blue">Import</tspan> or
-	<tspan class="key">Ctrl Enter</tspan></a>
-      </tspan>
+      <a xlink:href="javascript:interpret('&quot;🌲&quot;')" title="evergreen tree">
+        <tspan>🌲</tspan>
+      </a>
+      <a xlink:href="javascript:interpret('&quot;🌴&quot;')" title="palm tree">
+        <tspan>🌴</tspan>
+      </a>
+      <a xlink:href="javascript:interpret('&quot;🌵&quot;')" title="evergreen tree">
+        <tspan>🌵</tspan>
+      </a>
+      <a xlink:href="javascript:interpret('&quot;🍄&quot;')" title="mushroom">
+        <tspan>🍄</tspan>
+      </a>
+      <a xlink:href="javascript:interpret('&quot;⚔&quot;')" title="evergreen tree">
+        <tspan>⚔</tspan>
+      </a>
+      <a xlink:href="javascript:interpret('&quot;☠&quot;')" title="evergreen tree">
+        <tspan>☠</tspan>
+      </a>
+      <a xlink:href="javascript:interpret('&quot;👽&quot;')" title="evergreen tree">
+        <tspan>👽</tspan>
+      </a>
+      <a xlink:href="javascript:interpret('&quot;☓&quot;')" title="evergreen tree">
+        <tspan>☓</tspan>
+      </a>
     </text>
+    <text y="14" x="235">
+      <a xlink:href="javascript:regionOn()">
+	      <tspan class="key">Shift</tspan><tspan> : region mode</tspan>
+      </a>
+    </text>
+  </svg>
 
-    <foreignObject id="textarea" x="30" y="555" width="430" height="50">
+  <text>
+    <tspan x="30" y="465">
+      Move : <a xlink:href="javascript:interpret('k')" title="up"><tspan class="key">k</tspan></a> or <tspan class="key">Arrows</tspan> 
+       &#160;&#160;&#160;&#160;<tspan class="key">Alt+Arrows</tspan> : toggle floor
+    </tspan>
+    <tspan x="30" dy="20">
+       &#160;&#160;&#160;&#160;
+      <a xlink:href="javascript:interpret('h')" title="left">
+        <tspan class="key">h</tspan>
+      </a>
+      ╋
+      <a xlink:href="javascript:interpret('l')" title="right"><tspan class="key">l</tspan></a>&#160;&#160;<a xlink:href="javascript:keyPressed(' ')"><tspan class="key">Space</tspan> : move right</a>&#160;&#160;<a xlink:href="javascript:keyPressed('y')"><tspan class="key">y</tspan> : level up</a>
+    </tspan>
+    <tspan x="30" dy="20">
+      &#160;&#160;&#160;&#160;&#160;&#160;
+      <a xlink:href="javascript:interpret('j')" title="down">
+        <tspan class="key">j</tspan>
+      </a>&#160;&#160;&#160;<a xlink:href="javascript:keyPressed('Enter')"><tspan class="key">Enter</tspan> : new line</a>&#160;&#160;&#160;&#160;<a xlink:href="javascript:keyPressed('z')"><tspan class="key">z</tspan> : level down</a>
+    </tspan>
+  
+    <tspan x="30" dy="20">
+	    <a xlink:href="javascript:keyPressed('u')"><tspan class="key">u</tspan> : undo</a>  
+	    &#160;<a xlink:href="javascript:keyPressed('r')"><tspan class="key">r</tspan> : redo</a>
+      &#160;&#160;&#160;<a xlink:href="javascript:keyPressed('x')"><tspan class="key">x</tspan>, <tspan class="key">Delete</tspan> : delete</a>
+    </tspan>
+
+    <tspan x="30" dy="20" id="import-export"><a id="export" class="blue" xlink:href="javascript:textExport()">Export</a>  
+	    <a id="import" xlink:href="javascript:textImport()"><tspan class="blue">Import</tspan> or
+	    <tspan class="key">Ctrl Enter</tspan></a></tspan>
+  </text>
+
+    <foreignObject id="textarea" x="30" y="555" width="445" height="50">
       <textarea id="exportarea" xmlns="http://www.w3.org/1999/xhtml"
 		style="position: fixed; width: 100%; height: 100%; margin: 0; padding: 0"/>
     </foreignObject>
