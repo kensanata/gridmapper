@@ -320,5 +320,5 @@ See Also
 The project was the result of admiring Daniel R. Collins' [original
 GridMapper 1.0](http://www.superdan.net/software/gridmapper/).
 
-There's also a very good looking, Flash based website with a similar
-interface called [ANAmap](http://deepnight.net/anamap/).
+There's also a very good looking website with a similar interface
+called [RPG Map II](https://deepnight.net/tools/rpg-map/).
