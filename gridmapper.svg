@@ -364,7 +364,8 @@ var Map = {
     'diagonal': 'walled-diagonal',
     'walled-diagonal': 'diagonal-wall',
     "diagonal-wall": "diagonal-line",
-    "diagonal-line": "diagonal",
+    "diagonal-line": "diagonal-door",
+    "diagonal-door": "diagonal",
     'arc': 'arc2',
     'arc2': 'arc3',
     'arc3': 'arc',
@@ -3615,6 +3616,11 @@ onload = initialize;
     <g id="diagonal-line" width="10">
       <line x1="0" y1="10" x2="10" y2="0" stroke="black" stroke-width="3" stroke-linecap="round"/>
     </g>
+    <g id="diagonal-door" width="10">
+      <rect width="10" height="10" class="background" stroke="black" stroke-width="1"/>
+      <line x1="0" y1="10" x2="10" y2="0" stroke="black" stroke-width="3" stroke-linecap="round"/>
+      <rect x="-1.5" y="2" width="3" height="6" class="background" stroke="black" stroke-width="1" transform="translate(10,3) rotate(45) translate(-2.05,0)"/>
+    </g>
     <g id="arc" width="10">
       <path class="background" d="M0,10 A10,10 0 0,1 10,0 v10 Z" stroke="black" stroke-width="1"/>
     </g>
@@ -3986,6 +3992,9 @@ onload = initialize;
       </a>
       <a xlink:href="javascript:interpret('nvvv')" title="diagonal line">
         <use x="140" xlink:href="#diagonal-line"/>
+      </a>
+      <a xlink:href="javascript:interpret('nvvvv')" title="diagonal door">
+        <use x="170" xlink:href="#diagonal-door"/>
       </a>
     </svg>
 
