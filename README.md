@@ -90,8 +90,6 @@ It's a sort of code that's very close to a stream of keyboard
 commands. You can get this link by clicking on *Prepare Link* and then
 clicking on the resulting *Link*. Perfect for sharing and bookmarking.
 
-For more examples, check out
-this [Google+ Collection](https://plus.google.com/collection/wvkofB).
 
 How to Collaborate
 ==================
