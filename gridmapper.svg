@@ -4063,22 +4063,19 @@ onload = initialize;
       <a xlink:href="javascript:interpret('&quot;🌴&quot;')" title="palm tree">
         <tspan>🌴</tspan>
       </a>
-      <a xlink:href="javascript:interpret('&quot;🌵&quot;')" title="evergreen tree">
+      <a xlink:href="javascript:interpret('&quot;🌵&quot;')" title="cactus">
         <tspan>🌵</tspan>
       </a>
       <a xlink:href="javascript:interpret('&quot;🍄&quot;')" title="mushroom">
         <tspan>🍄</tspan>
       </a>
-      <a xlink:href="javascript:interpret('&quot;⚔&quot;')" title="evergreen tree">
-        <tspan>⚔</tspan>
-      </a>
-      <a xlink:href="javascript:interpret('&quot;☠&quot;')" title="evergreen tree">
+      <a xlink:href="javascript:interpret('&quot;☠&quot;')" title="skull and crossbones">
         <tspan>☠</tspan>
       </a>
-      <a xlink:href="javascript:interpret('&quot;👽&quot;')" title="evergreen tree">
+      <a xlink:href="javascript:interpret('&quot;👽&quot;')" title="alien">
         <tspan>👽</tspan>
       </a>
-      <a xlink:href="javascript:interpret('&quot;☓&quot;')" title="evergreen tree">
+      <a xlink:href="javascript:interpret('&quot;✘&quot;')" title="x marks the spot">
         <tspan>☓</tspan>
       </a>
     </text>
