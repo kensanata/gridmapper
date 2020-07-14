@@ -4014,17 +4014,15 @@ onload = initialize;
     </svg>
 
     <svg x="390" y="270">
-      <a href="javascript:interpret('&apos;')">
-	<text x="-34" y="14"><tspan class="key">"abc"</tspan> :</text>
-	<use x="40" xlink:href="#empty"/>
-	<g class="labels" title="labels">
-	  <text x="50" y="13.5">abc</text>
-	</g>
-	<text x="-34" y="44"><tspan class="key">'abc'</tspan> :</text>
-	<g class="labels" title="labels">
-	  <text x="40" y="44" class="left">abc</text>
-	</g>
-      </a>
+      <text x="-34" y="14"><tspan class="key">"abc"</tspan> :</text>
+      <use x="40" xlink:href="#empty"/>
+      <g class="labels" title="labels">
+	<text x="50" y="13.5">abc</text>
+      </g>
+      <text x="-34" y="44"><tspan class="key">'abc'</tspan> :</text>
+      <g class="labels" title="labels">
+	<text x="40" y="44" class="left">abc</text>
+      </g>
     </svg>
 
     <svg x="260" y="330">
