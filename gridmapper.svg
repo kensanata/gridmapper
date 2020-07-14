@@ -1792,6 +1792,8 @@ function showLabelField (x, y, type) {
   Map.labelfield.setAttribute('y', (y + 1) * Map.tileWidth);
   if (type !== null)
     Map.labelfield.setAttribute('class', type);
+  else
+    Map.labelfield.removeAttribute('class');
   var tile = Map.data.get(x, y).label;
   setTimeout(function(){
     // on Chrome, the text field will start with " or l from the second event
