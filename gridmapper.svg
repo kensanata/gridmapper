@@ -3513,6 +3513,7 @@ onload = initialize;
       <path fill="none" stroke="black" stroke-width="1" d="M 2,3 C -2,1 -3,5 0,5 S 2,9 -2,7" />
     </g>
     <g id="secret-p-hidden" width="10">
+      <line x1="0" y1="0" x2="0" y2="10" stroke="black" stroke-width="3" stroke-linecap="round"/>
     </g>
     <g id="concealed" width="10">
       <path fill="none" stroke="black" stroke-width="1" d="M 2,3 C -3,1 -3,9 2,7" />
@@ -3521,6 +3522,7 @@ onload = initialize;
       <path fill="none" stroke="black" stroke-width="1" d="M 2,3 C -3,1 -3,9 2,7" />
     </g>
     <g id="concealed-p-hidden" width="10">
+      <line x1="0" y1="0" x2="0" y2="10" stroke="black" stroke-width="3" stroke-linecap="round"/>
     </g>
     <g id="gate" width="10">
       <rect x="-2" y="4" width="4" height="12" class="background" stroke="black" stroke-width="1"/>
