@@ -360,7 +360,8 @@ var Map = {
     'secret': 'concealed',
     'concealed': 'gate',
     'gate': 'archway',
-    'archway': 'door',
+    'archway': 'one-way-door',
+    'one-way-door': 'door',
     'diagonal': 'walled-diagonal',
     'walled-diagonal': 'diagonal-wall',
     "diagonal-wall": "diagonal-line",
@@ -3051,6 +3052,10 @@ function keyHandling (evt, recording) {
     }
     break;
 
+  case '$':
+    toggleSecrets();
+    break;
+
   case 'X':
     regionCut();
     recording = false; // don't record this one
@@ -3430,6 +3435,26 @@ function remove (element) {
   }
 }
 
+var showSecrets=true;
+function toggleSecrets(){
+  if(showSecrets){
+    document.getElementById('secret').innerHTML           = document.getElementById('secret-p-hidden').innerHTML;
+    document.getElementById('concealed').innerHTML        = document.getElementById('concealed-p-hidden').innerHTML;
+    document.getElementById('one-way-door').innerHTML     = document.getElementById('one-way-door-p-hidden').innerHTML;
+    document.getElementById('trap').innerHTML             = document.getElementById('trap-p-hidden').innerHTML;
+    document.getElementById('trap-door-secret').innerHTML = document.getElementById('trap-door-secret-p-hidden').innerHTML;
+    showSecrets=false;
+  }
+  else{
+    document.getElementById('secret').innerHTML           = document.getElementById('secret-dm-shown').innerHTML;
+    document.getElementById('concealed').innerHTML        = document.getElementById('concealed-dm-shown').innerHTML;
+    document.getElementById('one-way-door').innerHTML     = document.getElementById('one-way-door-dm-shown').innerHTML;
+    document.getElementById('trap').innerHTML             = document.getElementById('trap-dm-shown').innerHTML;
+    document.getElementById('trap-door-secret').innerHTML = document.getElementById('trap-door-secret-dm-shown').innerHTML;
+    showSecrets=true;
+  }
+}
+
 onload = initialize;
 ]]></script>
   <defs>
@@ -3484,8 +3509,18 @@ onload = initialize;
     <g id="secret" width="10">
       <path fill="none" stroke="black" stroke-width="1" d="M 2,3 C -2,1 -3,5 0,5 S 2,9 -2,7" />
     </g>
+    <g id="secret-dm-shown" width="10">
+      <path fill="none" stroke="black" stroke-width="1" d="M 2,3 C -2,1 -3,5 0,5 S 2,9 -2,7" />
+    </g>
+    <g id="secret-p-hidden" width="10">
+    </g>
     <g id="concealed" width="10">
       <path fill="none" stroke="black" stroke-width="1" d="M 2,3 C -3,1 -3,9 2,7" />
+    </g>
+    <g id="concealed-dm-shown" width="10">
+      <path fill="none" stroke="black" stroke-width="1" d="M 2,3 C -3,1 -3,9 2,7" />
+    </g>
+    <g id="concealed-p-hidden" width="10">
     </g>
     <g id="gate" width="10">
       <rect x="-2" y="4" width="4" height="12" class="background" stroke="black" stroke-width="1"/>
@@ -3497,6 +3532,21 @@ onload = initialize;
       <line x1="-1.5" y1="2.5" x2="1.5" y2="2.5" stroke="black" stroke-width="1"/>
       <line x1="0" y1="7.5" x2="0" y2="10" stroke="black" stroke-width="1.5"/>
       <line x1="-1.5" y1="7.5" x2="1.5" y2="7.5" stroke="black" stroke-width="1"/>
+    </g>
+    <g id="one-way-door" width="10">
+      <rect x="0" y="2" width="2" height="6" class="background" stroke="black" stroke-width="1"/>
+      <line x1="0" y1="5" x2="-4" y2="5" stroke="black" stroke-width="1"/>
+      <line x1="-4.5" y1="5.5" x2="-2" y2="3" stroke="black" stroke-width="1"/>
+      <line x1="-4.5" y1="4.5" x2="-2" y2="7" stroke="black" stroke-width="1"/>
+    </g>
+    <g id="one-way-door-dm-shown" width="10">
+      <rect x="0" y="2" width="2" height="6" class="background" stroke="black" stroke-width="1"/>
+      <line x1="0" y1="5" x2="-4" y2="5" stroke="black" stroke-width="1"/>
+      <line x1="-4.5" y1="5.5" x2="-2" y2="3" stroke="black" stroke-width="1"/>
+      <line x1="-4.5" y1="4.5" x2="-2" y2="7" stroke="black" stroke-width="1"/>
+    </g>
+    <g id="one-way-door-p-hidden" width="10">
+      <rect x="0" y="2" width="2" height="6" class="background" stroke="black" stroke-width="1"/>
     </g>
     <g id="pillar" width="10">
       <rect width="10" height="10" class="background" stroke="black" stroke-width="1"/>
@@ -3554,6 +3604,15 @@ onload = initialize;
       <line x1="2" y1="2" x2="8" y2="8" stroke="black" stroke-width="0.8"/>
       <line x1="2" y1="8" x2="8" y2="2" stroke="black" stroke-width="0.8"/>
     </g>
+    <g id="trap-dm-shown" width="10">
+      <rect width="10" height="10" class="background" stroke="black" stroke-width="1"/>
+      <rect x="2" y="2" width="6" height="6" fill="none" stroke="black" stroke-width="1"/>
+      <line x1="2" y1="2" x2="8" y2="8" stroke="black" stroke-width="0.8"/>
+      <line x1="2" y1="8" x2="8" y2="2" stroke="black" stroke-width="0.8"/>
+    </g>
+    <g id="trap-p-hidden" width="10">
+      <rect width="10" height="10" class="background" stroke="black" stroke-width="1"/>
+    </g>
     <g id="pit" width="10">
       <rect width="10" height="10" class="background" stroke="black" stroke-width="1"/>
       <rect x="2" y="2" width="6" height="6" fill="none" stroke="black" stroke-width="1"/>
@@ -3575,6 +3634,14 @@ onload = initialize;
       <rect width="10" height="10" class="background" stroke="black" stroke-width="1"/>
       <circle cx="5" cy="5" r="3.5" fill="none" stroke="black" stroke-width="0.5"/>
       <text x="8.3" y="12" fill="black" transform="scale(0.6,0.6)">S</text>
+    </g>
+    <g id="trap-door-secret-dm-shown" width="10" class="labels">
+      <rect width="10" height="10" class="background" stroke="black" stroke-width="1"/>
+      <circle cx="5" cy="5" r="3.5" fill="none" stroke="black" stroke-width="0.5"/>
+      <text x="8.3" y="12" fill="black" transform="scale(0.6,0.6)">S</text>
+    </g>
+    <g id="trap-door-secret-p-hidden" width="10">
+      <rect width="10" height="10" class="background" stroke="black" stroke-width="1"/>
     </g>
     <g id="chest" width="10">
       <rect width="10" height="10" class="background" stroke="black" stroke-width="1"/>
@@ -3726,7 +3793,10 @@ onload = initialize;
     <text>
       <tspan x="30" y="102">Use the mouse to draw and erase floor tiles.</tspan>
       <tspan x="30" dy="17">Use the following keys to place or rotate</tspan>
-      <tspan x="30" dy="17">tiles. <a xlink:href="javascript:interpret('v')">Use <tspan class="key">v</tspan> to pick variants</a>.</tspan>
+      <tspan x="30" dy="17">tiles.
+        <a xlink:href="javascript:interpret('v')">Use <tspan class="key">v</tspan> to pick variants</a>,
+        <a xlink:href="javascript:keyPressed('$')"><tspan class="key">$</tspan> to toggle secrets</a>.
+      </tspan>
     </text>
 
     <svg x="30" y="150">
@@ -3805,6 +3875,10 @@ onload = initialize;
       <a xlink:href="javascript:interpret('dvvvv')" title="archway">
 	<use x="170" xlink:href="#empty"/>
 	<use x="170" xlink:href="#archway"/>
+      </a>
+      <a xlink:href="javascript:interpret('dvvvvv')" title="one-way-door">
+	<use x="205" xlink:href="#empty"/>
+	<use x="205" xlink:href="#one-way-door"/>
       </a>
     </svg>
 
