@@ -3056,6 +3056,10 @@ function keyHandling (evt, recording) {
     toggleSecrets();
     break;
 
+  case '!':
+    toggleThinStrokes();
+    break;
+
   case 'X':
     regionCut();
     recording = false; // don't record this one
@@ -3455,6 +3459,23 @@ function toggleSecrets(){
   }
 }
 
+var thinStrokes = false;
+function toggleThinStrokes () {
+  var defsNode = document.getElementsByTagName("defs")[0];
+  var matches = defsNode.querySelectorAll("*")
+  for (var i = 0; i < matches.length; i++)
+  {
+    if(matches[i].getAttribute("stroke-width"))
+    {
+      if(thinStrokes)
+        matches[i].setAttribute("stroke-width",matches[i].getAttribute("stroke-width")*2);
+      else
+        matches[i].setAttribute("stroke-width",matches[i].getAttribute("stroke-width")/2);
+    }
+  }
+  thinStrokes = !thinStrokes;
+}
+
 onload = initialize;
 ]]></script>
   <defs>
@@ -3538,8 +3559,8 @@ onload = initialize;
     <g id="one-way-door" width="10">
       <rect x="0" y="2" width="2" height="6" class="background" stroke="black" stroke-width="1"/>
       <line x1="0" y1="5" x2="-4" y2="5" stroke="black" stroke-width="1"/>
-      <line x1="-4.5" y1="5.5" x2="-2" y2="3" stroke="black" stroke-width="1"/>
-      <line x1="-4.5" y1="4.5" x2="-2" y2="7" stroke="black" stroke-width="1"/>
+      <line x1="-5" y1="5" x2="-2" y2="3" stroke="black" stroke-width="1"/>
+      <line x1="-5" y1="5" x2="-2" y2="7" stroke="black" stroke-width="1"/>
     </g>
     <g id="one-way-door-dm-shown" width="10">
       <rect x="0" y="2" width="2" height="6" class="background" stroke="black" stroke-width="1"/>
@@ -4228,6 +4249,15 @@ onload = initialize;
 	<a id="bugs" class="blue" target="_blank" title="Submit a bug report" xlink:href="https://alexschroeder.ch/software/Gridmapper">Issues</a>  
 	<a id="bugs" class="blue" target="_blank" title="Public dungeons" xlink:href="https://campaignwiki.org/wiki/Gridmapper/HomePage">Wiki</a>
       </tspan>
+
+    <tspan x="30" dy="25">
+      <a xlink:href="javascript:keyPressed('$')" title="toggle secrets">
+        <tspan class="key">$</tspan> : toggle secrets</a>&#160;&#160;&#160;&#160;&#160;&#160;<a xlink:href="javascript:keyPressed('!')">
+        <tspan class="key">!</tspan><tspan> : toggle thin strokes</tspan>
+      </a>
+    </tspan>
+
+
     </text>
 
     <text id="level" x="500" y="110" style="font:30px 'Arial Narrow', 'Futura Condensed', 'HelveticaNeue Condensed', sans-serif; font-weight: bold;">1</text>
