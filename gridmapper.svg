@@ -3439,9 +3439,9 @@ function remove (element) {
   }
 }
 
-var showSecrets=true;
-function toggleSecrets(){
-  if(showSecrets){
+var showSecrets = true;
+function toggleSecrets () {
+  if(showSecrets) {
     document.getElementById('secret').innerHTML           = document.getElementById('secret-p-hidden').innerHTML;
     document.getElementById('concealed').innerHTML        = document.getElementById('concealed-p-hidden').innerHTML;
     document.getElementById('one-way-door').innerHTML     = document.getElementById('one-way-door-p-hidden').innerHTML;
@@ -3463,10 +3463,8 @@ var thinStrokes = false;
 function toggleThinStrokes () {
   var defsNode = document.getElementsByTagName("defs")[0];
   var matches = defsNode.querySelectorAll("*")
-  for (var i = 0; i < matches.length; i++)
-  {
-    if(matches[i].getAttribute("stroke-width"))
-    {
+  for (var i = 0; i < matches.length; i++) {
+    if(matches[i].getAttribute("stroke-width")) {
       if(thinStrokes)
         matches[i].setAttribute("stroke-width",matches[i].getAttribute("stroke-width")*2);
       else
@@ -3815,8 +3813,8 @@ onload = initialize;
     <rect x="10" y="80" width="480" height="600" stroke="black" stroke-width="1"/>
     <text>
       <tspan x="30" y="102">Use the mouse to draw and erase floor tiles.</tspan>
-      <tspan x="30" dy="17">Use the following keys to place or rotate</tspan>
-      <tspan x="30" dy="17">tiles.
+      <tspan x="30" dy="17">Use the following keys to place or rotate tiles.</tspan>
+      <tspan x="30" dy="17">
         <a xlink:href="javascript:interpret('v')">Use <tspan class="key">v</tspan> to pick variants</a>,
         <a xlink:href="javascript:keyPressed('$')"><tspan class="key">$</tspan> to toggle secrets</a>.
       </tspan>
@@ -4181,8 +4179,11 @@ onload = initialize;
   <text>
     <tspan x="30" y="450">
       <a xlink:href="javascript:keyPressed('Z')" title="hide other levels or switch background">
-        <tspan class="key">Z</tspan> : switch background</a>&#160;&#160;&#160;&#160;&#160;&#160;<a xlink:href="javascript:regionOn()">
-	      <tspan class="key">Shift</tspan><tspan> : region mode</tspan>
+      <tspan class="key">Z</tspan> : background</a>
+      &#160;<a xlink:href="javascript:keyPressed('!')" title="toggle use of thinner strokes">
+      <tspan class="key">!</tspan> : line</a>
+      &#160;<a xlink:href="javascript:regionOn()">
+      <tspan class="key">Shift</tspan><tspan> : region mode</tspan>
       </a>
     </tspan>
     <tspan x="30" dy="20">
@@ -4249,15 +4250,6 @@ onload = initialize;
 	<a id="bugs" class="blue" target="_blank" title="Submit a bug report" xlink:href="https://alexschroeder.ch/software/Gridmapper">Issues</a>  
 	<a id="bugs" class="blue" target="_blank" title="Public dungeons" xlink:href="https://campaignwiki.org/wiki/Gridmapper/HomePage">Wiki</a>
       </tspan>
-
-    <tspan x="30" dy="25">
-      <a xlink:href="javascript:keyPressed('$')" title="toggle secrets">
-        <tspan class="key">$</tspan> : toggle secrets</a>&#160;&#160;&#160;&#160;&#160;&#160;<a xlink:href="javascript:keyPressed('!')">
-        <tspan class="key">!</tspan><tspan> : toggle thin strokes</tspan>
-      </a>
-    </tspan>
-
-
     </text>
 
     <text id="level" x="500" y="110" style="font:30px 'Arial Narrow', 'Futura Condensed', 'HelveticaNeue Condensed', sans-serif; font-weight: bold;">1</text>
