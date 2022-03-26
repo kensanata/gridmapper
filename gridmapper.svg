@@ -866,12 +866,14 @@ var Demo = {
     link.firstChild.nodeValue = text;
     var href = link.getAttributeNS(xlinkNs, 'href');
     link.setAttributeNS(xlinkNs, 'href', 'javascript:' + js);
+    document.getElementById('source').setAttribute('display', 'none');
     // reset after 2s
     if (revert)
       var t = setInterval(function() {
         if (!Demo.running) {
           link.setAttributeNS(xlinkNs, 'href', href);
           link.firstChild.nodeValue = oldText;
+	  document.getElementById('source').setAttribute('display', 'inline');
           clearInterval(t);
         }
       }, 2000);
