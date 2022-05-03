@@ -1484,10 +1484,10 @@ function saveIt (title, username, summary) {
     title: title,
     text: '[[Gridmapper:' + title + ']]: '
       + (summary || '') + '\n{{{\n' + getSource() + '}}}\n',
-    username: username,
     summary: summary,
     frodo: 1,
   };
+  if (username) data['username'] = username;
   var XHR = new XMLHttpRequest();
   var urlEncodedData = '';
   var urlEncodedDataPairs = [];
