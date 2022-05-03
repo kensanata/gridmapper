@@ -67,6 +67,9 @@ svg.blue #help { fill: #01b0f1; }
 }
 .menu span { display: inline-block; width: 32ex }
 .menu a { color: blue }
+
+/* thick rock walls to be displayed only when autoWaller is on*/
+.rockWall { display:none }
   ]]></style>
 
   <script type="application/javascript"><![CDATA[
@@ -355,7 +358,8 @@ var Map = {
     'stair-small': 'stair-spiral',
     'stair-spiral': 'stair-big-spiral',
     'stair-big-spiral': 'stair-big',
-    'stair-big': 'stair',
+    'stair-big': 'ladder',
+    'ladder': 'stair',
     'door': 'secret',
     'secret': 'concealed',
     'concealed': 'gate',
@@ -366,21 +370,29 @@ var Map = {
     'walled-diagonal': 'diagonal-wall',
     "diagonal-wall": "diagonal-line",
     "diagonal-line": "diagonal-door",
-    "diagonal-door": "diagonal",
+    "diagonal-door": "diagonal-ledge",
+    "diagonal-ledge": "diagonal",
     'arc': 'arc2',
     'arc2': 'arc3',
-    'arc3': 'arc',
+    'arc3': 'arc4',
+    'arc4': 'arc',
     arcw: "arcw2",
     arcw2: "arcw3",
-    arcw3: "arcw",
+    arcw3: "arcw4",
+    arcw4: "arcw",
     'trap': 'pit',
     'pit': 'trap-door-ceiling',
     'trap-door-ceiling': 'trap-door-floor',
     'trap-door-floor': 'trap-door-secret',
-    'trap-door-secret': 'trap',
+    'trap-door-secret': 'generic-trap',
+    'generic-trap': 'trap',
     'statue': 'well',
     'well': 'fountain',
     'fountain': 'statue',
+    'stair-spiral-down': 'stair-spiral-up',
+    'stair-spiral-up': 'stair-big-spiral-down',
+    'stair-big-spiral-down': 'stair-big-spiral-up',
+    'stair-big-spiral-up': 'stair-spiral-down',
     'pillar': 'altar',
     'altar': 'dais',
     'dais': 'dais-round',
@@ -391,7 +403,10 @@ var Map = {
     'portcullis': 'window',
     'window': 'gap',
     'gap': 'corner-pillar',
-    'corner-pillar': 'wall',
+    'corner-pillar': 'arrow-slit',
+    'arrow-slit': 'ledge',
+    'ledge': 'ledge-r',
+    'ledge-r': 'wall',
     'chest': 'bed',
     'bed': 'table',
     'table': 'chair',
@@ -408,7 +423,7 @@ var Map = {
     var map = {
       door: 'd', wall: 'w', stair: 's', chest: 'c',
       trap: 't', empty: 'f', pillar: 'p', statue: 'b',
-      diagonal: 'n', arc: 'a', arcw: 'q', rock1: 'g', rockd: 'g',
+      diagonal: 'n', 'stair-spiral-down': 'o', arc: 'a', arcw: 'q', rock1: 'g', rockd: 'g',
       rock2a: 'g', rock2b: 'g', rock3: 'g', rock4: 'g', red: 'R',
       green: 'G', blue: 'B', colorQ: 'Q', colorE: 'E', colorA: 'A',
       colorS: 'S', colorD: 'D', colorF: 'F'
@@ -866,14 +881,12 @@ var Demo = {
     link.firstChild.nodeValue = text;
     var href = link.getAttributeNS(xlinkNs, 'href');
     link.setAttributeNS(xlinkNs, 'href', 'javascript:' + js);
-    document.getElementById('source').setAttribute('display', 'none');
     // reset after 2s
     if (revert)
       var t = setInterval(function() {
         if (!Demo.running) {
           link.setAttributeNS(xlinkNs, 'href', href);
           link.firstChild.nodeValue = oldText;
-	  document.getElementById('source').setAttribute('display', 'inline');
           clearInterval(t);
         }
       }, 2000);
@@ -1369,6 +1382,7 @@ function textExport () {
  * Exports the code in the text area.
  */
 function textImport () {
+  autoWallOff();
   interpretMap(Map.exportarea.value);
   Map.showLevelAnimation();
   Pen.update(null);
@@ -1456,9 +1470,7 @@ function save () {
     message('Unfortunately, this name is not a valid wiki page name');
     return;
   }
-  saveIt(inputs[0],
-         inputs[1] || 'Anonymous',
-         inputs[2] || 'Map saved');
+  saveIt(inputs[0], inputs[1], inputs[2] || 'Map saved');
 }
 
 /**
@@ -1563,6 +1575,7 @@ function loadHtmlMenu (event) {
  * Loads map from the wiki page.
  */
 function loadMap (url) {
+  autoWallOff();
   var XHR = new XMLHttpRequest();
   XHR.addEventListener('load', loadIt);
   XHR.addEventListener('error', function(event) {
@@ -2543,11 +2556,13 @@ function drawToCommand (x, y, tile, type) {
     Map.floorElement.removeChild(tile);
     Map.data.get(x, y).floor = null;
     checkRockyNeighbors(x, y);
+    autoWaller(x, y);
   };
   var add = function(){
     Map.data.get(x, y).floor = tile;
     Map.floorElement.appendChild(tile);
     checkRockyNeighbors(x, y);
+    autoWaller(x, y);
   };
   if (type === 'add') {
     Commands.do(remove, add); // add new tile
@@ -2909,11 +2924,13 @@ function keyHandling (evt, recording) {
   case 'f':
     wallModeOff();
     floor(Pen.x, Pen.y);
+    autoWaller(Pen.x,Pen.y)
     break;
 
   case 'g':
     wallModeOff();
     rock(Pen.x, Pen.y);
+    autoWaller(Pen.x,Pen.y)
     break;
 
   case '\n':
@@ -2944,21 +2961,30 @@ function keyHandling (evt, recording) {
   case 'p':
     wallModeOff();
     draw(Pen.x, Pen.y, 'pillar');
+    autoWaller(Pen.x,Pen.y)
     break;
 
   case 't':
     wallModeOff();
     draw(Pen.x, Pen.y, 'trap');
+    autoWaller(Pen.x,Pen.y)
+    break;
+
+  case 'o':
+    wallModeOff();
+    draw(Pen.x, Pen.y, 'stair-spiral-down');
     break;
 
   case 'b':
     wallModeOff();
     draw(Pen.x, Pen.y, 'statue');
+    autoWaller(Pen.x,Pen.y)
     break;
 
   case 'c':
     wallModeOff();
     rotate('floor', Pen.x, Pen.y, 'chest');
+    autoWaller(Pen.x,Pen.y)
     break;
 
   case 's':
@@ -3062,6 +3088,10 @@ function keyHandling (evt, recording) {
     toggleThinStrokes();
     break;
 
+  case '@':
+    toggleAutoWall();
+    break;
+
   case 'X':
     regionCut();
     recording = false; // don't record this one
@@ -3102,6 +3132,78 @@ function keyHandling (evt, recording) {
   if (recording) {
     record(key);
   }
+}
+
+/*
+ * Automatically draws or removes walls around most tile types. Not to
+ * be called on tiles that are (potentially) bigger than 1×1. Also not
+ * to be called on grottoes. Only active when the setting autoWall is
+ * true.
+ */
+function autoWaller (x,y) {
+  if(!autoWalls)
+    return false;
+
+  var isTileAutoWallable = true;
+
+  /* Register the current pen type, then return to it
+   * at the end. Not doing so breaks functions like
+   * mouse click-and-drag drawing.
+   */
+  var oldPenType = Pen.type
+  Pen.type = 'wallMode';
+
+  var thisFloor = Map.data.get(x, y).floor;
+  if (thisFloor) {
+    var thisFloorType = thisFloor.getAttribute("href");
+    if (thisFloorType) {
+      // This check is redundant because this function should never be
+      // called on these tiles anyway.
+      switch (thisFloorType) {
+        // 1×2 tiles
+        case '#stair':
+        // 2×2 tiles
+        case '#stair-big': case '#stair-big-spiral': case '#stair-big-spiral-up': case '#stair-big-spiral-down':
+        case '#arc2': case '#arcw2':
+        // 3×3 tiles
+        case '#arc3': case '#arcw3':
+        // 4×4 tiles
+        case '#arc4': case '#arcw4':
+          removeWall(Pen.x,   Pen.y);
+          removeWall(Pen.x,   Pen.y-0.5);
+          removeWall(Pen.x+1, Pen.y);
+          removeWall(Pen.x,   Pen.y+0.5);
+          isTileAutoWallable = false;
+        break;
+      }
+    }
+  }
+
+  if (thisFloorType && thisFloorType.substring(0,5) == "#rock") {
+    removeWall(Pen.x,   Pen.y);
+    removeWall(Pen.x,   Pen.y-0.5);
+    removeWall(Pen.x+1, Pen.y);
+    removeWall(Pen.x,   Pen.y+0.5);
+    isTileAutoWallable = false;
+  }
+
+  if (!isTileAutoWallable) {
+    // do nothing
+  } else {
+    if (Map.data.get(x, y).floor !== null) {
+      getFloorInDirection(Pen.x,Pen.y,0) == null ? wall(Pen.x,   Pen.y,     'wall') : removeWall(Pen.x,   Pen.y);
+      getFloorInDirection(Pen.x,Pen.y,1) == null ? wall(Pen.x,   Pen.y-0.5, 'wall') : removeWall(Pen.x,   Pen.y-0.5);
+      getFloorInDirection(Pen.x,Pen.y,2) == null ? wall(Pen.x+1, Pen.y,     'wall') : removeWall(Pen.x+1, Pen.y);
+      getFloorInDirection(Pen.x,Pen.y,3) == null ? wall(Pen.x,   Pen.y+0.5, 'wall') : removeWall(Pen.x,   Pen.y+0.5);
+    } else {
+      getFloorInDirection(Pen.x,Pen.y,0) != null ? wall(Pen.x,   Pen.y,     'wall') : removeWall(Pen.x,   Pen.y);
+      getFloorInDirection(Pen.x,Pen.y,1) != null ? wall(Pen.x,   Pen.y-0.5, 'wall') : removeWall(Pen.x,   Pen.y-0.5);
+      getFloorInDirection(Pen.x,Pen.y,2) != null ? wall(Pen.x+1, Pen.y,     'wall') : removeWall(Pen.x+1, Pen.y);
+      getFloorInDirection(Pen.x,Pen.y,3) != null ? wall(Pen.x,   Pen.y+0.5, 'wall') : removeWall(Pen.x,   Pen.y+0.5);
+    }
+  }
+
+  Pen.type = oldPenType;
 }
 
 /**
@@ -3442,21 +3544,22 @@ function remove (element) {
 }
 
 var showSecrets = true;
-function toggleSecrets () {
-  if(showSecrets) {
+function toggleSecrets() {
+  if (showSecrets) {
     document.getElementById('secret').innerHTML           = document.getElementById('secret-p-hidden').innerHTML;
     document.getElementById('concealed').innerHTML        = document.getElementById('concealed-p-hidden').innerHTML;
     document.getElementById('one-way-door').innerHTML     = document.getElementById('one-way-door-p-hidden').innerHTML;
     document.getElementById('trap').innerHTML             = document.getElementById('trap-p-hidden').innerHTML;
     document.getElementById('trap-door-secret').innerHTML = document.getElementById('trap-door-secret-p-hidden').innerHTML;
+    document.getElementById('generic-trap').innerHTML     = document.getElementById('generic-trap-p-hidden').innerHTML;
     showSecrets=false;
-  }
-  else{
+  } else {
     document.getElementById('secret').innerHTML           = document.getElementById('secret-dm-shown').innerHTML;
     document.getElementById('concealed').innerHTML        = document.getElementById('concealed-dm-shown').innerHTML;
     document.getElementById('one-way-door').innerHTML     = document.getElementById('one-way-door-dm-shown').innerHTML;
     document.getElementById('trap').innerHTML             = document.getElementById('trap-dm-shown').innerHTML;
     document.getElementById('trap-door-secret').innerHTML = document.getElementById('trap-door-secret-dm-shown').innerHTML;
+    document.getElementById('generic-trap').innerHTML     = document.getElementById('generic-trap-dm-shown').innerHTML;
     showSecrets=true;
   }
 }
@@ -3468,12 +3571,48 @@ function toggleThinStrokes () {
   for (var i = 0; i < matches.length; i++) {
     if(matches[i].getAttribute("stroke-width")) {
       if(thinStrokes)
-        matches[i].setAttribute("stroke-width",matches[i].getAttribute("stroke-width")*2);
+        matches[i].setAttribute("stroke-width",matches[i].getAttribute("stroke-width")*3/2);
       else
-        matches[i].setAttribute("stroke-width",matches[i].getAttribute("stroke-width")/2);
+        matches[i].setAttribute("stroke-width",matches[i].getAttribute("stroke-width")*2/3);
     }
   }
   thinStrokes = !thinStrokes;
+}
+
+/*
+ * Needs to be set to false initially or it will mess with any map
+ * loaded from the url. Also needs to be set to false before any
+ * loading is done. whether through the Load or Import functions.
+ */
+var autoWalls = false;
+function toggleAutoWall() {
+  autoWalls ? autoWallOff() : autoWallOn();
+}
+
+function autoWallOn() {
+  autoWalls = true;
+  document.getElementById('cursor').setAttribute("fill", "purple");
+
+  // show thick grotto walls
+  var defsNode = document.getElementsByTagName("defs")[0];
+  var matches = defsNode.querySelectorAll("*")
+  for (var i = 0; i < matches.length; i++) {
+    if(matches[i].getAttribute("class")=="rockWall")
+      matches[i].style.display = "block";
+  }
+}
+
+function autoWallOff() {
+  autoWalls = false;
+  document.getElementById('cursor').setAttribute("fill", "forestgreen");
+
+  // hide thick grotto walls
+  var defsNode = document.getElementsByTagName("defs")[0];
+  var matches = defsNode.querySelectorAll("*")
+  for (var i = 0; i < matches.length; i++) {
+    if(matches[i].getAttribute("class")=="rockWall")
+      matches[i].style.display = "none";
+  }
 }
 
 onload = initialize;
@@ -3524,6 +3663,20 @@ onload = initialize;
     <g id="corner-pillar" width="10">
       <circle cx="0" cy="0" r="2" fill="black"/>
     </g>
+    <g id="arrow-slit" width="10">
+      <line x1="0" y1="0" x2="0" y2="10" stroke="black" stroke-width="3"/>
+      <polygon points="-1.5,5 3,2 3,8" stroke="none" stroke-width="0" fill="white"/>
+    </g>
+    <g id="ledge" width="100">
+      <path fill="none" stroke="black" stroke-width="15" d="
+        M 0 0 C 0 20 9 27 11 47 C 10 80 0 80 0 100 M 6 27 L 38 21 M 11 49 L 46 50 M 8 71 L 32 86
+        "/>
+    </g>
+    <g id="ledge-r" width="100">
+      <path fill="none" stroke="black" stroke-width="15" d="
+        M 0 0 C 2 18 -8 34 6 48 C 19 70 -1 83 0 100 M -2 20 L -34 14 M 6 48 L -31 47 M -22 74 L 8 75
+        "/>
+    </g>
     <g id="door" width="10">
       <rect x="-1.5" y="2" width="3" height="6" class="background" stroke="black" stroke-width="1"/>
     </g>
@@ -3558,15 +3711,15 @@ onload = initialize;
     </g>
     <g id="one-way-door" width="10">
       <rect x="0" y="2" width="2" height="6" class="background" stroke="black" stroke-width="1"/>
-      <line x1="0" y1="5" x2="-4" y2="5" stroke="black" stroke-width="1"/>
-      <line x1="-5" y1="5" x2="-2" y2="3" stroke="black" stroke-width="1"/>
-      <line x1="-5" y1="5" x2="-2" y2="7" stroke="black" stroke-width="1"/>
+      <line x1="0" y1="5" x2="-3" y2="5" stroke="black" stroke-width="1"/>
+      <line x1="-3" y1="5" x2="-1.5" y2="3" stroke="black" stroke-width="1"/>
+      <line x1="-3" y1="5" x2="-1.5" y2="7" stroke="black" stroke-width="1"/>
     </g>
     <g id="one-way-door-dm-shown" width="10">
       <rect x="0" y="2" width="2" height="6" class="background" stroke="black" stroke-width="1"/>
-      <line x1="0" y1="5" x2="-4" y2="5" stroke="black" stroke-width="1"/>
-      <line x1="-4.5" y1="5.5" x2="-2" y2="3" stroke="black" stroke-width="1"/>
-      <line x1="-4.5" y1="4.5" x2="-2" y2="7" stroke="black" stroke-width="1"/>
+      <line x1="0" y1="5" x2="-3" y2="5" stroke="black" stroke-width="1"/>
+      <line x1="-3" y1="5" x2="-1.5" y2="3" stroke="black" stroke-width="1"/>
+      <line x1="-3" y1="5" x2="-1.5" y2="7" stroke="black" stroke-width="1"/>
     </g>
     <g id="one-way-door-p-hidden" width="10">
       <rect x="0" y="2" width="2" height="6" class="background" stroke="black" stroke-width="1"/>
@@ -3666,6 +3819,17 @@ onload = initialize;
     <g id="trap-door-secret-p-hidden" width="10">
       <rect width="10" height="10" class="background" stroke="black" stroke-width="1"/>
     </g>
+    <g id="generic-trap" width="10" class="labels">
+      <rect width="10" height="10" class="background" stroke="black" stroke-width="1"/>
+      <text x="8.3" y="12" fill="black" transform="scale(0.6,0.6)">T</text>
+    </g>
+    <g id="generic-trap-dm-shown" width="10" class="labels">
+      <rect width="10" height="10" class="background" stroke="black" stroke-width="1"/>
+      <text x="8.3" y="12" fill="black" transform="scale(0.6,0.6)">T</text>
+    </g>
+    <g id="generic-trap-p-hidden" width="10">
+      <rect width="10" height="10" class="background" stroke="black" stroke-width="1"/>
+    </g>
     <g id="chest" width="10">
       <rect width="10" height="10" class="background" stroke="black" stroke-width="1"/>
       <rect x="2" y="3" width="6" height="4" fill="none" stroke="black" stroke-width="0.5"/>
@@ -3713,6 +3877,12 @@ onload = initialize;
       <line x1="0" y1="10" x2="10" y2="0" stroke="black" stroke-width="3" stroke-linecap="round"/>
       <rect x="-1.5" y="2" width="3" height="6" class="background" stroke="black" stroke-width="1" transform="translate(10,3) rotate(45) translate(-2.05,0)"/>
     </g>
+    <g id="diagonal-ledge" width="100">
+      <rect width="100" height="100" class="background" stroke="black" stroke-width="10"/>
+      <path fill="none" stroke="black" stroke-width="15" d="
+        M 100 0 C 93 8 88 30 73 45 C 53 56 79 81 1 100 M 43 33 L 65 52 M 43 84 L 22 65 M 85 29 L 64 12
+        "/>
+    </g>
     <g id="arc" width="10">
       <path class="background" d="M0,10 A10,10 0 0,1 10,0 v10 Z" stroke="black" stroke-width="1"/>
     </g>
@@ -3728,6 +3898,16 @@ onload = initialize;
       <line x1="1.7" y1="20" x2="30" y2="20" stroke="black" stroke-width="1"/>
       <line x1="10" y1="7.6" x2="10" y2="30" stroke="black" stroke-width="1"/>
       <line x1="20" y1="1.7" x2="20" y2="30" stroke="black" stroke-width="1"/>
+      <circle class="dot" cx="5" cy="5" r="1" fill="red" opacity="0"/>
+    </g>
+    <g id="arc4" class="center" width="10">
+      <path class="background" d="M0,40 A40,40 0 0,1 40,0 v40 Z" stroke="black" stroke-width="1"/>
+      <line x1="13.5" y1="10" x2="40" y2="10" stroke="black" stroke-width="1"/>
+      <line x1="5" y1="20" x2="40" y2="20" stroke="black" stroke-width="1"/>
+      <line x1="1.7" y1="30" x2="40" y2="30" stroke="black" stroke-width="1"/>
+      <line x1="10" y1="13.5" x2="10" y2="40" stroke="black" stroke-width="1"/>
+      <line x1="20" y1="5" x2="20" y2="40" stroke="black" stroke-width="1"/>
+      <line x1="30" y1="1.7" x2="30" y2="40" stroke="black" stroke-width="1"/>
       <circle class="dot" cx="5" cy="5" r="1" fill="red" opacity="0"/>
     </g>
     <g id="arcw" width="10">
@@ -3748,6 +3928,17 @@ onload = initialize;
       <line x1="1.7" y1="20" x2="30" y2="20" stroke="black" stroke-width="1"/>
       <line x1="10" y1="7.6" x2="10" y2="30" stroke="black" stroke-width="1"/>
       <line x1="20" y1="1.7" x2="20" y2="30" stroke="black" stroke-width="1"/>
+      <circle class="dot" cx="5" cy="5" r="1" fill="red" opacity="0"/>
+    </g>
+    <g id="arcw4" class="center" width="10">
+      <path class="background" d="M0,40 A40,40 0 0,1 40,0 v40 Z" stroke="black" stroke-width="1"/>
+      <path class="background" d="M0,40 A40,40 0 0,1 40,0" stroke="black" stroke-width="3" stroke-linecap="round"/>
+      <line x1="13.5" y1="10" x2="40" y2="10" stroke="black" stroke-width="1"/>
+      <line x1="5" y1="20" x2="40" y2="20" stroke="black" stroke-width="1"/>
+      <line x1="1.7" y1="30" x2="40" y2="30" stroke="black" stroke-width="1"/>
+      <line x1="10" y1="13.5" x2="10" y2="40" stroke="black" stroke-width="1"/>
+      <line x1="20" y1="5" x2="20" y2="40" stroke="black" stroke-width="1"/>
+      <line x1="30" y1="1.7" x2="30" y2="40" stroke="black" stroke-width="1"/>
       <circle class="dot" cx="5" cy="5" r="1" fill="red" opacity="0"/>
     </g>
     <g id="stair" width="10">
@@ -3794,12 +3985,84 @@ onload = initialize;
       <line x1="22" y1="78" x2="78" y2="22" stroke="black" stroke-width="7"/>
       <circle cx="50" cy="50" r="10" class="background" stroke="black" stroke-width="7"/>
     </g>
-    <path id="rock1" width="10" class="background" d="M0,10 v-1 L1,8 L0,6 v-1 L1,4 v-2 L0,1 L0,0 H10 V10 Z" stroke-miterlimit="1" stroke="black" stroke-width="1"/>
-    <path id="rock2a" width="10" class="background" d="M0,10 v-1 L1,8 L1,7 L2,5 L1,4 L2,2 L4,1 L5,2 L7,2 L10,0 V10 Z" stroke-miterlimit="1" stroke-linecap="round" stroke="black" stroke-width="1"/>
-    <path id="rock2b" width="10" class="background" d="M0,10 v-1 L1,8 L1,7 L2,5 v-1 L3,3 h1 L5,2 L7,2 L10,0 V10 Z" stroke-miterlimit="1" stroke-linecap="round" stroke="black" stroke-width="1"/>
-    <path id="rock3" width="10" class="background" d="M0,10 v-1 L1,7 v-1 L2,5 v-1 L2,2 L4,1 L5,2 L7,2 L9,1 L10,3 L8,6 L8,7 L10,10 Z" stroke-miterlimit="1" stroke-linecap="round" stroke="black" stroke-width="1"/>
-    <path id="rock4" width="10" class="background" d="M3,3 L5,2 L7,3 L8,5 L7,7 v1 h-1 L4,9 L2,7 L2,5 Z" stroke-linecap="round" stroke="black" stroke-width="1"/>
-    <path id="rockd" width="10" class="background" d="M0,10 v-1 L1,8 L0,6 v-1 L1,4 v-2 L0,1 L0,0 H10 v1 L9,2 v1 L8,6 L9,7 v1 L10,10 Z" stroke-miterlimit="1" stroke="black" stroke-width="1"/>
+    <g id="ladder" width="100">
+      <rect width="100" height="100" class="background" stroke="black" stroke-width="10"/>
+      <circle cx="30" cy="25" r="12" fill="black"/>
+      <line x1="30" y1="25" x2="30" y2="75" stroke="black" stroke-width="10"/>
+      <circle cx="30" cy="75" r="12" fill="black"/>
+    </g>
+    <g id="stair-spiral-down" width="100" class="labels">
+      <rect width="100" height="100" class="background" stroke="black" stroke-width="10"/>
+      <circle cx="50" cy="50" r="40" fill="none" stroke="black" stroke-width="7"/>
+      <line x1="10" y1="50" x2="90" y2="50" stroke="black" stroke-width="7"/>
+      <line x1="50" y1="10" x2="50" y2="90" stroke="black" stroke-width="7"/>
+      <line x1="22" y1="22" x2="78" y2="78" stroke="black" stroke-width="7"/>
+      <line x1="22" y1="78" x2="78" y2="22" stroke="black" stroke-width="7"/>
+      <circle cx="50" cy="50" r="10" class="background" stroke="black" stroke-width="7"/>
+      <rect x="2" y="2" width="46" height="46" stroke="none" stroke-width="0" fill="white"/>
+      <text x="6" y="10" fill="black" transform="scale(4,4)">D</text>
+    </g>
+    <g id="stair-spiral-up" width="100" class="labels">
+      <rect width="100" height="100" class="background" stroke="black" stroke-width="10"/>
+      <circle cx="50" cy="50" r="40" fill="none" stroke="black" stroke-width="7"/>
+      <line x1="10" y1="50" x2="90" y2="50" stroke="black" stroke-width="7"/>
+      <line x1="50" y1="10" x2="50" y2="90" stroke="black" stroke-width="7"/>
+      <line x1="22" y1="22" x2="78" y2="78" stroke="black" stroke-width="7"/>
+      <line x1="22" y1="78" x2="78" y2="22" stroke="black" stroke-width="7"/>
+      <circle cx="50" cy="50" r="10" class="background" stroke="black" stroke-width="7"/>
+      <rect x="2" y="2" width="46" height="46" stroke="none" stroke-width="0" fill="white"/>
+      <text x="6" y="10" fill="black" transform="scale(4,4)">U</text>
+    </g>
+    <g id="stair-big-spiral-down" width="50" class="labels">
+      <rect width="100" height="100" class="background" stroke="black" stroke-width="5"/>
+      <circle cx="50" cy="50" r="40" fill="none" stroke="black" stroke-width="5"/>
+      <line x1="0" y1="50" x2="99" y2="50" stroke="black" stroke-width="5"/>
+      <line x1="50" y1="0" x2="50" y2="100" stroke="black" stroke-width="5"/>
+      <line x1="15" y1="30" x2="85" y2="70" stroke="black" stroke-width="5"/>
+      <line x1="15" y1="70" x2="85" y2="30" stroke="black" stroke-width="5"/>
+      <line x1="30" y1="15" x2="70" y2="85" stroke="black" stroke-width="5"/>
+      <line x1="30" y1="85" x2="70" y2="15" stroke="black" stroke-width="5"/>
+      <circle cx="50" cy="50" r="10" class="background" stroke="black" stroke-width="5"/>
+      <rect x="2" y="2" width="46" height="46" stroke="none" stroke-width="0" fill="white"/>
+      <text x="6" y="10" fill="black" transform="scale(4,4)">D</text>
+    </g>
+    <g id="stair-big-spiral-up" width="50" class="labels">
+      <rect width="100" height="100" class="background" stroke="black" stroke-width="5"/>
+      <circle cx="50" cy="50" r="40" fill="none" stroke="black" stroke-width="5"/>
+      <line x1="0" y1="50" x2="99" y2="50" stroke="black" stroke-width="5"/>
+      <line x1="50" y1="0" x2="50" y2="100" stroke="black" stroke-width="5"/>
+      <line x1="15" y1="30" x2="85" y2="70" stroke="black" stroke-width="5"/>
+      <line x1="15" y1="70" x2="85" y2="30" stroke="black" stroke-width="5"/>
+      <line x1="30" y1="15" x2="70" y2="85" stroke="black" stroke-width="5"/>
+      <line x1="30" y1="85" x2="70" y2="15" stroke="black" stroke-width="5"/>
+      <circle cx="50" cy="50" r="10" class="background" stroke="black" stroke-width="5"/>
+      <rect x="2" y="2" width="46" height="46" stroke="none" stroke-width="0" fill="white"/>
+      <text x="6" y="10" fill="black" transform="scale(4,4)">U</text>
+    </g>
+  <g id="rock1" width="10">
+    <path width="10" class="background" d="M0,10 v-1 L1,8 L0,6 v-1 L1,4 v-2 L0,1 L0,0 H10 V10 Z" stroke-miterlimit="1" stroke="black" stroke-width="1"/>
+    <path width="10" class="rockWall" d="M 0 10 v -1 L 1 8 L 0 6 v -1 L 1 4 v -2 L 0 1 L 0 0" stroke-miterlimit="1" stroke="black" stroke-width="3"/>
+  </g>
+  <g id="rock2a" width="10">
+    <path width="10" class="background" d="M0,10 v-1 L1,8 L1,7 L2,5 L1,4 L2,2 L4,1 L5,2 L7,2 L10,0 V10 Z" stroke-miterlimit="1" stroke-linecap="round" stroke="black" stroke-width="1"/>
+    <path width="10" class="rockWall" d="M 0 10 v -1 L 1 8 L 1 7 L 2 5 L 1 4 L 2 2 L 4 1 L 5 2 L 7 2 L 10 0" stroke-miterlimit="1" stroke-linecap="round" stroke="black" stroke-width="3"/>
+  </g>
+  <g id="rock2b" width="10">
+    <path width="10" class="background" d="M0,10 v-1 L1,8 L1,7 L2,5 v-1 L3,3 h1 L5,2 L7,2 L10,0 V10 Z" stroke-miterlimit="1" stroke-linecap="round" stroke="black" stroke-width="1"/>
+    <path width="10" class="rockWall" d="M 0 10 v -1 L 1 8 L 1 7 L 2 5 v -1 L 3 3 h 1 L 5 2 L 7 2 L 10 0" stroke-miterlimit="1" stroke-linecap="round" stroke="black" stroke-width="3"/>
+  </g>
+  <g id="rock3" width="10">
+    <path width="10" class="background" d="M0,10 v-1 L1,7 v-1 L2,5 v-1 L2,2 L4,1 L5,2 L7,2 L9,1 L10,3 L8,6 L8,7 L10,10 Z" stroke-miterlimit="1" stroke-linecap="round" stroke="black" stroke-width="1"/>
+    <path width="10" class="rockWall" d="M0,10 v-1 L1,7 v-1 L2,5 v-1 L2,2 L4,1 L5,2 L7,2 L9,1 L10,3 L8,6 L8,7 L10,10" stroke-miterlimit="1" stroke-linecap="round" stroke="black" stroke-width="3"/>
+  </g>
+  <g id="rock4" width="10">
+    <path width="10" class="background" d="M3,3 L5,2 L7,3 L8,5 L7,7 v1 h-1 L4,9 L2,7 L2,5 Z" stroke-linecap="round" stroke="black" stroke-width="1"/>
+    <path width="10" class="rockWall" d="M3,3 L5,2 L7,3 L8,5 L7,7 v1 h-1 L4,9 L2,7 L2,5 Z" stroke-linecap="round" stroke="black" stroke-width="3"/>
+  </g>
+  <g id="rockd" width="10">
+    <path width="10" class="background" d="M0,10 v-1 L1,8 L0,6 v-1 L1,4 v-2 L0,1 L0,0 H10 v1 L9,2 v1 L8,6 L9,7 v1 L10,10 Z" stroke-miterlimit="1" stroke="black" stroke-width="1"/>
+    <path width="10" class="rockWall" d="M 0 10 v -1 L 1 8 L 0 6 v -1 L 1 4 v -2 L 0 1 L 0 0 M 10 0 v 1 L 9 2 v 1 L 8 6 L 9 7 v 1 L 10 10" stroke-miterlimit="1" stroke="black" stroke-width="3"/>
+  </g>
   </defs>
   <g id="background" inkscape:groupmode="layer" inkscape:label="Background">
     <rect x="20" y="20" width="0" height="0" stroke="black" stroke-width="1"/>
@@ -3812,13 +4075,11 @@ onload = initialize;
   <rect id="ui" opacity="0"/>
 
   <g id="help">
-    <rect x="10" y="80" width="480" height="600" stroke="black" stroke-width="1"/>
+    <rect x="10" y="80" width="680" height="600" stroke="black" stroke-width="1"/>
     <text>
-      <tspan x="30" y="102">Use the mouse to draw and erase floor tiles.</tspan>
-      <tspan x="30" dy="17">Use the following keys to place or rotate tiles.</tspan>
-      <tspan x="30" dy="17">
-        <a xlink:href="javascript:interpret('v')">Use <tspan class="key">v</tspan> to pick variants</a>,
-        <a xlink:href="javascript:keyPressed('$')"><tspan class="key">$</tspan> to toggle secrets</a>.
+      <tspan x="30" y="102">Use the mouse to draw and erase floor tiles. Use the following keys to place</tspan>
+      <tspan x="30" dy="17">or rotate tiles.
+        <a xlink:href="javascript:interpret('v')">Use <tspan class="key">v</tspan> to pick variants</a>.
       </tspan>
     </text>
 
@@ -3839,42 +4100,6 @@ onload = initialize;
     </svg>
 
     <svg x="30" y="180">
-      <a href="javascript:interpret('t')">
-	<text y="14"><tspan class="key">t</tspan> :</text>
-      </a>
-      <a xlink:href="javascript:interpret('t')" title="covered pit">
-	<use x="50" xlink:href="#trap"/>
-      </a>
-      <a xlink:href="javascript:interpret('tv')" title="open pit">
-	<use x="80" xlink:href="#pit"/>
-      </a>
-      <a xlink:href="javascript:interpret('tvv')" title="trap door in the ceiling">
-	<use x="110" xlink:href="#trap-door-ceiling"/>
-      </a>
-      <a xlink:href="javascript:interpret('tvvv')" title="trap door in the floor">
-	<use x="140" xlink:href="#trap-door-floor"/>
-      </a>
-      <a xlink:href="javascript:interpret('tvvvv')" title="secret trap door">
-	<use x="170" xlink:href="#trap-door-secret"/>
-      </a>
-    </svg>
-
-    <svg x="30" y="210">
-      <a href="javascript:interpret('b')">
-	<text y="14"><tspan class="key">b</tspan> :</text>
-      </a>
-      <a xlink:href="javascript:interpret('b')" title="statue">
-	<use x="50" xlink:href="#statue"/>
-      </a>
-      <a xlink:href="javascript:interpret('bv')" title="well">
-	<use x="80" xlink:href="#well"/>
-      </a>
-      <a xlink:href="javascript:interpret('bvv')" title="fountain">
-	<use x="110" xlink:href="#fountain"/>
-      </a>
-    </svg>
-
-    <svg x="30" y="240">
       <a href="javascript:interpret('d')">
 	<text y="14"><tspan class="key">d</tspan> :</text>
       </a>
@@ -3900,12 +4125,12 @@ onload = initialize;
 	<use x="170" xlink:href="#archway"/>
       </a>
       <a xlink:href="javascript:interpret('dvvvvv')" title="one-way-door">
-	<use x="205" xlink:href="#empty"/>
-	<use x="205" xlink:href="#one-way-door"/>
+	<use x="200" xlink:href="#empty"/>
+	<use x="200" xlink:href="#one-way-door"/>
       </a>
     </svg>
 
-    <svg x="30" y="270">
+    <svg x="30" y="210">
       <a href="javascript:interpret('s')">
 	<text y="14"><tspan class="key">s</tspan> :</text>
       </a>
@@ -3915,14 +4140,51 @@ onload = initialize;
       <a xlink:href="javascript:interpret('sv')" title="small stairs">
 	<use x="80" xlink:href="#stair-small"/>
       </a>
-      <a xlink:href="javascript:interpret('svv')" title="spiral stairs">
-	<use x="80" y="31" xlink:href="#stair-spiral"/>
+      <a xlink:href="javascript:interpret('svv')" title="spiral stairs up">
+	<use x="110" xlink:href="#stair-spiral"/>
       </a>
-      <a xlink:href="javascript:interpret('svvv')" title="big spiral stairs">
-	<use x="110" xlink:href="#stair-big-spiral"/>
+      <a xlink:href="javascript:interpret('svvv')" title="big spiral stairs up">
+	<use x="140" xlink:href="#stair-big-spiral"/>
       </a>
       <a xlink:href="javascript:interpret('svvvv')" title="bit stairs">
-	<use x="160" xlink:href="#stair-big"/>
+	<use x="190" xlink:href="#stair-big"/>
+      </a>
+      <a xlink:href="javascript:interpret('svvvvv')" title="ladder">
+	<use x="240" xlink:href="#ladder"/>
+      </a>
+  </svg>
+
+
+    <svg x="30" y="270">
+      <a href="javascript:interpret('o')">
+	<text y="14"><tspan class="key">o</tspan> :</text>
+      </a>
+      <a xlink:href="javascript:interpret('o')" title="spiral stairs down">
+	<use x="50" xlink:href="#stair-spiral-down"/>
+      </a>
+      <a xlink:href="javascript:interpret('ov')" title="spiral stairs up">
+	<use x="80" xlink:href="#stair-spiral-up"/>
+      </a>
+      <a xlink:href="javascript:interpret('ovv')" title="big spiral stairs down">
+	<use x="110" xlink:href="#stair-big-spiral-down"/>
+      </a>
+      <a xlink:href="javascript:interpret('ovvv')" title="big spiral stairs up">
+	<use x="160" xlink:href="#stair-big-spiral-up"/>
+      </a>
+    </svg>
+
+    <svg x="30" y="320">
+      <a href="javascript:interpret('b')">
+	<text y="14"><tspan class="key">b</tspan> :</text>
+      </a>
+      <a xlink:href="javascript:interpret('b')" title="statue">
+	<use x="50" xlink:href="#statue"/>
+      </a>
+      <a xlink:href="javascript:interpret('bv')" title="well">
+	<use x="80" xlink:href="#well"/>
+      </a>
+      <a xlink:href="javascript:interpret('bvv')" title="fountain">
+	<use x="110" xlink:href="#fountain"/>
       </a>
     </svg>
 
@@ -3939,217 +4201,262 @@ onload = initialize;
       <a xlink:href="javascript:interpret('avv')" title="huge arc">
 	<use x="130" y="-30" xlink:href="#arc3"/>
       </a>
+      <a xlink:href="javascript:interpret('avvv')" title="huger arc">
+	<use x="200" y="-50" xlink:href="#arc4"/>
+      </a>
     </svg>
 
   <svg x="30" y="400">
     <a xlink:href="javascript:interpret('Q')" title="white">
       <use x="0" xlink:href="#empty" class="colorQ"/>
-            <text y="14" x="6">
-                  <tspan class="">Q</tspan>
-            </text>
-      </a>
-      <a xlink:href="javascript:interpret('W')" title="white">
-            <use x="25" xlink:href="#empty" class="white"/>
-            <text y="14" x="31">
-                  <tspan class="">W</tspan>
-            </text>
-      </a>
-      <a xlink:href="javascript:interpret('E')" title="red">
-            <use x="50" xlink:href="#empty" class="colorE"/>
-            <text y="14" x="56">
-                  <tspan class="">E</tspan>
-            </text>
-      </a>
-      <a xlink:href="javascript:interpret('R')" title="red">
-            <use x="75" xlink:href="#empty" class="red"/>
-            <text y="14" x="81">
-                  <tspan class="">R</tspan>
-            </text>
-      </a>
-      <a xlink:href="javascript:interpret('A')" title="red">
-            <use x="100" xlink:href="#empty" class="colorA"/>
-            <text y="14" x="106">
-                  <tspan class="">A</tspan>
-            </text>
-      </a>
-      <a xlink:href="javascript:interpret('S')" title="red">
-            <use x="125" xlink:href="#empty" class="colorS"/>
-            <text y="14" x="131">
-                  <tspan class="">S</tspan>
-            </text>
-      </a>
-      <a xlink:href="javascript:interpret('D')" title="red">
-            <use x="150" xlink:href="#empty" class="colorD"/>
-            <text y="14" x="156">
-                  <tspan class="">D</tspan>
-            </text>
-      </a>
-      <a xlink:href="javascript:interpret('F')" title="red">
-            <use x="175" xlink:href="#empty" class="colorF"/>
-            <text y="14" x="181">
-                  <tspan class="">F</tspan>
-            </text>
-      </a>
-      <a xlink:href="javascript:interpret('G')" title="red">
-            <use x="200" xlink:href="#empty" class="green"/>
-            <text y="14" x="206">
-                  <tspan class="">G</tspan>
-            </text>
-      </a>
-      <a xlink:href="javascript:interpret('B')" title="red">
-            <use x="225" xlink:href="#empty" class="blue"/>
-            <text y="14" x="231">
-                  <tspan class="">B</tspan>
-            </text>
-      </a>
-    </svg>
-
-    <svg x="260" y="150">
-      <a href="javascript:interpret('w')">
-	<text y="14"><tspan class="key">w</tspan> :</text>
-      </a>
-      <a xlink:href="javascript:interpret('w')" title="wall">
-	<use x="50" xlink:href="#empty"/>
-	<use x="50" xlink:href="#wall"/>
-      </a>
-      <a xlink:href="javascript:interpret('wv')" title="curtain">
-	<use x="80" xlink:href="#empty"/>
-	<use x="80" xlink:href="#curtain"/>
-      </a>
-      <a xlink:href="javascript:interpret('wvv')" title="portcullis">
-	<use x="110" xlink:href="#empty"/>
-	<use x="110" xlink:href="#portcullis"/>
-      </a>
-      <a xlink:href="javascript:interpret('wvvv')" title="window">
-	<use x="140" xlink:href="#empty"/>
-	<use x="140" xlink:href="#window"/>
-      </a>
-      <a xlink:href="javascript:interpret('wvvvv')" title="gap">
-	<use x="170" xlink:href="#empty"/>
-	<use x="170" xlink:href="#gap"/>
-      </a>
-      <a xlink:href="javascript:interpret('wvvvvv')" title="corner pillar">
-	<use x="200" xlink:href="#empty"/>
-	<use x="200" xlink:href="#corner-pillar"/>
-      </a>
-    </svg>
-
-    <svg x="260" y="180">
-      <a href="javascript:interpret('p')">
-	<text y="14"><tspan class="key">p</tspan> :</text>
-      </a>
-      <a xlink:href="javascript:interpret('p')" title="pillar">
-	<use x="50" xlink:href="#pillar"/>
-      </a>
-      <a xlink:href="javascript:interpret('pv')" title="altar">
-	<use x="80" xlink:href="#altar"/>
-      </a>
-      <a xlink:href="javascript:interpret('pvv')" title="dais">
-	<use x="110" xlink:href="#dais"/>
-      </a>
-      <a xlink:href="javascript:interpret('pvvv')" title="round dais">
-	<use x="140" xlink:href="#dais-round"/>
-      </a>
-      <a xlink:href="javascript:interpret('pvvvv')" title="rubble">
-	<use x="170" xlink:href="#rubble"/>
-      </a>
-    </svg>
-
-    <svg x="260" y="210">
-      <a href="javascript:interpret('c')">
-	<text y="14"><tspan class="key">c</tspan> :</text>
-      </a>
-      <a xlink:href="javascript:interpret('c')" title="chest">
-	<use x="50" xlink:href="#chest"/>
-      </a>
-      <a xlink:href="javascript:interpret('cv')" title="bed">
-	<use x="80" xlink:href="#bed"/>
-      </a>
-      <a xlink:href="javascript:interpret('cvv')" title="table">
-	<use x="110" xlink:href="#table"/>
-      </a>
-      <a xlink:href="javascript:interpret('cvvv')" title="chair">
-	<use x="140" xlink:href="#chair"/>
-      </a>
-      <a xlink:href="javascript:interpret('cvvvv')" title="screen">
-	<use x="170" xlink:href="#screen"/>
-      </a>
-    </svg>
-
-  <svg x="260" y="240">
-      <a href="javascript:interpret('n')">
-	<text y="14"><tspan class="key">n</tspan> :</text>
-      </a>
-      <a xlink:href="javascript:interpret('n')" title="diagonal">
-	<use x="50" xlink:href="#diagonal"/>
-      </a>
-      <a xlink:href="javascript:interpret('nv')" title="diagonal with wall">
-	<use x="80" xlink:href="#walled-diagonal"/>
-      </a>
-      <a xlink:href="javascript:interpret('nvv')" title="diagonal wall">
-	<use x="110" xlink:href="#diagonal-wall"/>
-      </a>
-      <a xlink:href="javascript:interpret('nvvv')" title="diagonal line">
-        <use x="140" xlink:href="#diagonal-line"/>
-      </a>
-      <a xlink:href="javascript:interpret('nvvvv')" title="diagonal door">
-        <use x="170" xlink:href="#diagonal-door"/>
-      </a>
-    </svg>
-
-    <svg x="260" y="270">
-      <text x="-17" y="14"><tspan class="key">0-9</tspan><tspan> :</tspan></text>
-      <use x="50" xlink:href="#empty"/>
-      <g class="labels" title="labels">
-	<text x="60" y="13.5">123</text>
-      </g>
-    </svg>
-
-    <svg x="260" y="300">
-      <a xlink:href="javascript:interpret('g')" title="rocks">
-	<text y="14"><tspan class="key">g</tspan> :</text>
-	<use x="50" xlink:href="#rock3"/>
-      </a>
-    </svg>
-
-    <svg x="390" y="270">
-      <text x="-34" y="14"><tspan class="key">"abc"</tspan> :</text>
-      <use x="40" xlink:href="#empty"/>
-      <g class="labels" title="labels">
-	<text x="50" y="13.5">abc</text>
-      </g>
-      <text x="-34" y="44"><tspan class="key">'abc'</tspan> :</text>
-      <g class="labels" title="labels">
-	<text x="40" y="44" class="left">abc</text>
-      </g>
-    </svg>
-
-    <svg x="260" y="330">
-      <a xlink:href="javascript:interpret('m')">
-	<text y="14"><tspan class="key">m</tspan><tspan> :</tspan></text>
-      </a>
-      <a xlink:href="javascript:interpret('m')" title="Wall Mode">
-	<use x="50" xlink:href="#empty"/>
-	<use x="40" xlink:href="#cursor"/>
-      </a>
-    </svg>
-
-  <svg x="260" y="360">
-    <a href="javascript:interpret('q')">
-	    <text y="14"><tspan class="key">q</tspan> :</text>
+      <text y="14" x="6">
+        <tspan class="">Q</tspan>
+      </text>
     </a>
-    <a xlink:href="javascript:interpret('q')" title="arc with wall">
-	    <use x="50" y="10" xlink:href="#arcw"/>
+    <a xlink:href="javascript:interpret('W')" title="white">
+      <use x="25" xlink:href="#empty" class="white"/>
+      <text y="14" x="31">
+        <tspan class="">W</tspan>
+      </text>
     </a>
-    <a xlink:href="javascript:interpret('qv')" title="big arc with wall">
-	    <use x="80" y="-10" xlink:href="#arcw2"/>
+    <a xlink:href="javascript:interpret('E')" title="red">
+      <use x="50" xlink:href="#empty" class="colorE"/>
+      <text y="14" x="56">
+        <tspan class="">E</tspan>
+      </text>
     </a>
-    <a xlink:href="javascript:interpret('qvv')" title="huge arc with wall">
-	    <use x="130" y="-30" xlink:href="#arcw3"/>
+    <a xlink:href="javascript:interpret('R')" title="red">
+      <use x="75" xlink:href="#empty" class="red"/>
+      <text y="14" x="81">
+        <tspan class="">R</tspan>
+      </text>
+    </a>
+    <a xlink:href="javascript:interpret('A')" title="red">
+      <use x="100" xlink:href="#empty" class="colorA"/>
+      <text y="14" x="106">
+        <tspan class="">A</tspan>
+      </text>
+    </a>
+    <a xlink:href="javascript:interpret('S')" title="red">
+      <use x="125" xlink:href="#empty" class="colorS"/>
+      <text y="14" x="131">
+        <tspan class="">S</tspan>
+      </text>
+    </a>
+    <a xlink:href="javascript:interpret('D')" title="red">
+      <use x="150" xlink:href="#empty" class="colorD"/>
+      <text y="14" x="156">
+        <tspan class="">D</tspan>
+      </text>
+    </a>
+    <a xlink:href="javascript:interpret('F')" title="red">
+      <use x="175" xlink:href="#empty" class="colorF"/>
+      <text y="14" x="181">
+        <tspan class="">F</tspan>
+      </text>
+    </a>
+    <a xlink:href="javascript:interpret('G')" title="red">
+      <use x="200" xlink:href="#empty" class="green"/>
+      <text y="14" x="206">
+        <tspan class="">G</tspan>
+      </text>
+    </a>
+    <a xlink:href="javascript:interpret('B')" title="red">
+      <use x="225" xlink:href="#empty" class="blue"/>
+      <text y="14" x="231">
+        <tspan class="">B</tspan>
+      </text>
     </a>
   </svg>
 
-  <svg x="290" y="400">
+  <svg x="370" y="120">
+    <a href="javascript:interpret('p')">
+      <text y="14"><tspan class="key">p</tspan> :</text>
+    </a>
+    <a xlink:href="javascript:interpret('p')" title="pillar">
+      <use x="50" xlink:href="#pillar"/>
+    </a>
+    <a xlink:href="javascript:interpret('pv')" title="altar">
+      <use x="80" xlink:href="#altar"/>
+    </a>
+    <a xlink:href="javascript:interpret('pvv')" title="dais">
+      <use x="110" xlink:href="#dais"/>
+    </a>
+    <a xlink:href="javascript:interpret('pvvv')" title="round dais">
+      <use x="140" xlink:href="#dais-round"/>
+    </a>
+    <a xlink:href="javascript:interpret('pvvvv')" title="rubble">
+      <use x="170" xlink:href="#rubble"/>
+    </a>
+  </svg>
+
+  <svg x="370" y="150">
+    <a href="javascript:interpret('c')">
+      <text y="14"><tspan class="key">c</tspan> :</text>
+    </a>
+    <a xlink:href="javascript:interpret('c')" title="chest">
+      <use x="50" xlink:href="#chest"/>
+    </a>
+    <a xlink:href="javascript:interpret('cv')" title="bed">
+      <use x="80" xlink:href="#bed"/>
+    </a>
+    <a xlink:href="javascript:interpret('cvv')" title="table">
+      <use x="110" xlink:href="#table"/>
+    </a>
+    <a xlink:href="javascript:interpret('cvvv')" title="chair">
+      <use x="140" xlink:href="#chair"/>
+    </a>
+    <a xlink:href="javascript:interpret('cvvvv')" title="screen">
+      <use x="170" xlink:href="#screen"/>
+    </a>
+  </svg>
+
+  <svg x="370" y="180">
+    <a href="javascript:interpret('t')">
+      <text y="14"><tspan class="key">t</tspan> :</text>
+    </a>
+    <a xlink:href="javascript:interpret('t')" title="covered pit">
+      <use x="50" xlink:href="#trap"/>
+    </a>
+    <a xlink:href="javascript:interpret('tv')" title="open pit">
+      <use x="80" xlink:href="#pit"/>
+    </a>
+    <a xlink:href="javascript:interpret('tvv')" title="trap door in the ceiling">
+      <use x="110" xlink:href="#trap-door-ceiling"/>
+    </a>
+    <a xlink:href="javascript:interpret('tvvv')" title="trap door in the floor">
+      <use x="140" xlink:href="#trap-door-floor"/>
+    </a>
+    <a xlink:href="javascript:interpret('tvvvv')" title="secret trap door">
+      <use x="170" xlink:href="#trap-door-secret"/>
+    </a>
+    <a xlink:href="javascript:interpret('tvvvvv')" title="trap">
+      <use x="200" xlink:href="#generic-trap"/>
+    </a>
+  </svg>
+
+  <svg x="370" y="210">
+    <a href="javascript:interpret('w')">
+      <text y="14"><tspan class="key">w</tspan> :</text>
+    </a>
+    <a xlink:href="javascript:interpret('w')" title="wall">
+      <use x="50" xlink:href="#empty"/>
+      <use x="50" xlink:href="#wall"/>
+    </a>
+    <a xlink:href="javascript:interpret('wv')" title="curtain">
+      <use x="80" xlink:href="#empty"/>
+      <use x="80" xlink:href="#curtain"/>
+    </a>
+    <a xlink:href="javascript:interpret('wvv')" title="portcullis">
+      <use x="110" xlink:href="#empty"/>
+      <use x="110" xlink:href="#portcullis"/>
+    </a>
+    <a xlink:href="javascript:interpret('wvvv')" title="window">
+      <use x="140" xlink:href="#empty"/>
+      <use x="140" xlink:href="#window"/>
+    </a>
+    <a xlink:href="javascript:interpret('wvvvv')" title="gap">
+      <use x="170" xlink:href="#empty"/>
+      <use x="170" xlink:href="#gap"/>
+    </a>
+    <a xlink:href="javascript:interpret('wvvvvv')" title="corner pillar">
+      <use x="200" xlink:href="#empty"/>
+      <use x="200" xlink:href="#corner-pillar"/>
+    </a>
+    <a xlink:href="javascript:interpret('wvvvvvv')" title="arrow slit">
+      <use x="230" xlink:href="#empty"/>
+      <use x="230" xlink:href="#arrow-slit"/>
+    </a>
+    <a xlink:href="javascript:interpret('wvvvvvvv')" title="ledge">
+      <use x="260" xlink:href="#empty"/>
+      <use x="260" xlink:href="#ledge"/>
+    </a>
+    <a xlink:href="javascript:interpret('wvvvvvvvv')" title="ledge-r">
+      <use x="290" xlink:href="#empty"/>
+      <use x="290" xlink:href="#ledge-r"/>
+    </a>
+  </svg>
+
+  <svg x="370" y="240">
+    <a href="javascript:interpret('n')">
+      <text y="14"><tspan class="key">n</tspan> :</text>
+    </a>
+    <a xlink:href="javascript:interpret('n')" title="diagonal">
+      <use x="50" xlink:href="#diagonal"/>
+    </a>
+    <a xlink:href="javascript:interpret('nv')" title="diagonal with wall">
+      <use x="80" xlink:href="#walled-diagonal"/>
+    </a>
+    <a xlink:href="javascript:interpret('nvv')" title="diagonal wall">
+      <use x="110" xlink:href="#diagonal-wall"/>
+    </a>
+    <a xlink:href="javascript:interpret('nvvv')" title="diagonal line">
+      <use x="140" xlink:href="#diagonal-line"/>
+    </a>
+    <a xlink:href="javascript:interpret('nvvvv')" title="diagonal door">
+      <use x="170" xlink:href="#diagonal-door"/>
+    </a>
+    <a xlink:href="javascript:interpret('nvvvvv')" title="diagonal ledge">
+      <use x="200" xlink:href="#diagonal-ledge"/>
+    </a>
+  </svg>
+
+  <svg x="370" y="270">
+    <text x="-17" y="14"><tspan class="key">0-9</tspan><tspan> :</tspan></text>
+    <use x="50" xlink:href="#empty"/>
+    <g class="labels" title="labels">
+      <text x="60" y="13.5">123</text>
+    </g>
+  </svg>
+
+  <svg x="390" y="270">
+    <text x="74" y="14"><tspan class="key">"abc"</tspan> :</text>
+    <use x="140" xlink:href="#empty"/>
+    <g class="labels" title="labels">
+      <text x="150" y="13.5">abc</text>
+    </g>
+    <text x="177" y="14"><tspan class="key">'abc'</tspan> :</text>
+    <g class="labels" title="labels">
+      <text x="240" y="14" class="left">abc</text>
+    </g>
+  </svg>
+
+  <svg x="370" y="300">
+    <a xlink:href="javascript:interpret('g')" title="rocks">
+      <text y="14"><tspan class="key">g</tspan> :</text>
+      <use x="50" xlink:href="#rock3"/>
+    </a>
+  </svg>
+
+  <svg x="370" y="330">
+    <a xlink:href="javascript:interpret('m')">
+      <text y="14"><tspan class="key">m</tspan><tspan> :</tspan></text>
+    </a>
+    <a xlink:href="javascript:interpret('m')" title="Wall Mode">
+      <use x="50" xlink:href="#empty"/>
+      <use x="40" xlink:href="#cursor"/>
+    </a>
+  </svg>
+
+  <svg x="370" y="360">
+    <a href="javascript:interpret('q')">
+      <text y="14"><tspan class="key">q</tspan> :</text>
+    </a>
+    <a xlink:href="javascript:interpret('q')" title="arc with wall">
+      <use x="50" y="10" xlink:href="#arcw"/>
+    </a>
+    <a xlink:href="javascript:interpret('qv')" title="big arc with wall">
+      <use x="80" y="-10" xlink:href="#arcw2"/>
+    </a>
+    <a xlink:href="javascript:interpret('qvv')" title="huge arc with wall">
+      <use x="130" y="-30" xlink:href="#arcw3"/>
+    </a>
+    <a xlink:href="javascript:interpret('qvvv')" title="huger arc with wall">
+      <use x="200" y="-50" xlink:href="#arcw4"/>
+    </a>
+  </svg>
+
+  <svg x="320" y="400">
     <text y="14">
       <a xlink:href="javascript:interpret('&quot;🌳&quot;')" title="deciduous tree">
         <tspan>🌳</tspan>
@@ -4180,215 +4487,200 @@ onload = initialize;
 
   <text>
     <tspan x="30" y="450">
-      <a xlink:href="javascript:keyPressed('Z')" title="hide other levels or switch background">
-      <tspan class="key">Z</tspan> : background</a>
-      &#160;<a xlink:href="javascript:keyPressed('!')" title="toggle use of thinner strokes">
-      <tspan class="key">!</tspan> : line</a>
-      &#160;<a xlink:href="javascript:regionOn()">
-      <tspan class="key">Shift</tspan><tspan> : region mode</tspan>
-      </a>
+      <a xlink:href="javascript:keyPressed('Z')" title="hide other levels or switch background"><tspan class="key">Z</tspan> : switch background</a>&#160;&#160;&#160;&#160;&#160;&#160;&#160;<a xlink:href="javascript:regionOn()"><tspan class="key">Shift</tspan><tspan> : region mode</tspan>&#160;&#160;&#160;&#160;&#160;&#160;&#160;</a><a xlink:href="javascript:keyPressed('$')" title="toggle secrets"><tspan class="key">$</tspan> : toggle secrets</a>
     </tspan>
+
     <tspan x="30" dy="20">
       Move : <a xlink:href="javascript:interpret('k')" title="up"><tspan class="key">k</tspan></a> or <tspan class="key">Arrows</tspan>
-       &#160;&#160;&#160;&#160;<tspan class="key">Alt+Arrows</tspan> : toggle floor
+      &#160;&#160;&#160;&#160;<tspan class="key">Alt+Arrows</tspan> : toggle floor&#160;&#160;&#160;&#160;&#160;&#160;<a xlink:href="javascript:keyPressed('!')"><tspan class="key">!</tspan><tspan> : toggle thin strokes</tspan></a>
     </tspan>
     <tspan x="30" dy="20">
-       &#160;&#160;&#160;&#160;
-      <a xlink:href="javascript:interpret('h')" title="left">
-        <tspan class="key">h</tspan>
-      </a>
-      ╋
-      <a xlink:href="javascript:interpret('l')" title="right"><tspan class="key">l</tspan></a>&#160;&#160;<a xlink:href="javascript:keyPressed('y')"><tspan class="key">y</tspan> : level up</a>&#160;&#160;&#160;&#160;<a xlink:href="javascript:keyPressed(' ')"><tspan class="key">Space</tspan> : move right</a>
+      &#160;&#160;&#160;&#160;&#160;<a xlink:href="javascript:interpret('h')" title="left"><tspan class="key">h</tspan></a>&#160;╋&#160;<a xlink:href="javascript:interpret('l')" title="right"><tspan class="key">l</tspan></a>&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;<a xlink:href="javascript:keyPressed('y')"><tspan class="key">y</tspan> : level up</a>&#160;&#160;&#160;&#160;&#160;&#160;<a xlink:href="javascript:keyPressed('u')"><tspan class="key">u</tspan> : undo</a>&#160;&#160;&#160;&#160;&#160;&#160;<a xlink:href="javascript:keyPressed('@')"><tspan class="key">@</tspan><tspan> : toggle auto walls</tspan></a>
     </tspan>
     <tspan x="30" dy="20">
-      &#160;&#160;&#160;&#160;&#160;&#160;
-      <a xlink:href="javascript:interpret('j')" title="down">
-        <tspan class="key">j</tspan>
-      </a>&#160;&#160;&#160;<a xlink:href="javascript:keyPressed('z')"><tspan class="key">z</tspan> : level down</a>&#160;<a xlink:href="javascript:keyPressed('Enter')">
-  <tspan class="key">Enter</tspan> : new line</a>
+      &#160;&#160;&#160;&#160;&#160;&#160;&#160;<a xlink:href="javascript:interpret('j')" title="down"><tspan class="key">j</tspan></a>&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;<a xlink:href="javascript:keyPressed('z')"><tspan class="key">z</tspan> : level down</a>&#160;&#160;&#160;&#160;<a xlink:href="javascript:keyPressed('r')"><tspan class="key">r</tspan> : redo</a>
     </tspan>
 
     <tspan x="30" dy="20">
-	    <a xlink:href="javascript:keyPressed('u')"><tspan class="key">u</tspan> : undo</a>  
-	    &#160;<a xlink:href="javascript:keyPressed('r')"><tspan class="key">r</tspan> : redo</a>
-      &#160;&#160;&#160;<a xlink:href="javascript:keyPressed('x')"><tspan class="key">x</tspan>, <tspan class="key">Delete</tspan> : delete</a>
+      <a xlink:href="javascript:keyPressed(' ')"><tspan class="key">Space</tspan> : move right</a>&#160;&#160;&#160;&#160;&#160;&#160;<a xlink:href="javascript:keyPressed('Enter')"><tspan class="key">Enter</tspan> : new line</a>&#160;&#160;&#160;&#160;&#160;&#160;<a xlink:href="javascript:keyPressed('x')"><tspan class="key">x</tspan>, <tspan class="key">Delete</tspan> : delete</a>
     </tspan>
 
-    <tspan x="30" dy="20" id="import-export"><a id="export" class="blue" xlink:href="javascript:textExport()">Export</a>  
-	    <a id="import" xlink:href="javascript:textImport()"><tspan class="blue">Import</tspan> or
-	    <tspan class="key">Ctrl Enter</tspan></a></tspan>
+    <tspan x="30" dy="20" id="import-export"><a id="export" class="blue" xlink:href="javascript:textExport()">Export</a>
+    <a id="import" xlink:href="javascript:textImport()"><tspan class="blue">Import</tspan> or
+    <tspan class="key">Ctrl Enter</tspan></a></tspan>
   </text>
 
-    <foreignObject id="textarea" x="30" y="555" width="445" height="50">
-      <textarea id="exportarea" xmlns="http://www.w3.org/1999/xhtml"
-		style="position: fixed; width: 100%; height: 100%; margin: 0; padding: 0"/>
-    </foreignObject>
-
-    <text>
-      <tspan x="30" y="630">
-	<a class="blue" target="_blank" xlink:href="https://alexschroeder.ch/cgit/gridmapper/about/#how-to-save">How to Save</a>  
-	<a id="export" class="blue" xlink:href="javascript:link()">Link</a>  
-	<tspan id="download">
-	  <a class="blue" xlink:href="javascript:download()">Download</a>  
-	</tspan>
-	<tspan id="format" display="none">
-	  <a id="download_svg" class="blue">SVG</a>
-	  <a id="download_png" class="blue">PNG</a>
-	  <a id="download_txt" class="blue">TXT</a>  
-	</tspan>
-	<a id="save" class="blue" title="Save the map to the wiki" xlink:href="javascript:save()">Save</a>  
-	<a id="load" class="blue" title="Load a map from the wiki" xlink:href="javascript:load()">Load</a>  
-      </tspan>
-
-      <tspan x="30" dy="20">
-	<a id="how-to-collaborate" class="blue" target="_blank" xlink:href="https://alexschroeder.ch/cgit/gridmapper/about/#how-to-collaborate">How to Collaborate</a>  
-	<a id="join" class="blue" title="Host or join a map" xlink:href="javascript:join()">Join</a>  
-	<a id="join" class="blue" target="_blank" title="List of hosted maps" xlink:href="https://campaignwiki.org/gridmapper-server">Server</a>
-      </tspan>
-      <tspan x="30" dy="20">
-	<a id="demo" class="blue" xlink:href="javascript:Demo.start()">Demo</a>  
-	<a id="source" class="blue" target="_blank" title="Source code is available" xlink:href="https://alexschroeder.ch/cgit/gridmapper/about/#gridmapper">Source</a>  
-	<a id="license" class="blue" target="_blank" title="Dedicated to the Public Domain" xlink:href="https://alexschroeder.ch/cgit/gridmapper/tree/LICENSE.md#the-license">License</a>  
-	<a id="bugs" class="blue" target="_blank" title="Submit a bug report" xlink:href="https://alexschroeder.ch/software/Gridmapper">Issues</a>  
-	<a id="bugs" class="blue" target="_blank" title="Public dungeons" xlink:href="https://campaignwiki.org/wiki/Gridmapper/HomePage">Wiki</a>
-      </tspan>
-    </text>
-
-    <text id="level" x="500" y="110" style="font:30px 'Arial Narrow', 'Futura Condensed', 'HelveticaNeue Condensed', sans-serif; font-weight: bold;">1</text>
-    <text id="maxlevel" x="500" y="125" style="font:12px 'Arial Narrow', 'Futura Condensed', 'HelveticaNeue Condensed', sans-serif; font-weight: bold;">1</text>
-    <text x="470" y="110" transform="rotate(90,470,140)">
-      <a target="_blank" xlink:href="https://alexschroeder.ch/wiki/Gridmapper">
-	<tspan style="font-weight: bold;">Gridmapper</tspan>
-      </a>
-      <tspan>by</tspan>
-      <a target="_blank" xlink:href="https://alexschroeder.ch/">
-	<tspan style="font-weight: bold;">Alex Schroeder</tspan>
-      </a>
-    </text>
-  </g>
-
-  <foreignObject id="label" x="10" y="10" width="40em" height="20" opacity="0">
-    <input xmlns="http://www.w3.org/1999/xhtml" type="text" width="30"/>
+  <foreignObject id="textarea" x="30" y="555" width="545" height="50">
+    <textarea id="exportarea" xmlns="http://www.w3.org/1999/xhtml"
+	      style="position: fixed; width: 100%; height: 100%; margin: 0; padding: 0"/>
   </foreignObject>
-  <text id="messages" visibility="hidden">
-    <tspan class="step1" x="0" y="0">Hello! This is the demo!</tspan>
-    <tspan class="step1" x="0" dy="20">We're going to show you how to use this thing.</tspan>
-    <code class="step1">(10,10)</code>
 
-    <tspan class="step2" x="0" y="0">You can move around the map using your mouse.</tspan>
-    <tspan class="step2" x="0" dy="20">Or you can use the
-    <tspan class="key">Arrow keys</tspan> to move around.</tspan>
-    <code class="step2">(20,10)(20,20)(10,20)(10,10)</code>
+  <text>
+    <tspan x="30" y="630">
+      <a class="blue" target="_blank" xlink:href="https://alexschroeder.ch/cgit/gridmapper/about/#how-to-save">How to Save</a>
+      <a id="export" class="blue" xlink:href="javascript:link()">Link</a>
+      <tspan id="download">
+	<a class="blue" xlink:href="javascript:download()">Download</a>
+      </tspan>
+      <tspan id="format" display="none">
+	<a id="download_svg" class="blue">SVG</a>
+	<a id="download_png" class="blue">PNG</a>
+	<a id="download_txt" class="blue">TXT</a>
+      </tspan>
+      <a id="save" class="blue" title="Save the map to the wiki" xlink:href="javascript:save()">Save</a>
+      <a id="load" class="blue" title="Load a map from the wiki" xlink:href="javascript:load()">Load</a>
+    </tspan>
 
-    <tspan class="step3" x="0" y="0">You can draw the floor using your mouse.</tspan>
-    <tspan class="step3" x="0" dy="20">Or you can use
-    <tspan class="key">Alt</tspan> and the
-    <tspan class="key">Arrow keys</tspan>.</tspan>
-    <code class="step3">(13,11)ffff(13,12)ffff(13,13)ffff</code>
+    <tspan x="30" dy="20">
+      <a id="how-to-collaborate" class="blue" target="_blank" xlink:href="https://alexschroeder.ch/cgit/gridmapper/about/#how-to-collaborate">How to Collaborate</a>
+      <a id="join" class="blue" title="Host or join a map" xlink:href="javascript:join()">Join</a>
+      <a id="join" class="blue" target="_blank" title="List of hosted maps" xlink:href="https://campaignwiki.org/gridmapper-server">Server</a>
+    </tspan>
 
-    <tspan class="step4" x="0" y="0">Use
-    <tspan class="key">Shift</tspan> and the
-    <tspan class="key">Arrow keys</tspan> to select a region.</tspan>
-    <tspan class="step4" x="0" dy="20">Use
-    <tspan class="key">Ctrl+x</tspan> to cut,
-    <tspan class="key">Ctrl+c</tspan> to copy and
-    <tspan class="key">Ctrl+v</tspan> to paste.</tspan>
-    <code class="step4">h;H;H;H;K;C;jjV;</code>
-
-    <tspan class="step5" x="0" y="0">In general I recomend using the
-    <tspan class="key">Arrow keys</tspan> to move.</tspan>
-    <tspan class="step5" x="0" dy="20">Use <tspan class="key">f</tspan>
-    to draw or erase the floor.</tspan>
-    <code class="step5">(14,16)ff(14,17)ff(11,18)ffffff(11,19)ffffff(11,20)ffffff;ffff-;f--;f--;f--;f-</code>
-
-    <tspan class="step6" x="0" y="0">Things like traps, statues and pillars are easy.</tspan>
-    <tspan class="step6" x="0" dy="20">Just use the appropriate key:
-    <tspan class="key">t</tspan>,
-    <tspan class="key">b</tspan>,
-    <tspan class="key">p</tspan>.</tspan>
-    <code class="step6">(12,19)t;(11,19)b;(11,18)p p p;(11,20)p p p</code>
-
-    <tspan class="step7" x="0" y="0">Doors are trickier. Use
-    <tspan class="key">d</tspan> to rotate the door.</tspan>
-    <tspan class="step7" x="0" dy="20">Watch: left, top, right, bottom, and back to left.</tspan>
-    <code class="step7">(17,12);d;d;d;d;d</code>
-
-    <tspan class="step8" x="0" y="0">Secret and concealed doors are variants of doors.</tspan>
-    <tspan class="step8" x="0" dy="20">Use
-    <tspan class="key">v</tspan> to switch between variants.</tspan>
-    <code class="step8">(17,14)dff(18,15)fff(19,16)ff;d;v;v;fff(21,17)fff(23,17);d;d;d;v;(21,18)fff</code>
-
-    <tspan class="step9" x="0" y="0">Use <tspan class="key">s</tspan>
-    to set stairs and rotate them into place.</tspan>
-    <tspan class="step9" x="0" dy="20">Use <tspan class="key">v</tspan>
-    to use a variant.</tspan>
-    <code class="step9">(11,12)s;s;s;s;(17,12)ffs;s;s;s;v </code>
-
-    <tspan class="step10" x="0" y="0">You can draw on multiple layers.</tspan>
-    <tspan class="step10" x="0" dy="20">Use
-    <tspan class="key">z</tspan> and <tspan class="key">y</tspan>
-    to move up and down.</tspan>
-    <code class="step10">z(21,11)fff(20,12)ffff(21,13)fff;y</code>
-
-    <tspan class="step11" x="0" y="0">Place a door and rotate it into place.</tspan>
-    <tspan class="step11" x="0" dy="20">Use <tspan class="key">v</tspan> to select the gate variant.</tspan>
-    <code class="step11">(15,16);d;d;v;v;v</code>
-
-    <tspan class="step12" x="0" y="0">Use <tspan class="key">n</tspan>
-    to place and rotate diagonals.</tspan>
-    <code class="step12">(17,15);n;n;n;n(18,14);n;n</code>
-
-    <tspan class="step13" x="0" y="0">Use <tspan class="key">a</tspan>
-    to place and rotate arcs.</tspan>
-    <tspan class="step13" x="0" dy="0">Use <tspan class="key">v</tspan>
-    use larger variants.</tspan>
-    <code class="step13">(13,9);a;v(16,9);a;a;v</code>
-
-    <tspan class="step14" x="0" y="0">You can draw walls using
-    <tspan class="key">w</tspan>.</tspan>
-    <tspan class="step14" x="0" dy="20">Thus, walls work just like doors.</tspan>
-    <code class="step14">(16,18);dv(16,19);w(16,20);w</code>
-
-    <tspan class="step15" x="0" y="0">This gets tedious very fast.</tspan>
-    <tspan class="step15" x="0" dy="20">Use
-    <tspan class="key">m</tspan> to enter
-    <tspan style="font-weight: bold">Wall Mode</tspan>.</tspan>
-    <tspan class="step15" x="0" dy="20">Note the shift by half a square!</tspan>
-    <code class="step15">z(21,11);m</code>
-
-    <tspan class="step16" x="0" y="0" style="font-weight: bold">Wall Mode</tspan>
-    <tspan class="step16">keeps the cursor on the walls.</tspan>
-    <tspan class="step16" x="0" dy="20">Doors and walls no longer rotate.</tspan>
-    <code class="step16"> w; w;(21.5,13)w; w</code>
-
-    <tspan class="step17" x="0" y="0">Move from wall to wall and use
-    <tspan class="key">d</tspan>,
-    <tspan class="key">v</tspan> or
-    <tspan class="key">w</tspan>.</tspan>
-    <tspan class="step17" x="0" dy="20">Use
-    <tspan class="key">m</tspan> to leave Wall Mode.</tspan>
-    <code class="step17">(21,11.5)d; d; d;(21,12.5)d; d; d;(23.5,12)dvm</code>
-
-    <tspan class="step18" x="0" y="0">You can draw grottos (caves) using
-    <tspan class="key">g</tspan>.</tspan>
-    <code class="step18">(26,9)g;g(26,10)g;g(26,11)g(24,12)g;g;g</code>
-
-    <tspan class="step19" x="0" y="0">Add colors using
-    <tspan class="key">R</tspan> (red),
-    <tspan class="key">G</tspan> (green) and
-    <tspan class="key">B</tspan> (blue).</tspan>
-    <tspan class="step15" x="0" dy="20">Use
-    <tspan class="key">W</tspan> (white) to undo the color.</tspan>
-    <code class="step19">(26,9)B B(26,10)B B;</code>
-
-    <tspan class="step20" x="0" y="0">Use the number keys
-    <tspan class="key">0-9</tspan> to add labels.</tspan>
-    <tspan class="step20" x="0" dy="20">Use
-    <tspan class="key">Delete</tspan> to delete labels.</tspan>
-    <code class="step20">(20,12)6y(15,12)1(14,19)2(19,16)4(22,17)5</code>
-
-    <tspan class="step21" x="0" y="0">Well, that's it. The rest is up to you.</tspan>
-    <tspan class="step21" x="0" dy="20">What lies beyond the secret door to the east?</tspan>
-
+    <tspan x="30" dy="20">
+      <a id="demo" class="blue" xlink:href="javascript:Demo.start()">Demo</a>
+      <a id="source" class="blue" target="_blank" title="Source code is available" xlink:href="https://alexschroeder.ch/cgit/gridmapper/about/#gridmapper">Source</a>
+      <a id="license" class="blue" target="_blank" title="Dedicated to the Public Domain" xlink:href="https://alexschroeder.ch/cgit/gridmapper/tree/LICENSE.md#the-license">License</a>
+      <a id="bugs" class="blue" target="_blank" title="Submit a bug report" xlink:href="https://alexschroeder.ch/software/Gridmapper">Issues</a>
+      <a id="bugs" class="blue" target="_blank" title="Public dungeons" xlink:href="https://campaignwiki.org/wiki/Gridmapper/HomePage">Wiki</a>
+    </tspan>
   </text>
+
+  <text id="level" x="700" y="110" style="font:30px 'Arial Narrow', 'Futura Condensed', 'HelveticaNeue Condensed', sans-serif; font-weight: bold;">1</text>
+  <text id="maxlevel" x="700" y="125" style="font:12px 'Arial Narrow', 'Futura Condensed', 'HelveticaNeue Condensed', sans-serif; font-weight: bold;">1</text>
+  <text x="670" y="110" transform="rotate(90,670,140)">
+    <a target="_blank" xlink:href="https://alexschroeder.ch/wiki/Gridmapper">
+      <tspan style="font-weight: bold;">Gridmapper</tspan>
+    </a>
+    <tspan>by</tspan>
+    <a target="_blank" xlink:href="https://alexschroeder.ch/">
+      <tspan style="font-weight: bold;">Alex Schroeder</tspan>
+    </a>
+  </text>
+</g>
+
+<foreignObject id="label" x="10" y="10" width="40em" height="20" opacity="0">
+  <input xmlns="http://www.w3.org/1999/xhtml" type="text" width="30"/>
+</foreignObject>
+<text id="messages" visibility="hidden">
+  <tspan class="step1" x="0" y="0">Hello! This is the demo!</tspan>
+  <tspan class="step1" x="0" dy="20">We're going to show you how to use this thing.</tspan>
+  <code class="step1">(10,10)</code>
+
+  <tspan class="step2" x="0" y="0">You can move around the map using your mouse.</tspan>
+  <tspan class="step2" x="0" dy="20">Or you can use the
+  <tspan class="key">Arrow keys</tspan> to move around.</tspan>
+  <code class="step2">(20,10)(20,20)(10,20)(10,10)</code>
+
+  <tspan class="step3" x="0" y="0">You can draw the floor using your mouse.</tspan>
+  <tspan class="step3" x="0" dy="20">Or you can use
+  <tspan class="key">Alt</tspan> and the
+  <tspan class="key">Arrow keys</tspan>.</tspan>
+  <code class="step3">(13,11)ffff(13,12)ffff(13,13)ffff</code>
+
+  <tspan class="step4" x="0" y="0">Use
+  <tspan class="key">Shift</tspan> and the
+  <tspan class="key">Arrow keys</tspan> to select a region.</tspan>
+  <tspan class="step4" x="0" dy="20">Use
+  <tspan class="key">Ctrl+x</tspan> to cut,
+  <tspan class="key">Ctrl+c</tspan> to copy and
+  <tspan class="key">Ctrl+v</tspan> to paste.</tspan>
+  <code class="step4">h;H;H;H;K;C;jjV;</code>
+
+  <tspan class="step5" x="0" y="0">In general I recomend using the
+  <tspan class="key">Arrow keys</tspan> to move.</tspan>
+  <tspan class="step5" x="0" dy="20">Use <tspan class="key">f</tspan>
+  to draw or erase the floor.</tspan>
+  <code class="step5">(14,16)ff(14,17)ff(11,18)ffffff(11,19)ffffff(11,20)ffffff;ffff-;f--;f--;f--;f-</code>
+
+  <tspan class="step6" x="0" y="0">Things like traps, statues and pillars are easy.</tspan>
+  <tspan class="step6" x="0" dy="20">Just use the appropriate key:
+  <tspan class="key">t</tspan>,
+  <tspan class="key">b</tspan>,
+  <tspan class="key">p</tspan>.</tspan>
+  <code class="step6">(12,19)t;(11,19)b;(11,18)p p p;(11,20)p p p</code>
+
+  <tspan class="step7" x="0" y="0">Doors are trickier. Use
+  <tspan class="key">d</tspan> to rotate the door.</tspan>
+  <tspan class="step7" x="0" dy="20">Watch: left, top, right, bottom, and back to left.</tspan>
+  <code class="step7">(17,12);d;d;d;d;d</code>
+
+  <tspan class="step8" x="0" y="0">Secret and concealed doors are variants of doors.</tspan>
+  <tspan class="step8" x="0" dy="20">Use
+  <tspan class="key">v</tspan> to switch between variants.</tspan>
+  <code class="step8">(17,14)dff(18,15)fff(19,16)ff;d;v;v;fff(21,17)fff(23,17);d;d;d;v;(21,18)fff</code>
+
+  <tspan class="step9" x="0" y="0">Use <tspan class="key">s</tspan>
+  to set stairs and rotate them into place.</tspan>
+  <tspan class="step9" x="0" dy="20">Use <tspan class="key">v</tspan>
+  to use a variant.</tspan>
+  <code class="step9">(11,12)s;s;s;s;(17,12)ffs;s;s;s;v </code>
+
+  <tspan class="step10" x="0" y="0">You can draw on multiple layers.</tspan>
+  <tspan class="step10" x="0" dy="20">Use
+  <tspan class="key">z</tspan> and <tspan class="key">y</tspan>
+  to move up and down.</tspan>
+  <code class="step10">z(21,11)fff(20,12)ffff(21,13)fff;y</code>
+
+  <tspan class="step11" x="0" y="0">Place a door and rotate it into place.</tspan>
+  <tspan class="step11" x="0" dy="20">Use <tspan class="key">v</tspan> to select the gate variant.</tspan>
+  <code class="step11">(15,16);d;d;v;v;v</code>
+
+  <tspan class="step12" x="0" y="0">Use <tspan class="key">n</tspan>
+  to place and rotate diagonals.</tspan>
+  <code class="step12">(17,15);n;n;n;n(18,14);n;n</code>
+
+  <tspan class="step13" x="0" y="0">Use <tspan class="key">a</tspan>
+  to place and rotate arcs.</tspan>
+  <tspan class="step13" x="0" dy="0">Use <tspan class="key">v</tspan>
+  use larger variants.</tspan>
+  <code class="step13">(13,9);a;v(16,9);a;a;v</code>
+
+  <tspan class="step14" x="0" y="0">You can draw walls using
+  <tspan class="key">w</tspan>.</tspan>
+  <tspan class="step14" x="0" dy="20">Thus, walls work just like doors.</tspan>
+  <code class="step14">(16,18);dv(16,19);w(16,20);w</code>
+
+  <tspan class="step15" x="0" y="0">This gets tedious very fast.</tspan>
+  <tspan class="step15" x="0" dy="20">Use
+  <tspan class="key">m</tspan> to enter
+  <tspan style="font-weight: bold">Wall Mode</tspan>.</tspan>
+  <tspan class="step15" x="0" dy="20">Note the shift by half a square!</tspan>
+  <code class="step15">z(21,11);m</code>
+
+  <tspan class="step16" x="0" y="0" style="font-weight: bold">Wall Mode</tspan>
+  <tspan class="step16">keeps the cursor on the walls.</tspan>
+  <tspan class="step16" x="0" dy="20">Doors and walls no longer rotate.</tspan>
+  <code class="step16"> w; w;(21.5,13)w; w</code>
+
+  <tspan class="step17" x="0" y="0">Move from wall to wall and use
+  <tspan class="key">d</tspan>,
+  <tspan class="key">v</tspan> or
+  <tspan class="key">w</tspan>.</tspan>
+  <tspan class="step17" x="0" dy="20">Use
+  <tspan class="key">m</tspan> to leave Wall Mode.</tspan>
+  <code class="step17">(21,11.5)d; d; d;(21,12.5)d; d; d;(23.5,12)dvm</code>
+
+  <tspan class="step18" x="0" y="0">You can draw grottos (caves) using
+  <tspan class="key">g</tspan>.</tspan>
+  <code class="step18">(26,9)g;g(26,10)g;g(26,11)g(24,12)g;g;g</code>
+
+  <tspan class="step19" x="0" y="0">Add colors using
+  <tspan class="key">R</tspan> (red),
+  <tspan class="key">G</tspan> (green) and
+  <tspan class="key">B</tspan> (blue).</tspan>
+  <tspan class="step15" x="0" dy="20">Use
+  <tspan class="key">W</tspan> (white) to undo the color.</tspan>
+  <code class="step19">(26,9)B B(26,10)B B;</code>
+
+  <tspan class="step20" x="0" y="0">Use the number keys
+  <tspan class="key">0-9</tspan> to add labels.</tspan>
+  <tspan class="step20" x="0" dy="20">Use
+  <tspan class="key">Delete</tspan> to delete labels.</tspan>
+  <code class="step20">(20,12)6y(15,12)1(14,19)2(19,16)4(22,17)5</code>
+
+  <tspan class="step21" x="0" y="0">Well, that's it. The rest is up to you.</tspan>
+  <tspan class="step21" x="0" dy="20">What lies beyond the secret door to the east?</tspan>
+
+</text>
 </svg>
