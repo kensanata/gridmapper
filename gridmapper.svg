@@ -4628,7 +4628,7 @@ onload = initialize;
 
   <tspan class="step13" x="0" y="0">Use <tspan class="key">a</tspan>
   to place and rotate arcs.</tspan>
-  <tspan class="step13" x="0" dy="0">Use <tspan class="key">v</tspan>
+  <tspan class="step13" x="0" dy="20">Use <tspan class="key">v</tspan>
   use larger variants.</tspan>
   <code class="step13">(13,9);a;v(16,9);a;a;v</code>
 
@@ -4665,7 +4665,7 @@ onload = initialize;
   <tspan class="key">R</tspan> (red),
   <tspan class="key">G</tspan> (green) and
   <tspan class="key">B</tspan> (blue).</tspan>
-  <tspan class="step15" x="0" dy="20">Use
+  <tspan class="step19" x="0" dy="20">Use
   <tspan class="key">W</tspan> (white) to undo the color.</tspan>
   <code class="step19">(26,9)B B(26,10)B B;</code>
 
