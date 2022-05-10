@@ -2791,7 +2791,7 @@ function keyHandling (evt, recording) {
     return;
   }
 
-  if (key === 'Backspace') {
+  if (evt instanceof KeyboardEvent) {
     evt.preventDefault();
   }
 
@@ -2824,8 +2824,7 @@ function keyHandling (evt, recording) {
   case 'Down':
   case 'j':
   case 'J':
-  if (evt.altKey) {
-      evt.preventDefault();
+    if (evt.altKey) {
       wallModeOff();
       floor(Pen.x, Pen.y);
     }
@@ -2842,7 +2841,6 @@ function keyHandling (evt, recording) {
   case 'k':
   case 'K':
     if (evt.altKey) {
-      evt.preventDefault();
       wallModeOff();
       floor(Pen.x, Pen.y);
     }
@@ -2859,7 +2857,6 @@ function keyHandling (evt, recording) {
   case 'h':
   case 'H':
     if (evt.altKey) {
-      evt.preventDefault();
       wallModeOff();
       floor(Pen.x, Pen.y);
     }
@@ -2877,7 +2874,6 @@ function keyHandling (evt, recording) {
   case 'L':
   case ' ':
     if (evt.altKey) {
-      evt.preventDefault();
       wallModeOff();
       floor(Pen.x, Pen.y);
     }
