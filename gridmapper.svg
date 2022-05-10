@@ -1555,7 +1555,7 @@ function loadHtmlMenu (event) {
     var a = document.createElementNS(xhtmlNs, 'a');
     s.appendChild(a);
     var href = links[i].getAttribute('href');
-    a.setAttribute('href', 'javascript:loadMap("' + href + '")');
+    a.setAttribute('href', 'javascript:loadMap("' + href + '?raw=1")');
     a.textContent = links[i].textContent.substr(0,20);
     if (links[i].textContent.length > 20) {
       a.textContent += '…';
@@ -1582,7 +1582,7 @@ function loadMap (url) {
     message('Unfortunately the map could not be loaded.');
   });
   XHR.open('GET', url);
-  XHR.responseType = 'document';
+  XHR.responseType = 'text';
   if (Map.lastUrl === url) {
     XHR.setRequestHeader('if-none-match', Map.lastEtag);
   }
@@ -1597,34 +1597,23 @@ function loadIt (event) {
     message('Map unchanged...');
     return;
   }
-  var doc = event.target.responseXML;
-  var pre = doc.getElementsByTagNameNS(xhtmlNs, 'pre')[0];
-  if (pre === undefined) {
-    message('Unfortunately this link\n'
-            + 'contains no map.');
-  } else {
-    message('Loading');
-    Map.reset();
-    record('\02');
-    Map.lastEtag = event.target.getResponseHeader('etag');
-    Map.lastUrl = doc.URL;
-    var map = pre.textContent.replace('✎', '');
-    interpretMap(map);
-    Map.showLevelAnimation();
-    Pen.update(null);
-    var username = '';
-    var cookie = event.target.responseXML.cookie;
-    var match = decodeURIComponent(decodeURIComponent(cookie)).match(/\bWiki=([^;]*)/);
-    if (match !== null) {
-      var array = match[1].split('\x1e');
-      var i = array.indexOf('username');
-      if (i >= 0) {
-        username = array[i + 1];
-      }
-    }
-    var h1 = doc.getElementsByTagNameNS(xhtmlNs, 'h1')[0];
-    Map.exportarea.value = h1.textContent + '\n' + username + '\n';
+  var map = event.target.responseText;
+  var name = '';
+  var match = map.match(/:([^\]]+)/);
+  if (match) {
+    name = match[1];
   }
+  map = map.replace(/^.*\{\{\{\n/s,'');
+  map = map.replace(/\}\}\}\n$/,'');
+  message('Loading');
+  Map.reset();
+  record('\02');
+  Map.lastEtag = event.target.getResponseHeader('etag');
+  Map.lastUrl = event.target.responseURL;
+  interpretMap(map);
+  Map.showLevelAnimation();
+  Pen.update(null);
+  Map.exportarea.value = name;
 }
 
 /**
@@ -3421,7 +3410,7 @@ function recreateModel () {
   // parse URL
   var str = decodeURIComponent(window.location.search);
   if (str.substr(0, 6) === '?load=') {
-    loadMap(wikiUrl + '/' + str.substr(6));
+    loadMap(wikiUrl + '/' + str.substr(6) + '?raw=1');
   } else if (str.substr(0, 6) === '?join=') {
     Map.exportarea.value = decodeURIComponent(str.substr(6));
     join();
