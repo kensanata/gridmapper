@@ -3784,33 +3784,33 @@ onload = initialize;
     <g id="trap-door-ceiling" width="10" class="labels">
       <rect width="10" height="10" class="background" stroke="black" stroke-width="1"/>
       <circle cx="5" cy="5" r="3.5" fill="none" stroke="black" stroke-width="0.5"/>
-      <text x="5" y="7.2" fill="black" style="font-size: 6px">C</text>
+      <text x="8.3" y="12" fill="black" transform="scale(0.6,0.6)">C</text>
     </g>
     <g id="trap-door-floor" width="10" class="labels">
       <rect width="10" height="10" class="background" stroke="black" stroke-width="1"/>
       <circle cx="5" cy="5" r="3.5" fill="none" stroke="black" stroke-width="0.5"/>
-      <text x="5" y="7.2" fill="black" style="font-size: 6px">F</text>
+      <text x="8.3" y="12" fill="black" transform="scale(0.6,0.6)">F</text>
     </g>
     <g id="trap-door-secret" width="10" class="labels">
       <rect width="10" height="10" class="background" stroke="black" stroke-width="1"/>
       <circle cx="5" cy="5" r="3.5" fill="none" stroke="black" stroke-width="0.5"/>
-      <text x="5" y="7.2" fill="black" style="font-size: 6px">S</text>
+      <text x="8.3" y="12" fill="black" transform="scale(0.6,0.6)">S</text>
     </g>
     <g id="trap-door-secret-dm-shown" width="10" class="labels">
       <rect width="10" height="10" class="background" stroke="black" stroke-width="1"/>
       <circle cx="5" cy="5" r="3.5" fill="none" stroke="black" stroke-width="0.5"/>
-      <text x="5" y="7.2" fill="black" style="font-size: 6px">S</text>
+      <text x="8.3" y="12" fill="black" transform="scale(0.6,0.6)">S</text>
     </g>
     <g id="trap-door-secret-p-hidden" width="10">
       <rect width="10" height="10" class="background" stroke="black" stroke-width="1"/>
     </g>
     <g id="generic-trap" width="10" class="labels">
       <rect width="10" height="10" class="background" stroke="black" stroke-width="1"/>
-      <text x="5" y="7.2" fill="black" style="font-size: 6px">T</text>
+      <text x="8.3" y="12" fill="black" transform="scale(0.6,0.6)">T</text>
     </g>
     <g id="generic-trap-dm-shown" width="10" class="labels">
       <rect width="10" height="10" class="background" stroke="black" stroke-width="1"/>
-      <text x="5" y="7.2" fill="black" style="font-size: 6px">T</text>
+      <text x="8.3" y="12" fill="black" transform="scale(0.6,0.6)">T</text>
     </g>
     <g id="generic-trap-p-hidden" width="10">
       <rect width="10" height="10" class="background" stroke="black" stroke-width="1"/>
@@ -3985,7 +3985,7 @@ onload = initialize;
       <line x1="22" y1="78" x2="78" y2="22" stroke="black" stroke-width="7"/>
       <circle cx="50" cy="50" r="10" class="background" stroke="black" stroke-width="7"/>
       <rect x="2" y="2" width="46" height="46" stroke="none" stroke-width="0" fill="white"/>
-      <text x="26" y="39" fill="black" style="font: 40px 'Arial Narrow', sans-serif; font-weight: bold;">D</text>
+      <text x="6" y="10" fill="black" transform="scale(4,4)">D</text>
     </g>
     <g id="stair-spiral-up" width="100" class="labels">
       <rect width="100" height="100" class="background" stroke="black" stroke-width="10"/>
@@ -3996,7 +3996,7 @@ onload = initialize;
       <line x1="22" y1="78" x2="78" y2="22" stroke="black" stroke-width="7"/>
       <circle cx="50" cy="50" r="10" class="background" stroke="black" stroke-width="7"/>
       <rect x="2" y="2" width="46" height="46" stroke="none" stroke-width="0" fill="white"/>
-      <text x="26" y="39" fill="black" style="font: 40px 'Arial Narrow', sans-serif; font-weight: bold;">U</text>
+      <text x="6" y="10" fill="black" transform="scale(4,4)">U</text>
     </g>
     <g id="stair-big-spiral-down" width="50" class="labels">
       <rect width="100" height="100" class="background" stroke="black" stroke-width="5"/>
@@ -4009,7 +4009,7 @@ onload = initialize;
       <line x1="30" y1="85" x2="70" y2="15" stroke="black" stroke-width="5"/>
       <circle cx="50" cy="50" r="10" class="background" stroke="black" stroke-width="5"/>
       <rect x="2" y="2" width="46" height="46" stroke="none" stroke-width="0" fill="white"/>
-      <text x="26" y="39" fill="black" style="font: 40px 'Arial Narrow', sans-serif; font-weight: bold;">D</text>
+      <text x="6" y="10" fill="black" transform="scale(4,4)">D</text>
     </g>
     <g id="stair-big-spiral-up" width="50" class="labels">
       <rect width="100" height="100" class="background" stroke="black" stroke-width="5"/>
@@ -4022,7 +4022,7 @@ onload = initialize;
       <line x1="30" y1="85" x2="70" y2="15" stroke="black" stroke-width="5"/>
       <circle cx="50" cy="50" r="10" class="background" stroke="black" stroke-width="5"/>
       <rect x="2" y="2" width="46" height="46" stroke="none" stroke-width="0" fill="white"/>
-      <text x="26" y="39" fill="black" style="font: 40px 'Arial Narrow', sans-serif; font-weight: bold;">U</text>
+      <text x="6" y="10" fill="black" transform="scale(4,4)">U</text>
     </g>
   <g id="rock1" width="10">
     <path width="10" class="background" d="M0,10 v-1 L1,8 L0,6 v-1 L1,4 v-2 L0,1 L0,0 H10 V10 Z" stroke-miterlimit="1" stroke="black" stroke-width="1"/>
