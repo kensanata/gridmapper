@@ -2267,47 +2267,103 @@ function replaceArc (x, y, old, tile) {
   return replace('arcs', Map.arcsElement, x, y, old, tile, false);
 }
 
-function background (x, y, color) {
-  var tile;
-  if (Pen.type === 'wallMode') {
-    var angle = 0;
-    if (y % 1 === 0) {
-      x = Math.ceil(x);
-    } else {
-      angle = 90;
-      y = Math.ceil(y);
+function backgroundFloorTile (x, y) {
+  let tile;
+  var now = Date.now();
+  var walls = Map.data.get(x, y).walls;
+  if (walls && walls.length > 0
+      && Pen.lastWall && now - Pen.lastWall <= 2000) {
+    tile = walls[walls.length - 1];
+  } else {
+    tile = Map.data.get(x, y).floor || Map.data.get(x, y).arcs;
+  }
+  return tile;
+}
+
+function backgroundWallTile (x, y) {
+  let tile;
+  var angle = 0;
+  if (y % 1 === 0) {
+    x = Math.ceil(x);
+  } else {
+    angle = 90;
+    y = Math.ceil(y);
+  }
+  var walls = Map.data.get(x, y).walls;
+  for (var i = 0; i < walls.length; i++) {
+    if (parseInt(walls[i].getAttribute('rotate')) == angle) {
+      tile = walls[i];
+      break;
     }
-    var walls = Map.data.get(x, y).walls;
-    for (var i = 0; i < walls.length; i++) {
-      if (parseInt(walls[i].getAttribute('rotate')) == angle) {
-        tile = walls[i];
-        break;
-      }
+  }
+  return tile;
+}
+
+function backgroundTile (x, y) {
+  if (Pen.type === 'wallMode') {
+    return backgroundWallTile(x, y);
+  } else {
+    return backgroundFloorTile(x, y);
+  }
+}
+
+function backgroundTiles (x1, y1, x2, y2) {
+  let tiles = [];
+  for (var y = y1; y <= y2; y++) {
+    for (var x = x1; x <= x2; x++) {
+      let tile = backgroundTile(x, y);
+      if (tile) tiles.push(tile);
+    }
+  }
+  return tiles;
+}
+
+function floorRegion (x1, y1, x2, y2) {
+  let tiles = [];
+  for (var y = y1; y <= y2; y++) {
+    for (var x = x1; x <= x2; x++) {
+      floor(x, y);
+      tiles.push(Map.data.get(x, y).floor);
+    }
+  }
+  return tiles;
+}
+
+function background (x, y, color) {
+  let tiles;
+  if (Map.region.getAttribute('opacity') > 0) {
+    let startX = Map.region.getAttribute('startX');
+    let startY = Map.region.getAttribute('startY');
+    tiles = backgroundTiles(Math.min(Pen.x, startX), Math.min(Pen.y, startY),
+                            Math.max(Pen.x, startX), Math.max(Pen.y, startY));
+    if (!tiles.length) {
+      wallModeOff();
+      tiles = floorRegion(Math.min(Pen.x, startX), Math.min(Pen.y, startY),
+                          Math.max(Pen.x, startX), Math.max(Pen.y, startY));
     }
   } else {
-    var now = Date.now();
-    var walls = Map.data.get(x, y).walls;
-    if (walls && walls.length > 0
-        && Pen.lastWall && now - Pen.lastWall <= 2000) {
-      tile = walls[walls.length - 1];
-    } else {
-      tile = Map.data.get(x, y).floor || Map.data.get(x, y).arcs;
+    tiles = backgroundTiles(Pen.x, Pen.y, Pen.x, Pen.y);
+    if (!tiles.length) {
+      /* If there was no tile, switch off wall mode and try again. */
+      wallModeOff();
+      tiles = backgroundTiles(Pen.x, Pen.y, Pen.x, Pen.y);
+      if (!tiles.length)
+        /* If there still was no tile, create one. */
+        tiles = floorRegion(Pen.x, Pen.y, Pen.x, Pen.y);
     }
   }
   var undoBoundary = Commands.i;
-  if (tile == null) {
-    wallModeOff();
-    floor(x, y);
-    tile = Map.data.get(x, y).floor;
+  for (var i = 0; i < tiles.length; i++) {
+    let tile = tiles[i];
+    var old = tile.getAttribute('class');
+    Commands.do(
+      function(){
+        tile.setAttribute('class', old);
+      },
+      function(){
+        tile.setAttribute('class', color);
+      });
   }
-  var old = tile.getAttribute('class');
-  Commands.do(
-    function(){
-      tile.setAttribute('class', old);
-    },
-    function(){
-      tile.setAttribute('class', color);
-    });
   // make sure this is a single undo/redo command
   Commands.merge(undoBoundary);
 }
