@@ -1635,6 +1635,10 @@ function join () {
             + '• an optional password');
     return;
   }
+  rejoin(map, pwd);
+}
+
+function rejoin (map, pwd) {
   if (Map.websocket !== null) {
     Map.websocket.close();
   }
@@ -1658,6 +1662,7 @@ function join () {
     if (Map.websocket.readyState === WebSocket.OPEN) {
       message('Network error: ' + evt.data);
     }
+    setTimeout(function(){rejoin(map, pwd);}, 500); // 0.5s
   };
 }
 
