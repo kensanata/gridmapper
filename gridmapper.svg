@@ -4550,9 +4550,9 @@ onload = initialize;
       <a xlink:href="javascript:keyPressed(' ')"><tspan class="key">Space</tspan> : move right</a>&#160;&#160;&#160;&#160;&#160;&#160;<a xlink:href="javascript:keyPressed('Enter')"><tspan class="key">Enter</tspan> : new line</a>&#160;&#160;&#160;&#160;&#160;&#160;<a xlink:href="javascript:keyPressed('x')"><tspan class="key">x</tspan>, <tspan class="key">Delete</tspan> : delete</a>
     </tspan>
 
-    <tspan x="30" dy="20" id="import-export"><a id="export" class="blue" xlink:href="javascript:textExport()">Export</a>
-    <a id="import" xlink:href="javascript:textImport()"><tspan class="blue">Import</tspan> or
-    <tspan class="key">Ctrl Enter</tspan></a></tspan>
+    <tspan x="30" dy="20" id="import-export"><a id="export" class="link" xlink:href="javascript:textExport()">Export Map</a> to or
+    <a id="import" xlink:href="javascript:textImport()"><tspan class="link">Import Map</tspan> from the text area
+    (also <tspan class="key">Ctrl Enter</tspan></a></tspan> to import).
   </text>
 
   <foreignObject id="textarea" x="30" y="560" width="640" height="50">
