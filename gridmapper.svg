@@ -16,7 +16,7 @@ p { margin: 0 0 10px 0; padding: 0; }
 .labels text, #levels text, #label { text-anchor: middle; font: 10px 'Arial Narrow', sans-serif; font-weight: bold; }
 .labels text.left, #levels text.left { text-anchor: start; font-size: 14px; }
 a { color: black; text-decoration: none; }
-.blue { fill: blue; }
+.link { fill: blue; text-decoration: underline }
 /* http://paletton.com/palette.php?uid=30f0u0kk8qbaaFtfwuQo4mgswhv */
 .background { fill: inherit; }
 use.red { fill: #F6A17F; }
@@ -55,7 +55,6 @@ svg.blue a,
 svg.blue text,
 svg.blue tspan { stroke: none; fill: #005878; }
 svg.blue .key { fill: white; }
-svg.blue .blue { text-decoration: underline; fill: inherit; }
 svg.blue #background,
 svg.blue #help { fill: #01b0f1; }
 
@@ -4563,32 +4562,32 @@ onload = initialize;
 
   <text>
     <tspan x="30" y="630">
-      <a class="blue" target="_blank" xlink:href="https://alexschroeder.ch/cgit/gridmapper/about/#how-to-save">How to Save</a>
-      <a id="export" class="blue" xlink:href="javascript:link()">Link</a>
+      <a class="link" target="_blank" xlink:href="https://alexschroeder.ch/cgit/gridmapper/about/#how-to-save">How to Save</a>
+      <a id="export" class="link" xlink:href="javascript:link()">Link</a>
       <tspan id="download">
-	<a class="blue" xlink:href="javascript:download()">Download</a>
+	<a class="link" xlink:href="javascript:download()">Download</a>
       </tspan>
       <tspan id="format" display="none">
-	<a id="download_svg" class="blue">SVG</a>
-	<a id="download_png" class="blue">PNG</a>
-	<a id="download_txt" class="blue">TXT</a>
+	<a id="download_svg" class="link">SVG</a>
+	<a id="download_png" class="link">PNG</a>
+	<a id="download_txt" class="link">TXT</a>
       </tspan>
-      <a id="save" class="blue" title="Save the map to the wiki" xlink:href="javascript:save()">Save</a>
-      <a id="load" class="blue" title="Load a map from the wiki" xlink:href="javascript:load()">Load</a>
+      <a id="save" class="link" title="Save the map to the wiki" xlink:href="javascript:save()">Save</a>
+      <a id="load" class="link" title="Load a map from the wiki" xlink:href="javascript:load()">Load</a>
     </tspan>
 
     <tspan x="30" dy="20">
-      <a id="how-to-collaborate" class="blue" target="_blank" xlink:href="https://alexschroeder.ch/cgit/gridmapper/about/#how-to-collaborate">How to Collaborate</a>
-      <a id="join" class="blue" title="Host or join a map" xlink:href="javascript:join()">Join</a>
-      <a id="join" class="blue" target="_blank" title="List of hosted maps" xlink:href="https://campaignwiki.org/gridmapper-server">Server</a>
+      <a id="how-to-collaborate" class="link" target="_blank" xlink:href="https://alexschroeder.ch/cgit/gridmapper/about/#how-to-collaborate">How to Collaborate</a>
+      <a id="join" class="link" title="Host or join a map" xlink:href="javascript:join()">Join</a>
+      <a id="join" class="link" target="_blank" title="List of hosted maps" xlink:href="https://campaignwiki.org/gridmapper-server">Server</a>
     </tspan>
 
     <tspan x="30" dy="20">
-      <a id="demo" class="blue" xlink:href="javascript:Demo.start()">Demo</a>
-      <a id="source" class="blue" target="_blank" title="Source code is available" xlink:href="https://alexschroeder.ch/cgit/gridmapper/about/#gridmapper">Source</a>
-      <a id="license" class="blue" target="_blank" title="Dedicated to the Public Domain" xlink:href="https://alexschroeder.ch/cgit/gridmapper/tree/LICENSE.md#the-license">License</a>
-      <a id="bugs" class="blue" target="_blank" title="Submit a bug report" xlink:href="https://alexschroeder.ch/software/Gridmapper">Issues</a>
-      <a id="bugs" class="blue" target="_blank" title="Public dungeons" xlink:href="https://campaignwiki.org/wiki/Gridmapper/HomePage">Wiki</a>
+      <a id="demo" class="link" xlink:href="javascript:Demo.start()">Demo</a>
+      <a id="source" class="link" target="_blank" title="Source code is available" xlink:href="https://alexschroeder.ch/cgit/gridmapper/about/#gridmapper">Source</a>
+      <a id="license" class="link" target="_blank" title="Dedicated to the Public Domain" xlink:href="https://alexschroeder.ch/cgit/gridmapper/tree/LICENSE.md#the-license">License</a>
+      <a id="bugs" class="link" target="_blank" title="Submit a bug report" xlink:href="https://alexschroeder.ch/software/Gridmapper">Issues</a>
+      <a id="bugs" class="link" target="_blank" title="Public dungeons" xlink:href="https://campaignwiki.org/wiki/Gridmapper/HomePage">Wiki</a>
     </tspan>
   </text>
 
@@ -4610,7 +4609,7 @@ onload = initialize;
 </foreignObject>
 <text id="messages" visibility="hidden">
   <tspan class="step1" x="0" y="0">Hello! This is the demo!</tspan>
-  <tspan class="step1" x="0" dy="20">We're going to show you how to use this thing.</tspan>
+  <tspan class="step1" x="0" dy="20">We’re going to show you how to use this thing.</tspan>
   <code class="step1">(10,10)</code>
 
   <tspan class="step2" x="0" y="0">You can move around the map using your mouse.</tspan>
@@ -4729,7 +4728,7 @@ onload = initialize;
   <tspan class="key">Delete</tspan> to delete labels.</tspan>
   <code class="step20">(20,12)6y(15,12)1(14,19)2(19,16)4(22,17)5</code>
 
-  <tspan class="step21" x="0" y="0">Well, that's it. The rest is up to you.</tspan>
+  <tspan class="step21" x="0" y="0">Well, that’s it. The rest is up to you.</tspan>
   <tspan class="step21" x="0" dy="20">What lies beyond the secret door to the east?</tspan>
 
 </text>
