@@ -4631,6 +4631,10 @@ onload = initialize;
   <tspan class="key">Ctrl+x</tspan> to cut,
   <tspan class="key">Ctrl+c</tspan> to copy and
   <tspan class="key">Ctrl+v</tspan> to paste.</tspan>
+  <tspan class="step4" x="0" dy="20">Or use
+  <tspan class="key">Shift+x</tspan> to cut,
+  <tspan class="key">Shift+c</tspan> to copy and
+  <tspan class="key">Shift+v</tspan> to paste.</tspan>
   <code class="step4">h;H;H;H;K;C;jjV;</code>
 
   <tspan class="step5" x="0" y="0">In general I recomend using the
