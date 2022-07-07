@@ -1465,7 +1465,7 @@ function save () {
             + 'and the third line for a summary.');
     return;
   }
-  if (inputs[0].search(/^([-,.()'%&?;<> _1-9A-Za-z\u0080-\ufffd]|[-,.()'%&?;<> _0-9A-Za-z\u0080-\ufffd][-,.()'%&?;<> _0-9A-Za-z\u0080-\ufffd]+)$/) !== 0) {
+  if (inputs[0].search(/^([-,.()\'%&?;<> _1-9A-Za-z\u0080-\ufffd]|[-,.()\'%&?;<> _0-9A-Za-z\u0080-\ufffd][-,.()\'%&?;<> _0-9A-Za-z\u0080-\ufffd]+)$/) !== 0) {
     message('Unfortunately, this name is not a valid wiki page name');
     return;
   }
