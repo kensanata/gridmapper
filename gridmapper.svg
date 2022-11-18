@@ -498,9 +498,9 @@ var Map = {
 	if (label.textContent.search(/^[0-9]*$/) === 0) {
           source += label.textContent;
         } else if (label.getAttribute('class') === 'left') {
-          source += "'" + label.textContent + "'";
+          source += "'" + label.textContent.replaceAll("'", "\\'") + "'";
         } else {
-          source += '"' + label.textContent + '"';
+          source += '"' + label.textContent.replaceAll('"', '\\"') + '"';
         }
       }
       var tile = Map.data.get(x, y).arcs;
@@ -3371,14 +3371,14 @@ function interpretCont (code, i, advance, record) {
     case '"':
       var match = code.substr(i).match(/^"(.*?[^\\])"/);
       if (match) {
-        setLabel(Pen.x, Pen.y, match[1], false, null); // replace label
+        setLabel(Pen.x, Pen.y, match[1].replaceAll('\\"', '"'), false, null); // replace label
         i += match[0].length - 1; // will get incremented above
       }
       break;
     case "'":
       var match = code.substr(i).match(/^'(.*?[^\\])'/);
       if (match) {
-        setLabel(Pen.x, Pen.y, match[1], false, 'left'); // replace label
+        setLabel(Pen.x, Pen.y, match[1].replaceAll("\\'", "'"), false, 'left'); // replace label
         i += match[0].length - 1; // will get incremented above
       }
       break;
