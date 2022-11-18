@@ -4136,7 +4136,7 @@ onload = initialize;
 	<use x="50" xlink:href="#empty"/>
       </a>
       <a xlink:href="javascript:interpret('fv')" title="void">
-	<rect x="80" width="20" height="20" fill="ivory"/>
+	<rect x="80" width="20" height="20" fill="none"/>
 	<use x="80" xlink:href="#void"/>
       </a>
       <a xlink:href="javascript:interpret('fvv')" title="water">
