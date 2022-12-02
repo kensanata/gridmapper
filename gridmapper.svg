@@ -1638,18 +1638,23 @@ function join () {
 }
 
 function rejoin (map, pwd) {
-  if (Map.websocket !== null) {
+if (Map.websocket !== null) {
+    console.log('Gridmapper closing websocket');
     Map.websocket.close();
   }
+  console.log('Gridmapper connecting websocket');
   Map.websocket = new WebSocket(wsUrl + '/join/' + encodeURIComponent(map));
   Map.websocket.onopen = function(evt) {
+    console.log('Gridmapper joining map ' + map);
     joinMap(map, pwd);
   }
   Map.websocket.onclose = function(evt) {
+    console.log('Gridmapper leaving map');
     leave();
   }
   Map.websocket.onmessage = function(evt) {
     if (evt.data === '\05') {
+      console.log('Gridmapper sending the whole map');
       // Requesting a new map using Ctrl-E sends the map with a Ctrl-B
       // prefix. This will get redistributed to all the clients.
       Map.websocket.send('\02' + getSource());
@@ -1659,8 +1664,10 @@ function rejoin (map, pwd) {
   };
   Map.websocket.onerror = function(evt) {
     if (Map.websocket.readyState === WebSocket.OPEN) {
+      console.log('Gridmapper websocket received an error: ' + evt.data);
       message('Network error: ' + evt.data);
     }
+    console.log('Gridmapper rejoining map ' + map + ' in half a second');
     setTimeout(function(){rejoin(map, pwd);}, 500); // 0.5s
   };
 }
@@ -3407,6 +3414,7 @@ function interpretCont (code, i, advance, record) {
       }
       break;
     case '\02': // a simple Ctrl-B means reset the map
+      console.log('Gridmapper resetting the map');
       Map.reset();
       advance = true; // change mode for the rest of the code
       showLevels = true; // animate the levels at the end of this message
