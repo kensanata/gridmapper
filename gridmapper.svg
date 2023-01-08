@@ -1875,6 +1875,29 @@ function deleteFromLabel (x, y) {
 }
 
 /**
+ * Delete the label entirely, i.e. when deleting a rectangle.
+ */
+function deleteLabel (x, y) {
+  var tile = Map.data.get(x, y).label;
+  if (tile !== null) {
+    var text = tile.textContent;
+    if (text !== '') {
+      Commands.do(
+        function(){
+          Map.labelsElement.appendChild(tile);
+          Map.data.get(x, y).label = tile;
+          tile.textContent = text;
+        },
+        function(){
+          Map.labelsElement.removeChild(tile);
+          Map.data.get(x, y).label = null;
+        });
+      return true;
+    }
+  }
+}
+
+/**
  * Pick rocks matching the surrounding floor and wall tiles.
  * Return an approriately rotated tile.
  */
@@ -2409,7 +2432,7 @@ function regionOn (x, y) {
 function rectangleDelete (x1, y1, x2, y2) {
   for (var y = y1; y <= y2; y++) {
     for (var x = x1; x <= x2; x++) {
-      deleteFromLabel(x, y);
+      deleteLabel(x, y);
       while (removeWall(x, y));
       removeFloor(x, y);
       removeArc(x, y);
