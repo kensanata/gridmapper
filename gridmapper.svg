@@ -2802,7 +2802,7 @@ function getChar (event) {
   } else if (event.which!=0 && event.charCode!=0) {
     return String.fromCharCode(event.which) // the rest character keys
   } else if (event.type == 'keydown') { // special key
-    if(event.key && event.key.length !== 1) return event.key; // Firefox
+    if(event.key) return event.key; // Firefox
     if(event.keyIdentifier && event.keyIdentifier.substring(0,2) !== 'U+') return event.keyIdentifier; // Chrome
     if(event.keyCode === 8) return 'Backspace'; // Chrome Backspace
   }
@@ -2832,8 +2832,7 @@ function keyHandling (evt, recording) {
   // Could be a string when running interpreted code.
   var key = evt;
 
-  // When running the demo, ignore key events from the browser.
-  if (!Demo.running && evt instanceof KeyboardEvent) {
+  if (evt instanceof KeyboardEvent) {
     key = getChar(evt);
     if(key === null) return; // ignore one of onkeydown or onkeypress event
   }
@@ -2848,10 +2847,10 @@ function keyHandling (evt, recording) {
 
   // upcase control keys and use them instead
   if (evt.ctrlKey) {
-    if (evt.keyCode) { // Chrome
+    if (key) {
+      key = key.toUpperCase(key);
+    } else if (evt.keyCode) { // Chrome
       key = String.fromCharCode(64 + evt.keyCode); // 3 is 67 is 'C'
-    } else if (key !== 'Control') {
-      key = String.toUpperCase(key);
     }
   }
 
