@@ -4191,9 +4191,8 @@ onload = initialize;
 	<use x="110" xlink:href="#concealed"/>
       </a>
       <a xlink:href="javascript:interpret('dvvv')" title="double door, gate">
-	<use x="140" y="-20" xlink:href="#empty"/>
-	<use x="140" y="" xlink:href="#empty"/>
-	<use x="140" y="-20" xlink:href="#gate"/>
+	<use x="140" y="-10" xlink:href="#empty"/>
+	<use x="140" y="-10" xlink:href="#gate"/>
       </a>
       <a xlink:href="javascript:interpret('dvvvv')" title="archway">
 	<use x="170" xlink:href="#empty"/>
