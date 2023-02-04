@@ -1293,7 +1293,7 @@ function download () {
   var canvas = document.createElementNS(xhtmlNs, 'canvas');
   var rect = Map.ui.getBoundingClientRect();
   canvas.width = (Map.width + 2) * Map.tileWidth; // see resizeSVG
-  canvas.height = (Map.width + 2) * Map.tileWidth;
+  canvas.height = (Map.height + 2) * Map.tileWidth;
   var ctx = canvas.getContext('2d');
   var img = document.createElementNS(xhtmlNs, 'img');
   img.setAttribute('src', 'data:image/svg+xml;base64,' + source);
