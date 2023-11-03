@@ -457,11 +457,7 @@ var Map = {
     source = source.replace(/ +$/gm,'');
     source = source.replace(/\n+$/,'');
     source = source.replace(/^(\n*)( *)/, function(match, ys, xs) {
-      if (match.length > 5) {
-        return '(' + xs.length + ',' + ys.length + ')';
-      } else {
-        return match;
-      }
+      return '(' + xs.length + ',' + ys.length + ')';
     });
     return source;
   },
